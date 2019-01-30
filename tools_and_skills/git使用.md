@@ -1,4 +1,11 @@
 # git
+- [概念](#概念)  
+- [git命令,摘要](#git命令摘要)  
+    - [新建代码库](#一新建代码库)  &emsp;&emsp;  [配置](#二配置)  &emsp;&emsp;  [增加/删除/修改文件](#三增加删除修改文件)  &emsp;&emsp;  [代码提交](#四代码提交)  &emsp;&emsp;  [分支](#五分支)  
+    - [标签](#六标签)  &emsp;&emsp;  [查看信息](#七查看信息)  &emsp;&emsp;  [远程操作](#八远程操作)  &emsp;&emsp;  [九、撤销](#九撤销)  &emsp;&emsp;  [十、其他](#十其他)  
+- [patch的使用](#patch的使用)  
+
+
 ## 概念
 **1.1 基本概念：工作区、暂存区、本地仓库、远程仓库**  
 1.工作区(workspace)：用文本编辑器打开文件能查看/修改文件内容，此时文件在工作目录；git checkout到不同分支时所在目录；文件状态：unstaged。*本地*。  
@@ -51,6 +58,7 @@ git diff --stat ORIG_HEAD
 
 1.4 分支  
 一个git仓库，包含多个分支，默认包含master分支。参考《Pro Git》-- 3.Git分支  
+[*返回目录*](#git)
 
 
 ## git命令,摘要  
@@ -58,6 +66,7 @@ git diff --stat ORIG_HEAD
 $ git init  //在当前目录下新建一个git代码库  
 $ git init [project-name]  //新建一个目录，将其初始化为git代码库  
 $ git clone [url]  //下载一个项目和它的整个代码历史  
+[*返回目录*](#git)
 
 ### 二、配置  
 Git的设置文件为.gitconfig，它可以在用户主目录下(全局配置)，也可以在项目目录下(项目配置)。  
@@ -65,6 +74,7 @@ $ git config --list  //显示当前的git配置
 $ git config -e [--global]  //编辑git配置文件  
 $ git config [--global] user.name "name"  //设置提交代码时的用户信息，用户名  
 $ git config [--global] user.email "email address"  //设置提交代码时的用户信息，邮箱  
+[*返回目录*](#git)
 
 ### 三、增加/删除/修改文件  
 $ git diff  //查看变更内容  
@@ -75,6 +85,7 @@ $ git add -p  //添加每个变化前，都会要求确认。对于同一个文�
 $ git rm [file1] [file2] …  //删除工作区文件，并且将这次删除放入暂存区  
 $ git rm --cached [file]  //停止追踪指定文件，但该文件会保留在工作区  
 $ git mv [file-original] [file-destination]  //移动文件/文件改名，并且将这个改名放入暂存区  
+[*返回目录*](#git)
 
 ### 四、代码提交  
 $ git commit [file1] [file2] … -m [message]  //提交暂存区的指定文件到仓库区  
@@ -84,6 +95,7 @@ $ git commit -am "message" //相当于git add和git commit -m "message"。
 $ git commit -v  //提交时显示所有diff信息  
 $ git commit --amend -m [message]  //使用一次新的commit，替代上一次提交。如果代码没有任何新变化，则用来改写上一次commit的提交信息。  
 $ git commit --amend [file1] [file2]  //重做上一次commit，并包括指定文件的新变化  
+[*返回目录*](#git)
 
 ### 五、分支  
 $ git branch  //显示所有本地分支  
@@ -103,7 +115,7 @@ $ git cherry-pick [commit] //选择一个commit，合并进当前分支
 $git symbolic-ref HEAD refs/heads/[name]  
 $rm .git/index  
 $git clean -fdx  
-
+[*返回目录*](#git)
 
 ### 六、标签  
 $ git tag //列出所有本地标签  
@@ -117,6 +129,7 @@ $ git push [remote] --tags //提交所有tag
 $ git push origin --tags //上传本地tag到远程仓库  
 $ git checkout -b [branch] [tag] //新建一个分支，指向某个tag  
 $ git pull origin --tags //合并远程仓库的tag到本地  
+[*返回目录*](#git)
 
 
 ### 七、查看信息  
@@ -148,6 +161,8 @@ $ git show [commit] //显示某次提交的元数据和内容变化
 $ git show --name-only [commit] //显示某次提交发生变化的文件  
 $ git show [commit]:[filename] //显示某次提交时，某个文件的内容  
 $ git reflog //查看当前仓库的操作日志。  
+[*返回目录*](#git)
+
 
 ### 八、远程操作  
 $ git remote -v //显示所有远程仓库  
@@ -177,6 +192,7 @@ $ git push origin :heads/[name] //删除远程分支。注意":"前面有空格
 
 $ git remote set-url --push [name] [newUrl] //修改远程仓库  
 $ git branch --set-upstream [branch] [remote-branch] //建立追踪关系，在现有分支与指定的远程分支之间  
+[*返回目录*](#git)
 
 
 ### 九、撤销  
@@ -194,8 +210,105 @@ $ git reset --keep [commit] //重置当前HEAD为指定commit，但保持暂存�
 $ git revert [commit] //新建一个commit，用来撤销指定commit。后者的所有变化都将被前者抵消，并且应用到当前分支  
 $ git stash //暂时将未提交的变化保存，稍后再恢复  
 $ git stash pop //恢复之前保存的变化  
+[*返回目录*](#git)
 
 
 ### 十、其他  
 $ git archive //生成一个可供发布的压缩包  
+[*返回目录*](#git)
 
+
+
+## patch的使用  
+**1.打patch、应用patch**  
+打patch，生成补丁：  
+$ git format-patch -n master \\生成最近n次commit的patch  
+$ git format-patch master\~4..master\~2 \\生成master\~4和master\~2之间差异的patch  
+$ git format-patch -s <sha> \\生成指定commit的patch，加签名  
+应用补丁：  
+$ git am 0001-trival-patch.patch  
+git am用了git apply，用它打补丁会生成commit信息。如果出现错误  
+previous rebase directory ../.git/rebase-apply still exists but mbox given  
+可以用  
+$ git am --abort  
+
+前面方法用于**已经commit的**更改，如果是**用git diff生成的本地修改的**patch，则可以用下面方法生成本地修改的patch。  
+打patch，生成补丁：  
+$ git diff > diff.patch  
+应用patch：  
+$ git apply diff.patch  /  $ git apply --ignore-space-change --ignore-whitespace diff.patch  
+或者  
+$ patch -p1 < diff.patch  
+当然这更像svn中的习惯，在git里反正是本地提交，提交的成本很低，所以可以先提交再生成patch。  
+
+branch之间打patch用：  
+$ git cherry-pick  
+
+**git format-patch**  
+git format-patch生成的一系列的patch  
+法一：使用HEAD生成patch  
+$ git format-patch HEAD^ <==最近的1次commit的patch  
+$ git format-patch HEAD^^ <==最近的2次commit的patch  
+$ git format-patch HEAD^^^ <==最近的3次commit的patch  
+$ git format-patch HEAD^^^^ <==最近的4次commit的patch  
+$ git format-patch HEAD^^^^^ <==不支持！！！！error！！！  
+法二：根据commitSHA生成patch  
+$ git format-patch commit  -----根据commit生成patch  
+$ git format-patch commit1..commit4  -----结果是从commit2到4的patch  
+
+git format-patch -1 = git format-patch HEAD^ ,等价操作  
+git format-patch -2 = git format-patch HEAD^^  
+
+**git am**  
+$git am ~/patch/0001-trival-patch.patch  
+如果贡献者也用 Git，且擅于制作 format-patch 补丁，那你的合并工作将会非常轻松。  
+因为这些补丁中除了文件内容差异外，还包含了作者信息和提交消息。所以请鼓励贡献者用format-patch 生成补丁。对于传统的 diff 命令生成的补丁，则只能用 git apply 处理。  
+对于 format-patch 制作的新式补丁，应当使用 git am命令。  
+
+**使用git-am合并git format-patch生成的一系列的patch**  
+$git am ~/patch/0001-trival-patch.patch  
+在git使用当中，会有很多时候别人(供应商或者其他的开发人员)发过来一系列的patch，这些patch通常的是类似这样的名字：  
+0001--JFFS2-community-fix-with-not-use-OOB.patch  
+0002--Community-patch-for-Fix-mount-error-in.patch  
+0003--partial-low-interrupt-latency-mode-for-ARM113.patch  
+0004--for-the-global-I-cache-invalidation-ARM11.patch  
+里面包含了提交的日志，作者，日期等信息。你想做的是把这些patch引入到你的  
+代码库中，最好是也可以把日志也引入进来，方便以后维护用。  
+传统的打patch方式是：patch -p1 < 0001--JFFS2-community-fix-with-not-use-OOB.patch  
+这样来打patch，会把这些有用的信息丢失。  
+由于这些patch显然是用git format-patch来生成的，所以用git的工具应该就可以很好的做好。  
+git-am 就是作这件事情。  
+在使用git-am之前，你要首先git am -abort一次，来放弃掉以前的am信息，这样才可以进行一次全新的am。不然会遇到这样的错误:.git/rebase-apply still exists but mbox given.  
+git-am 可以一次合并一个文件，或者一个目录下所有的patch，或者你的邮箱目录下的patch.  
+下面举两个例子：  
+你现在有一个code base：small-src, 你的patch文件放在~/patch/0001-trival-patch.patch  
+$git am ~/patch/0001-trival-patch.patch  
+如果成功patch上去， 你就可以去喝杯茶了。  
+如果失败了，git 会提示错误， 比如：  
+error: patch failed: android/mediascanner.cpp:452  
+error: android/mediascanner.cpp: patch does not apply  
+这样你就需要先看看patch， 然后改改错误的这个文件，让这个patch能够patch上去。  
+
+**冲突的解决**  
+$git am *.patch  
+来merge这些patch， 报错，Patch failed at 0001 add line这样我们看0001这个patch,原来patch需要的是some text, 而file里面是the text, 所以我们用编辑器把这行改成some text,  
+$vi file  
+$git apply 0001-add-line.patch  
+$git add file  
+$git am --resolved  
+在解决完冲突以后， 比如用git add来让git知道你已经解决完冲突了。  
+如果你发现这个冲突是无法解决的，要撤销整个am的东西。 可以运行git am -abort，  
+如果你想只是忽略这一个patch，可以运行git am -skip来跳过这个patch.  
+
+git format-patch -1     生成最后一个提交对应的patch文件。  
+git am < patch          把一个patch文件加入git仓库中。  
+git am --resolved       如果有冲突，在解决冲突后执行。  
+git am --skip           放弃当前git am所引入的patch。  
+
+**git diff > new.patch**  
+也可以使用git diff来生成patch文件，如:git diff >new.patch。  
+
+**git apply**  
+$ git apply /tmp/patch-ruby-client.patch  
+如果收到的补丁文件是用 git diff 或由其它 Unix 的 diff 命令生成，就该用 git apply 命令来应用补丁。假设补丁文件存在 /tmp/patch-ruby-client.patch，可以这样运行。
+[*返回目录*](#git)
