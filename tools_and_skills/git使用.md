@@ -2,7 +2,7 @@
 - [概念](#概念)  
 - [git命令,摘要](#git命令摘要)  
     - [新建代码库](#一新建代码库)  &emsp;&emsp;  [配置](#二配置)  &emsp;&emsp;  [增加/删除/修改文件](#三增加删除修改文件)  &emsp;&emsp;  [代码提交](#四代码提交)  &emsp;&emsp;  [分支](#五分支)  
-    - [标签](#六标签)  &emsp;&emsp;  [查看信息](#七查看信息)  &emsp;&emsp;  [远程操作](#八远程操作)  &emsp;&emsp;  [九、撤销](#九撤销)  &emsp;&emsp;  [十、其他](#十其他)  
+    - [标签](#六标签)  &emsp;&emsp;  [查看信息](#七查看信息)  &emsp;&emsp;  [远程操作](#八远程操作)  &emsp;&emsp;  [撤销](#九撤销)  &emsp;&emsp;  [其他](#十其他)  
 - [patch的使用](#patch的使用)  
 
 
@@ -266,7 +266,7 @@ $git am ~/patch/0001-trival-patch.patch
 对于 format-patch 制作的新式补丁，应当使用 git am命令。  
 
 **使用git-am合并git format-patch生成的一系列的patch**  
-$git am ~/patch/0001-trival-patch.patch  
+$git am \~/patch/0001-trival-patch.patch  
 在git使用当中，会有很多时候别人(供应商或者其他的开发人员)发过来一系列的patch，这些patch通常的是类似这样的名字：  
 0001--JFFS2-community-fix-with-not-use-OOB.patch  
 0002--Community-patch-for-Fix-mount-error-in.patch  
@@ -282,7 +282,7 @@ git-am 就是作这件事情。
 git-am 可以一次合并一个文件，或者一个目录下所有的patch，或者你的邮箱目录下的patch.  
 下面举两个例子：  
 你现在有一个code base：small-src, 你的patch文件放在~/patch/0001-trival-patch.patch  
-$git am ~/patch/0001-trival-patch.patch  
+$git am \~/patch/0001-trival-patch.patch  
 如果成功patch上去， 你就可以去喝杯茶了。  
 如果失败了，git 会提示错误， 比如：  
 error: patch failed: android/mediascanner.cpp:452  
@@ -310,5 +310,5 @@ git am --skip           放弃当前git am所引入的patch。
 
 **git apply**  
 $ git apply /tmp/patch-ruby-client.patch  
-如果收到的补丁文件是用 git diff 或由其它 Unix 的 diff 命令生成，就该用 git apply 命令来应用补丁。假设补丁文件存在 /tmp/patch-ruby-client.patch，可以这样运行。
+如果收到的补丁文件是用 git diff 或由其它 Unix 的 diff 命令生成，就该用 git apply 命令来应用补丁。假设补丁文件存在 /tmp/patch-ruby-client.patch，可以这样运行。  
 [*返回目录*](#git)
