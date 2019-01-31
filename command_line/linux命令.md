@@ -70,7 +70,7 @@ xargs从管道中读取数据，并传递给echo命令作为输入，同时"haha
 
 xargs后也可以使用{}，？  
 $ find webui_jsp/ -name \*post\*.jar -exec cp {} /tmp/ \;  
-# ls \*.jpg | xargs -n 1 -i cp {} /external-hard-drive/directory  
+$ ls \*.jpg | xargs -n 1 -i cp {} /external-hard-drive/directory  
 cp 源 目,上述cp后{}相当于cp的第一个参数？？  
 [*返回:基础*](#基础)          &emsp;&emsp;              [*返回:页首*](#Linux命令)
 
@@ -97,21 +97,87 @@ $ cd .. ; ls
 
 
 ## 常用Linux命令  
-[ls](#ls) &emsp; [cd](#cd) &emsp;  
+[ls](#ls) &emsp; [cd](#cd) &emsp; [pwd](#pwd) &emsp;  
 
 ### ls  
 ls, 列出文件与目录, list  
 常用功能，技巧  
-# ls [-aAdfFhilnrRSt] 文件名或目录名称..  
-# ls  
-# ls -l | grep ^d  //只列子目录  
-# ls -F | grep /$   //只列子目录  
-# ls -l | grep ^-   //只普通文件  
-# ls -l | grep ^l   //只连接文件  
+$ ls [-aAdfFhilnrRSt] 文件名或目录名称..  
+$ ls  
+$ ls -l | grep ^d  //只列子目录  
+$ ls -F | grep /$   //只列子目录  
+$ ls -l | grep ^-   //只普通文件  
+$ ls -l | grep ^l   //只连接文件  
 
-#ls -l | wc -l //统计当前目录下的文件数  
-# ls -l | grep ^d | wc -l //统计目录个数  
-#find -name Android.mk | wc -l //查找当前目录下Android.mk文件的个数  
+$ ls -l | wc -l //统计当前目录下的文件数  
+$ ls -l | grep ^d | wc -l //统计目录个数  
+$ find -name Android.mk | wc -l //查找当前目录下Android.mk文件的个数  
+[*返回:常用Linux命令*](#常用Linux命令)          &emsp;&emsp;              [*返回:页首*](#Linux命令)
+
+### cd  
+cd,目录切换  
+cd /usr/bin ,跳到/usr/bin/  
+cd ~ ,跳到自己的home directory  
+cd ,也是跳到当前用户的home directory  
+cd ../.. ,跳到当前目录的上两层  
+
+. 代表当前目录  
+.. 代表上一层目录  
+- 代表前一个工作目录  
+\~ 代表『目前用户身份』所在的家目录  
+\~account 代表 account 这个用户的家目录(account 是个账号名称)  
+
+例四：返回进入此目录之前所在的目录  
+[root@localhost soft]# pwd  
+/opt/soft  
+[root@localhost soft]# cd -  
+/root  
+[root@localhost ~]# pwd  
+/root  
+[root@localhost ~]# cd -  
+/opt/soft  
+[root@localhost soft]#  
+例五：把上个命令的参数作为cd参数使用：cd !$。  
+[root@localhost soft]# cd !$  
+cd -  
+/root  
+[root@localhost ~]# cd !$  
+cd -  
+/opt/soft  
+[root@localhost soft]#  
+[*返回:常用Linux命令*](#常用Linux命令)          &emsp;&emsp;              [*返回:页首*](#Linux命令)
+
+
+### pwd
+pwd,查看当前工作目录  
+用 pwd 命令查看默认工作目录的完整路径  
+[root@localhost ~]# pwd  
+/root  
+
+实例2：目录连接链接时，pwd -P 显示出实际路径，而非使用连接(link)路径；  
+选项：  
+-L 目录连接链接时，输出连接路径  
+-P 输出物理路径  
+[root@localhost init.d]# pwd  
+/etc/rc.d/init.d  
+[root@localhost init.d]# /bin/pwd -P  
+/etc/rc.d/init.d  
+[root@localhost init.d]# /bin/pwd -L  
+/etc/init.d  
+实例3：当前目录被删除了，而pwd命令仍然显示那个目录  
+[root@localhost init.d]# cd /opt/soft  
+[root@localhost soft]# mkdir removed  
+[root@localhost soft]# cd removed/  
+[root@localhost removed]# pwd  
+/opt/soft/removed  
+[root@localhost removed]# rm ../removed -rf  
+[root@localhost removed]# pwd  
+/opt/soft/removed  
+[root@localhost removed]# pwd  
+pwd: couldn't find directory entry in “..” with matching i-node  
+[root@localhost removed]# cd  
+[root@localhost ~]# pwd  
+/root  
 [*返回:常用Linux命令*](#常用Linux命令)          &emsp;&emsp;              [*返回:页首*](#Linux命令)
 
 
@@ -976,16 +1042,19 @@ type       显示指定命令的类型
 和find相比，whereis查找的速度非常快，这是因为linux系统会将系统内的所有文件都记录在一个数据库文件中，当使用whereis和locate时，会从数据库中查找数据，而不是像find命令那样，通过遍历硬盘来查找，效率自然会很高。  
 但是该数据库文件并不是实时更新，默认情况下时一星期更新一次，因此，我们在用whereis和locate查找文件时，有时会找到已经被删除的数据，或者刚刚建立文件，却无法查找到，原因就是因为数据库文件没有被更新。  
 当我们用whereis和locate无法查找到我们需要的文件时，可以使用find，但是find是在硬盘上遍历查找，因此非常消耗硬盘的资源，而且效率也非常低，因此建议大家优先使用whereis和locate。  
+[*返回:专题讲解*](#专题讲解)          &emsp;&emsp;              [*返回:页首*](#Linux命令)
 
 
 
 ## 应用  
 //TODO  
+[*返回:应用*](#应用)          &emsp;&emsp;              [*返回:页首*](#Linux命令)
 
 
 
 ## 问题  
 //TODO  
+[*返回:问题*](#问题)          &emsp;&emsp;              [*返回:页首*](#Linux命令)
 
 
 
