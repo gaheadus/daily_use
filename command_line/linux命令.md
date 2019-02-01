@@ -124,8 +124,8 @@ cd ../.. ,跳到当前目录的上两层
 . 代表当前目录  
 .. 代表上一层目录  
 - 代表前一个工作目录  
-\\~ 代表『目前用户身份』所在的家目录  
-\\~account 代表 account 这个用户的家目录(account 是个账号名称)  
+\~ 代表『目前用户身份』所在的家目录  
+\~account 代表 account 这个用户的家目录(account 是个账号名称)  
 
 例四：返回进入此目录之前所在的目录  
 [root@localhost soft]# pwd  
@@ -183,25 +183,32 @@ pwd: couldn't find directory entry in “..” with matching i-node
 
 
 ## 专题讲解  
+[文件查找](#文件查找) &emsp; [字符处理](#字符处理) &emsp; 
 
-四、文件查找  
+### 文件查找  
+[which](#which) &emsp; [whereis](#whereis) &emsp; [locate](#locate) &emsp; [find](#find) &emsp; [xargs](#xargs)  
+[grep](#grep) &emsp; [egrep](#egrep) &emsp; [type](#type) &emsp; [小结.查找](#小结查找)  
+
+#### which
 which,可执行文件查找  
 $ which grep  
 which命令的作用是，在PATH变量指定的路径中，搜索某个系统命令的位置，并且返回第一个搜索结果。可以使用which命令查看某个系统命令是否存在，以及执行的是哪一个位置的命令。不同的 PATH 配置所找到的命令会不一样。  
 which [-a] command  //-a,将所有由PATH目录中可以找到的指令均列出，而不止第一个被找到的指令名称。  
 实例：查找文件、显示命令路径  
-[root@localhost \\~]# which pwd  
+[root@localhost \~]# which pwd  
 /bin/pwd  
-[root@localhost \\~]#  which adduser  
+[root@localhost \~]#  which adduser  
 /usr/sbin/adduser  
-[root@localhost \\~]# which which  
+[root@localhost \~]# which which  
 alias which='alias | /usr/bin/which --tty-only --read-alias --show-dot  --show-tilde'  
 /usr/bin/which  
 说明：竟然会有两个 which ，其中一个是 alias 这就是所谓的“命令别名”，意思是输入 which 会等於后面接的那串命令。  
-[root@localhost \\~]# which cd  
+[root@localhost \~]# which cd  
 说明：cd 这个常用的命令竟然找不到啊。为什么呢？这是因为 cd 是bash 内建的命令，但是 which 默认是找 PATH 内的目录，所以找不到。  
+[*返回:专题讲解*](#专题讲解)          &emsp;&emsp;              [*返回:页首*](#Linux命令)
 
 
+#### whereis
 whereis,可执行文件查找, man page查找  
 $ whereis ifconfig  
 ifconfig: /sbin/ifconfig /usr/share/man/man8/ifconfig.8.gz  
@@ -215,21 +222,23 @@ $ whereis [-bmsu] 文件或目录名
 -u :搜寻不在上述三个项目当中的其他特殊文件  
 例子：  
 将和一个文件相关的文件都查找出来  
-[root@localhost \\~]# whereis tomcat  
+[root@localhost \~]# whereis tomcat  
 tomcat:  
-[root@localhost \\~]# whereis svn  
+[root@localhost \~]# whereis svn  
 svn: /usr/bin/svn /usr/local/svn /usr/share/man/man1/svn.1.gz  
 说明：tomcat没安装，找不出来，svn安装找出了很多相关文件  
-[root@study \\~]# whereis passwd  #全部的文件通通列出来  
+[root@study \~]# whereis passwd  #全部的文件通通列出来  
 passwd: /usr/bin/passwd /etc/passwd /usr/share/man/man1/passwd.1.gz  
 /usr/share/man/man5/passwd.5.gz  
-[root@study \\~]# whereis -m passwd  #只有在man里面的文件才抓出来  
+[root@study \~]# whereis -m passwd  #只有在man里面的文件才抓出来  
 passwd: /usr/share/man/man1/passwd.1.gz /usr/share/man/man5/passwd.5.gz  
+[*返回:专题讲解*](#专题讲解)          &emsp;&emsp;              [*返回:页首*](#Linux命令)
 
 
+#### locate
 locate,数据库查找  
 查找和pwd相关的所有文件  
-peida-VirtualBox \\~ # locate pwd  
+peida-VirtualBox \~ # locate pwd  
 /bin/pwd  
 /etc/.pwd.lock  
 /sbin/unix_chkpwd  
@@ -246,12 +255,12 @@ peida-VirtualBox \\~ # locate pwd
 /usr/share/help/de/empathy/irc-join-pwd.page  
 /usr/share/help/el/empathy/irc-join-pwd.page  
 搜索etc目录下所有以sh开头的文件  
-peida-VirtualBox \\~ # locate /etc/sh  
+peida-VirtualBox \~ # locate /etc/sh  
 /etc/shadow  
 /etc/shadow-  
 /etc/shells  
 搜索etc目录下，所有以m开头的文件  
-peida-VirtualBox \\~ # locate /etc/m  
+peida-VirtualBox \~ # locate /etc/m  
 /etc/magic  
 /etc/magic.mime  
 /etc/mailcap  
@@ -286,8 +295,8 @@ $ locate [-iclSr] keyword
 locate命令比find快得多，原因在于它不搜索具体目录，而是搜索一个数据库(/var/lib/locatedb)，这个数据库中含有本地所有文件信息。Linux系统自动创建这个数据库，并且每天自动更新一次，所以使用locate命令查不到最新变动过的文件。为了避免这种情况，可以在使用locate之前，先使用updatedb命令，手动更新数据库。(当前目录下有一个文件，而使用这个命令时却查找不到这个文件，就是因为数据库没有同步更新。)  
 locate命令的使用实例：  
 　　$ locate /etc/sh #搜索etc目录下所有以sh开头的文件。  
-　　$ locate \\~/m #搜索用户主目录下，所有以m开头的文件。  
-　　$ locate -i \\~/m #搜索用户主目录下，所有以m开头的文件，并且忽略大小写。  
+　　$ locate \~/m #搜索用户主目录下，所有以m开头的文件。  
+　　$ locate -i \~/m #搜索用户主目录下，所有以m开头的文件，并且忽略大小写。  
 
 范例：   
 1) locate chdrv : 寻找所有叫 chdrv 的档案   
@@ -297,13 +306,14 @@ locate命令的使用实例：
 5) locate指定用在搜寻符合条件的档案，它会去储存档案与目录名称的数据库内，寻找合乎范本样式条件的档案或目录，可以使用特殊字元(如”\\*”或”?”等)来指定范本样式，如指定范本为kcpa\\*ner, locate会找出所有起始字串为kcpa且结尾为ner的档案或目录，如名称为kcpartner若目录录名称为kcpa_ner则会列出该目录下包括子目录在内的所有档案。  
 6) locate指令和find找寻档案的功能类似，但locate是透过update程序将硬盘中的所有档案和目录资料先建立一个索引数据库，在执行loacte时直接找该索引，查询速度会较快，索引数据库一般是由操作系统管理，但也可以直接下达update强迫系统立即修改索引数据库。   
 不过第一次在执行update後再使用locate寻找档案常会失败，此时就要执行slocate -u该命令(也可执行updatedb指令，其效果相同)来更新slocate数据库，该命令会在/usr/sbin下产生slocate执行档，再由locate到此数据库寻找所要找的资料。  
+[*返回:专题讲解*](#专题讲解)          &emsp;&emsp;              [*返回:页首*](#Linux命令)
 
 
+#### find
+[find基础](#find基础) &emsp; [find命令之prune](#find命令之prune) &emsp; [find命令之exec / ok](#find命令之execok) &emsp; [find命令之xargs](#find命令之xargs)
 
-
+##### find基础
 find,查找文件  
-find更多内容，参考：1.1.总结,查找(文件查找l文件内容查找)\\1.1.find,grep详解.doc  
-
 $ find -name connection.c //在当前目录下查找名为connection.c的文件  
 $ find . -name “connect\\*”  //可以使用通配符  
 $ find /mnt/hgfs -name connection.c -exec ls -l {} \\;  
@@ -311,7 +321,6 @@ $ find /mnt/hgfs -name connection.c | xargs ls -l
 
 $ find [path] [options] [tests] [actions]  
 参考：linux程序设计(第4版),Neil Matthew,陈建, 第2章shell程序设计--2.6.5 命令--17 find、grep  
-   
 
 $ find [path] [options] expression  //也有资料表示成这种形式  
 path：所要搜索的目录及其所有子目录。省略的时候默认为当前目录。  
@@ -389,7 +398,7 @@ $find . -name CallLog.java -print  #默认就有.和-print,不需要写，直接
 http://www.net527.cn/a/caozuoxitong/Linux/75.html, http://blog.csdn.net/jakee304/article/details/1792830 ,  
 
 实例1：查找指定时间内访问过的文件  
-[root@peidachang \\~]# find -atime -2  
+[root@peidachang \~]# find -atime -2  
 .  
 ./logs/monitor  
 ./.bashrc  
@@ -489,7 +498,7 @@ http://www.net527.cn/a/caozuoxitong/Linux/75.html, http://blog.csdn.net/jakee304
 5.使用user和nouser选项：  
 按文件属主查找文件：  
 实例1：在$HOME目录中查找文件属主为peida的文件  
-命令：find \\~ -user peida -print  
+命令：find \~ -user peida -print  
 实例2：在/etc目录下查找文件属主为peida的文件:  
 命令：find /etc -user peida -print  
 实例3：为了查找属主帐户已经被删除的文件，可以使用-nouser选项。在/home目录下查找所有的这类文件  
@@ -549,9 +558,10 @@ $ find /etc -type l -print
 在当前的文件系统中查找文件(不进入其他文件系统)，可以使用find命令的mount选项。  
 实例1：从当前目录开始查找位于本文件系统中文件名以XC结尾的文件  
 命令：find . -name "\\*.XC" -mount -print  
+[*返回:find*](#find)          &emsp;&emsp;              [*返回:专题讲解*](#专题讲解)          &emsp;&emsp;              [*返回:页首*](#Linux命令)
 
 
-find命令之-prune  
+##### find命令之prune  
 1.忽略某个目录：  
 如果在查找文件时希望忽略某个目录，因为你知道那个目录中没有你所要查找的文件，那么可以使用-prune选项来指出需要忽略的目录。在使用-prune选项时要当心，因为如果你同时使用了-depth选项，那么-prune选项就会被find命令忽略。如果希望在test目录下查找文件，但不希望在test/test3目录下查找，可以用：  
 [root@localhost soft]# find test -path "test/test3" -prune -o -print  
@@ -578,9 +588,10 @@ $ find -name Contacts -prune -o -name Mms -prune -o -name PhoneApp.java
 $ find -name Contacts -prune -o -name Mms -prune -o -name PhoneApp.java -print  
 ./Phone/src/com/android/phone/PhoneApp.java     → 加-print才能显示正确的结果  
 结论：不加-print会打印一些无关信息，正常使用必须加-print / -print0。  
+[*返回:find*](#find)          &emsp;&emsp;              [*返回:专题讲解*](#专题讲解)          &emsp;&emsp;              [*返回:页首*](#Linux命令)
 
 
-find命令之exec / ok  
+##### find命令之exec / ok  
 实例1：ls -l命令放在find命令的-exec选项中  
 [root@localhost test]# find . -type f -exec ls -l {} \\;  
 -rw-r--r-- 1 root root 127 10-28 16:51 ./log2014.log  
@@ -668,9 +679,10 @@ cp: “./test3/log2012.log” 及 “test3/log2012.log” 为同一文件
 -rw-r--r-- 1 root root      0 11-12 22:54 log2014.log  
 
 $find ./.thumbnails/\\* -type f -atime +7 -exec rm {} \\; //用户家目录下的.thumnails目录下是一些缓存信息，删除7天以上的缓存  
+[*返回:find*](#find)          &emsp;&emsp;              [*返回:专题讲解*](#专题讲解)          &emsp;&emsp;              [*返回:页首*](#Linux命令)
 
 
-find命令之xargs  
+##### find命令之xargs  
 xargs - build and execute command lines from standard input.  
 在使用 find命令的-exec选项处理匹配到的文件时， find命令将所有匹配到的文件一起传递给exec执行。但有些系统对能够传递给exec的命令长度有限制，这样在find命令运行几分钟之后，就会出现溢出错误。错误信息通常是“参数列太长”或“参数列溢出”。这就是xargs命令的用处所在，特别是与find命令一起使用。  
 find命令把匹配到的文件传递给xargs命令，而xargs命令每次只获取一部分文件而不是全部，不像-exec选项那样。这样它可以先处理最先获取的一部分文件，然后是下一批，并如此继续下去。  
@@ -761,16 +773,16 @@ drwxrwxr-x 2 root root   4096 11-13 06:08 test3
 drwxrwxr-x 2 root root   4096 11-13 05:50 test4  
 说明：-p参数会提示让你确认是否执行后面的命令,y执行，n不执行。  
 
-
 xargs是给命令传递参数的一个过滤器，也是组合多个命令的一个工具。它把一个数据流分割为一些足够小的块，以方便过滤器和命令进行处理。通常情况下，xargs从管道或者stdin中读取数据，但是它也能够从文件的输出中读取数据。xargs的默认命令是echo，这意味着通过管道传递给xargs的输入将会包含换行和空白，不过通过xargs的处理，换行和空白将被空格取代。  
 xargs 是一个强有力的命令，它能够捕获一个命令的输出，然后传递给另外一个命令，下面是一些如何有效使用xargs 的实用例子。  
 参考xargs命令。  
 $ find /etc -name "\\*" | xargs grep "hello abcserver"  
 $ find . -path './kernel' -prune -o -name '.git' -type d | xargs rm –rfv  
 $ find . -path './kernel' -prune -o -name '.gitignore' -type f | xargs rm -rfv  
+[*返回:find*](#find)          &emsp;&emsp;              [*返回:专题讲解*](#专题讲解)          &emsp;&emsp;              [*返回:页首*](#Linux命令)
 
 
-xargs  
+#### xargs  
 http://zh.wikipedia.org/wiki/Xargs  
 xargs是一条Unix和类Unix操作系统的常用命令。它的作用是将参数列表转换成小块分段传递给其他命令，以避免参数列表过长的问题。  
 例如，下面的命令：  
@@ -792,9 +804,10 @@ find . -name "\\*.foo" -print0 | xargs -0 -t -r vi
 与上面的基本相同但启动vi进行编辑。-t参数会提前打印错误信息。-r参数是一个GNU扩展，表明在无输入情况下则不构造命令执行。  
 find . -name "\\*.foo" -print0 | xargs -0 -i mv {} /tmp/trash  
 使用-i参数将{}中内容替换为列表中的内容。  
+[*返回:专题讲解*](#专题讲解)          &emsp;&emsp;              [*返回:页首*](#Linux命令)
 
 
-
+#### grep
 grep,搜索文件中匹配符  
 grep更多内容，参考：1.1.总结,查找(文件查找l文件内容查找)\\1.1.find,grep详解.doc  
 
@@ -896,14 +909,14 @@ POSIX字符类
 http://bbs.chinaunix.net/thread-1687220-1-1.html  ，http://blog.csdn.net/hudashi/article/details/7066214  
 
 实例1：查找指定进程  
-[root@localhost \\~]# ps -ef | grep svn  
+[root@localhost \~]# ps -ef | grep svn  
 root 4943   1      0  Dec05 ?   00:00:00 svnserve -d -r /opt/svndata/grape/  
 root 16867 16838  0 19:53 pts/0    00:00:00 grep svn  
 说明：第一条记录是查找出的进程；第二条结果是grep进程本身，并非真正要找的进程。  
 实例2：查找指定进程个数  
-[root@localhost \\~]# ps -ef|grep svn -c  
+[root@localhost \~]# ps -ef|grep svn -c  
 2  
-[root@localhost \\~]# ps -ef|grep -c svn  
+[root@localhost \~]# ps -ef|grep -c svn  
 2  
 实例3：从文件中读取关键词进行搜索  
 [root@localhost test]# cat test.txt  
@@ -989,13 +1002,17 @@ Redhat
 test.txt:hnlinux  
 test.txt:peida.cnblogs.com  
 test.txt:linuxmint  
+[*返回:专题讲解*](#专题讲解)          &emsp;&emsp;              [*返回:页首*](#Linux命令)
 
+
+#### egrep
 egrep,搜索文件中匹配符  
 正则表达式根据元字符的数量及功能不同又分为基本正则表达式（grep）和拓展正则表达式（egrep）。  
 egrep命令用于在文件内查找指定的字符串。egrep执行效果与grep -E相似，使用的语法及参数可参照grep指令，与grep的不同点在于解读字符串的方法。egrep是用extended regular expression语法来解读的，而grep则用basic regular expression 语法解读，extended regular expression比basic regular expression的表达更规范。  
+[*返回:专题讲解*](#专题讲解)          &emsp;&emsp;              [*返回:页首*](#Linux命令)
 
 
-
+#### type
 type,查找指定命令的类型  
 $ type -a cd  
 cd is a shell builtin  // cd是shell的自带命令(build-in)  
@@ -1028,9 +1045,10 @@ $ . build/envsetup.sh
 $ type cgrep  
 cgrep is a function //执行完envsetup.sh后,cgrep变成了已定义,cgrep是一个函数。下面是其定义的内容。  
 cgrep(){ find . -name .repo -prune -o -name .git -prune -o -type f \\( -name ‘\\*.c’ -o -name ‘\\*.cc’ -o -name ‘\\*.cpp’ -o -name ‘\\*.h’ \\) -print0 | xargs -0 grep --color -n “$@” }  
+[*返回:专题讲解*](#专题讲解)          &emsp;&emsp;              [*返回:页首*](#Linux命令)
 
 
-小结  
+#### 小结.查找  
 which      看可执行文件和别名的位置  
 whereis    查看可执行文件的位置  
 locate      配合数据库查看文件位置  
