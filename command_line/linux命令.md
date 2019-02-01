@@ -592,7 +592,7 @@ $ find -name Contacts -prune -o -name Mms -prune -o -name PhoneApp.java -print
 [*返回:find*](#find)          &emsp;&emsp;              [*返回:专题讲解*](#专题讲解)          &emsp;&emsp;              [*返回:页首*](#Linux命令)
 
 
-##### find命令之exec / ok  
+##### find命令之exec / ok
 实例1：ls -l命令放在find命令的-exec选项中  
 [root@localhost test]# find . -type f -exec ls -l {} \\;  
 -rw-r--r-- 1 root root 127 10-28 16:51 ./log2014.log  
