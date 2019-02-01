@@ -183,7 +183,7 @@ pwd: couldn't find directory entry in “..” with matching i-node
 
 
 ## 专题讲解  
-[文件查找](#文件查找) &emsp; [字符处理](#字符处理) &emsp; 
+[文件查找](#文件查找) &emsp; [字符处理](#字符处理) &emsp;  
 
 ### 文件查找  
 [which](#which) &emsp; [whereis](#whereis) &emsp; [locate](#locate) &emsp; [find](#find) &emsp; [xargs](#xargs)  
@@ -652,8 +652,8 @@ drwxrwxrwx 2 root root   4096 11-12 19:32 test4
 
 实例4：-exec中使用grep命令  
 [root@localhost test]# find /etc -name "passwd\\*" -exec grep "root" {} \\;  
-root:x:0:0:root:/root:/bin/bash  
-root:x:0:0:root:/root:/bin/bash  
+root:x :0:0:root:/root:/bin/bash  
+root:x :0:0:root:/root:/bin/bash  
 说明：任何形式的命令都可以在-exec选项中使用。  在上面的例子中我们使用grep命令。find命令首先匹配所有文件名为“ passwd\\*”的文件，例如passwd、passwd.old、passwd.bak，然后执行grep命令看看在这些文件中是否存在一个root用户。  
 实例5：查找文件移动到指定目录  
 [root@localhost test3]# find . -name "\\*.log" -exec mv {} .. \\;  
@@ -1062,6 +1062,18 @@ type       显示指定命令的类型
 但是该数据库文件并不是实时更新，默认情况下时一星期更新一次，因此，我们在用whereis和locate查找文件时，有时会找到已经被删除的数据，或者刚刚建立文件，却无法查找到，原因就是因为数据库文件没有被更新。  
 当我们用whereis和locate无法查找到我们需要的文件时，可以使用find，但是find是在硬盘上遍历查找，因此非常消耗硬盘的资源，而且效率也非常低，因此建议大家优先使用whereis和locate。  
 [*返回:专题讲解*](#专题讲解)          &emsp;&emsp;              [*返回:页首*](#Linux命令)
+
+
+
+### 字符处理  
+[awk](#awk) &emsp; [sed](#sed)  
+
+#### awk
+
+
+#### sed
+
+
 
 
 
