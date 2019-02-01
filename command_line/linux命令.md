@@ -320,7 +320,7 @@ $ find . -name “connect\\*”  //可以使用通配符
 $ find /mnt/hgfs -name connection.c -exec ls -l {} \\;  
 $ find /mnt/hgfs -name connection.c | xargs ls -l  
 
-$ find [path] [options] [tests] [actions]  
+**$ find [path] [options] [tests] [actions]**  
 参考：linux程序设计(第4版),Neil Matthew,陈建, 第2章shell程序设计--2.6.5 命令--17 find、grep  
 
 $ find [path] [options] expression  //也有资料表示成这种形式  
