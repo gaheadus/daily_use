@@ -310,7 +310,8 @@ locate命令的使用实例：
 
 
 #### find
-[find基础](#find基础) &emsp; [find命令之prune](#find命令之prune) &emsp; [find命令之exec / ok](#find命令之execok) &emsp; [find命令之xargs](#find命令之xargs)
+[find基础](#find基础) &emsp; [find命令之prune](#find命令之prune) &emsp; [find命令之exec / ok](#find命令之exec-ok) &emsp; [find命令之xargs](#find命令之xargs)  
+[*返回:专题讲解*](#专题讲解)          &emsp;&emsp;              [*返回:页首*](#Linux命令)  
 
 ##### find基础
 find,查找文件  
