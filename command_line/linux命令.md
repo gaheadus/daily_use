@@ -214,7 +214,7 @@ locate命令比find快得多，原因在于它不搜索具体目录，而是搜�
 
 #### find
 [find基础](#find基础) &emsp; [find命令之prune](#find命令之prune) &emsp; [find命令之exec/ok](#find命令之execok) &emsp; [find命令之xargs](#find命令之xargs)  
-[find的结果](#find的结果) &emsp; [find命令之-name、-path、-prune](#find命令之namepathprune)  
+[find的结果](#find的结果) &emsp; [find命令之-name、-path、-prune](#find命令之name-path-prune)  
 [*返回:专题讲解*](#专题讲解)          &emsp;&emsp;              [*返回:页首*](#Linux命令)  
 
 ##### find基础
@@ -302,55 +302,54 @@ expression: 可使用的选项有二三十个之多,在此只介绍最常用的�
 [*返回:find*](#find)          &emsp;&emsp;              [*返回:专题讲解*](#专题讲解)          &emsp;&emsp;              [*返回:页首*](#Linux命令)
 
 
-##### find的结果
-$ find [path] [options] [tests] [actions]
-$ find [path] [options] expression  //也有资料表示成这种形式
-如果path是绝对路径，那么find的结果也是绝对路径，如果path是相对路径，那么find的结果也是相对路径。
-sgk@ubuntu:/mnt/hgfs/github/daily_use$ find . -name *.md //结果是相对路径
-./article/我生命中的三个故事.乔布斯.md
-./CC++/ASCII码表.md
-./CC++/C语言数据类型&类型转换.md
-./CC++/C语言运算符优先级.md
-sgk@ubuntu:/mnt/hgfs/github/daily_use$ find -name *.md //省略path，表示从当前目录开始查找，也是相对路径
-./article/我生命中的三个故事.乔布斯.md
-./CC++/ASCII码表.md
-./CC++/C语言数据类型&类型转换.md
-./CC++/C语言运算符优先级.md
-sgk@ubuntu:/mnt/hgfs/github/daily_use$ find /mnt/hgfs/github/daily_use -name *.md //结果是绝对路径
-/mnt/hgfs/github/daily_use/article/我生命中的三个故事.乔布斯.md
-/mnt/hgfs/github/daily_use/CC++/ASCII码表.md
-/mnt/hgfs/github/daily_use/CC++/C语言数据类型&类型转换.md
-/mnt/hgfs/github/daily_use/CC++/C语言运算符优先级.md
+##### find的结果  
+$ find [path] [options] [tests] [actions]  
+$ find [path] [options] expression  //也有资料表示成这种形式  
+如果path是绝对路径，那么find的结果也是绝对路径，如果path是相对路径，那么find的结果也是相对路径。  
+sgk@ubuntu:/mnt/hgfs/github/daily_use$ find . -name *.md //结果是相对路径  
+./article/我生命中的三个故事.乔布斯.md  
+./CC++/ASCII码表.md  
+./CC++/C语言数据类型&类型转换.md  
+./CC++/C语言运算符优先级.md  
+sgk@ubuntu:/mnt/hgfs/github/daily_use$ find -name *.md //省略path，表示从当前目录开始查找，也是相对路径  
+./article/我生命中的三个故事.乔布斯.md  
+./CC++/ASCII码表.md  
+./CC++/C语言数据类型&类型转换.md  
+./CC++/C语言运算符优先级.md  
+sgk@ubuntu:/mnt/hgfs/github/daily_use$ find /mnt/hgfs/github/daily_use -name *.md //结果是绝对路径  
+/mnt/hgfs/github/daily_use/article/我生命中的三个故事.乔布斯.md  
+/mnt/hgfs/github/daily_use/CC++/ASCII码表.md  
+/mnt/hgfs/github/daily_use/CC++/C语言数据类型&类型转换.md  
+/mnt/hgfs/github/daily_use/CC++/C语言运算符优先级.md  
 
-因此，在使用-path选项时要注意，如果path参数是相对路径，那么-path选项的参数也要使用相对路径，如果path参数是绝对路径，那么-path选项的参数也要使用绝对路径。否则不起作用。
-sgk@ubuntu:/mnt/hgfs/github/daily_use$ find . -path ./.git -prune -o -path ./article -prune -o -name *.md -print
-./CC++/ASCII码表.md
-./CC++/C语言数据类型&类型转换.md
-./CC++/C语言运算符优先级.md
-sgk@ubuntu:/mnt/hgfs/github/daily_use$ find -path ./.git -prune -o -path ./article -prune -o -name *.md -print
-./CC++/ASCII码表.md
-./CC++/C语言数据类型&类型转换.md
-./CC++/C语言运算符优先级.md
-/mnt/hgfs/github/daily_use$ find /mnt/hgfs/github/daily_use -path /mnt/hgfs/github/daily_use/.git -prune -o -path /mnt/hgfs/github/daily_use/article -prune -o -name *.md -print
-/mnt/hgfs/github/daily_use/CC++/ASCII码表.md
-/mnt/hgfs/github/daily_use/CC++/C语言数据类型&类型转换.md
-/mnt/hgfs/github/daily_use/CC++/C语言运算符优先级.md
-写成$ find /mnt/hgfs/github/daily_use/article -path ./.git -prune -o -path ./article -prune -o -name *.md -print、或$ find /mnt/hgfs/github/daily_use -path ./.git -prune -o -path ./article -prune -o -name *.md -print是错误的。
+因此，在使用-path选项时要注意，如果path参数是相对路径，那么-path选项的参数也要使用相对路径，如果path参数是绝对路径，那么-path选项的参数也要使用绝对路径。否则不起作用。  
+sgk@ubuntu:/mnt/hgfs/github/daily_use$ find . -path ./.git -prune -o -path ./article -prune -o -name *.md -print  
+./CC++/ASCII码表.md  
+./CC++/C语言数据类型&类型转换.md  
+./CC++/C语言运算符优先级.md  
+sgk@ubuntu:/mnt/hgfs/github/daily_use$ find -path ./.git -prune -o -path ./article -prune -o -name *.md -print  
+./CC++/ASCII码表.md  
+./CC++/C语言数据类型&类型转换.md  
+./CC++/C语言运算符优先级.md  
+/mnt/hgfs/github/daily_use$ find /mnt/hgfs/github/daily_use -path /mnt/hgfs/github/daily_use/.git -prune -o -path /mnt/hgfs/github/daily_use/article -prune -o -name *.md -print  
+/mnt/hgfs/github/daily_use/CC++/ASCII码表.md  
+/mnt/hgfs/github/daily_use/CC++/C语言数据类型&类型转换.md  
+/mnt/hgfs/github/daily_use/CC++/C语言运算符优先级.md  
+写成$ find /mnt/hgfs/github/daily_use/article -path ./.git -prune -o -path ./article -prune -o -name *.md -print、或$ find /mnt/hgfs/github/daily_use -path ./.git -prune -o -path ./article -prune -o -name *.md -print是错误的。  
 [*返回:find*](#find)          &emsp;&emsp;              [*返回:专题讲解*](#专题讲解)          &emsp;&emsp;              [*返回:页首*](#Linux命令)
 
 
 ##### find命令之-name、-path、-prune
--path pattern
-    File name matches shell pattern pattern.  The metacharacters do not treat `/' or `.' specially; so, for example,
-find . -path "./sr*sc"
-will print an entry for a directory called `./src/misc' (if one exists).  To ignore a whole directory tree, use -prune rather than
-checking  every file in the tree.  For example, to skip the directory `src/emacs' and all files and directories under it, and print
-the names of the other files found, do something like this:
-        find . -path ./src/emacs -prune -o -print
--name pattern
-    Base  of  file name (the path with the leading directories removed) matches shell pattern pattern.  Because the leading directories are removed, the file names considered for a match with -name will never include a slash, so `-name a/b' will never match  anything (you  probably need to use -path instead).
--prune True; if the file is a directory, do not descend into it. -prune用于忽略某个目录，不能用于忽略某个文件。
-因此，find -path pattern -prune -o print起作用，但是find -name pattern -prune -o print只在pattern表示目录名时起作用。
+**-path pattern**  
+    File name matches shell pattern pattern.  The metacharacters do not treat `/' or `.' specially; so, for example,  
+find . -path "./sr*sc"  
+will print an entry for a directory called `./src/misc' (if one exists).  To ignore a whole directory tree, use -prune rather than checking  every file in the tree.  For example, to skip the directory `src/emacs' and all files and directories under it, and print
+the names of the other files found, do something like this:  
+        find . -path ./src/emacs -prune -o -print  
+**-name pattern**  
+    Base  of  file name (the path with the leading directories removed) matches shell pattern pattern.  Because the leading directories are removed, the file names considered for a match with -name will never include a slash, so `-name a/b' will never match  anything (you  probably need to use -path instead).  
+**-prune True;** if the file is a directory, do not descend into it. -prune用于忽略某个目录，不能用于忽略某个文件。  
+因此，find -path pattern -prune -o print起作用，但是find -name pattern -prune -o print只在pattern表示目录名时起作用。  
 [*返回:find*](#find)          &emsp;&emsp;              [*返回:专题讲解*](#专题讲解)          &emsp;&emsp;              [*返回:页首*](#Linux命令)
 
 
