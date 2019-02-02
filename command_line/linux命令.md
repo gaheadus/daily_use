@@ -214,7 +214,7 @@ locate命令比find快得多，原因在于它不搜索具体目录，而是搜�
 
 #### find
 [find基础](#find基础) &emsp; [find命令之prune](#find命令之prune) &emsp; [find命令之exec/ok](#find命令之execok) &emsp; [find命令之xargs](#find命令之xargs)  
-[find的结果](#find的结果) &emsp; [find命令之-name、-path、-prune](#find命令之name-path-prune)  
+[find的结果](#find的结果) &emsp; [find命令之-name、-path、-prune](#find命令之-name-path-prune)  
 [*返回:专题讲解*](#专题讲解)          &emsp;&emsp;              [*返回:页首*](#Linux命令)  
 
 ##### find基础
