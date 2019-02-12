@@ -1,7 +1,7 @@
 # ASCII码  
 [ASCII码表](#ASCII码表)    &emsp;&emsp;    [扩展ASCII码表](#扩展ASCII码表)  
 
-## ASCII表  
+## ASCII码表  
 ASCII（American Standard Code for Information Interchange，美国标准信息交换代码）是基于拉丁字母的一套电脑编码系统，主要用于显示现代英语和其他西欧语言。它是现今最通用的单字节编码系统，并等同于国际标准ISO/IEC 646。  
 来源：百度百科
 
