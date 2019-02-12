@@ -431,9 +431,9 @@ Github的Markdown语法支持添加emoji表情，
 
 ### markdown常用网址
 - **word转markdown**  
-如果需要按markdown语法编写的文本很大，一个一个编写费时间、低效率，最好的办法是先使用word排好版，然后将word转换成markdown格式。转换完后，部分内容可能不正确，需要适当修改。
-①Typora软件，可以保存为markdown文件，或者复制为markdwon、复制为html。
-②http://word-to-markdown.herokuapp.com/，网页在线转换
+如果需要按markdown语法编写的文本很大，一个一个编写费时间、低效率，最好的办法是先使用word排好版，然后将word转换成markdown格式。转换完后，部分内容可能不正确，需要适当修改。  
+①Typora软件，可以保存为markdown文件，或者复制为markdwon、复制为html。  
+②http://word-to-markdown.herokuapp.com/，网页在线转换  
 
 - **markdown转word、pdf、html**  
 http://coolaf.com/tool/md
@@ -445,5 +445,4 @@ https://www.zybuluo.com/mdeditor ，Cmd Markdown
 http://markdown.xiaoshujiang.com/ ，小书匠  
 https://www.madoko.net/editor.html  
 网页版支持在线编辑、预览。  
-
 [ *返回目录* ](#markdown基本语法)
