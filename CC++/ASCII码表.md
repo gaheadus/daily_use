@@ -153,5 +153,5 @@ ASCII码使用指定的7位或8位二进制数组合来表示128或256种可能�
 [*返回目录*](#ASCII码)  
 
 ## 扩展ASCII码表  
-![扩展ASCII码表](https://github.com/gaheadus/daily_use/blob/master/CC%2B%2B/%E6%89%A9%E5%B1%95ASCII%E7%A0%81%E8%A1%A8.gif)  
+![扩展ASCII码表](https://github.com/gaheadus/daily_use/blob/master/Resources/%E6%89%A9%E5%B1%95ASCII%E7%A0%81%E8%A1%A8.gif)  
 [*返回目录*](#ASCII码)  
