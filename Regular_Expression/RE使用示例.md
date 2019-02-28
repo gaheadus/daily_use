@@ -1,5 +1,5 @@
 # 正则表达式使用
-[基础例子](#基础例子)  &emsp;&emsp;  [平时使用例子](#平时使用例子)  &emsp;&emsp;  [专题](#专题  &emsp;&emsp;  [工具](#工具)  
+[基础例子](#基础例子)  &emsp;&emsp;  [平时使用例子](#平时使用例子)  &emsp;&emsp;  [专题](#专题)  &emsp;&emsp;  [工具](#工具)  
 
 ## 一、基础例子
 1. **hi**  ：查找字符h后紧跟字符i，也就是hi，匹配的有hi、high、efghi、efghijk。
@@ -24,15 +24,15 @@
 string1(?=condition)string2、string1(?!condition)string2，condition是对string1进行限制，不是对string2进行限制；  
 string1(?&lt;=condition)string2、string1(?&lt;!condition)string2，condition是对string2进行限制，不是对string1进行限制。  
 string1、string2也可以不是字符，可以是其他的位置限定符，如上面的^(?!hello)(.+)$。  
-类似，string1\bstring2，这里\b无法确定是对string1限制还是对string2限制，\\&gt;和\\&lt;的意义更明确，如果写成string1\\&gt;string2则明确表示是对string1进行限制，写成string1\\&lt;string2明确表示对string2进行限制。但是有的工具不支持\\&gt;和\\&lt;。
+类似，string1\bstring2，这里\b无法确定是对string1限制还是对string2限制，\\&gt;和\\&lt;的意义更明确，如果写成string1\\&gt;string2则明确表示是对string1进行限制，写成string1\\&lt;string2明确表示对string2进行限制。但是有的工具不支持\\&gt;和\\&lt;。  
 [*返回目录*](#正则表达式使用)  
 
 &nbsp;
 
 
 ## 二、平时使用例子
-1. 查询电话业务、数据业务等的综合状态动态变化时序，查询相关AT命令和关键字，使用Notepad++软件查询radio.log。
-正则表达式：\+CLCC:|(AT\+(CGATT|CGACT|CGDATA|CGDCONT|CHLD|CEER))|\bNO CARRIER\b
+1. 查询电话业务、数据业务等的综合状态动态变化时序，查询相关AT命令和关键字，使用Notepad++软件查询radio.log。  
+正则表达式：\+CLCC:|(AT\+(CGATT|CGACT|CGDATA|CGDCONT|CHLD|CEER))|\bNO CARRIER\b  
 Notepad++软件支持正则表达式查询。
 
 2. [sS]et\w*[iI]e\b  //使用notepad++,sourceinsight不支持这个表达式。
@@ -189,19 +189,18 @@ RILSIM2.\*(?!CGATT), 正向否定预搜索，搜索RILSIM2,并且后面没有CGA
 备注：RILSIM2.\*CGATT和(?<=RILSIM2).\*CGATT的搜索结果一样的，是不是没必要使用预搜索？ 不是的，虽然两者结果上一样，但是原理上不一样，RILSIM2.\*CGATT搜索的是RILSIM2.\*CGATT ，而(?<=RILSIM2).\*CGATT搜索的是.\*CGATT，(?<=RILSIM2)只是作为一个附件条件，这个附加条件本身并不参与搜索。从效率上看，预搜索(?<=RILSIM2).\*CGATT比RILSIM2.\*CGATT高的多，大文件搜索时更明显。  
 
 使用例子，如下是一个pdf目录，想要在不是章目录的书签前面加一个tab键，以便缩进显示。  
-`
-第1章 栈和队列	1
-设计一个有getMin功能的栈（士★☆☆☆）	1
-由两个栈组成的队列（尉★★☆☆）	5
+> 第1章 栈和队列	1  
+设计一个有getMin功能的栈（士★☆☆☆）	1  
+由两个栈组成的队列（尉★★☆☆）	5  
+
 也就是说，查找不是以某个字符开头的行。
-`
+
 在notepad++中编辑，ctrl+h替换，查找框填"^(?!第\d章)(.+)$"，替换框填"\t\1"。
 处理后的目录如下，
-`
-第1章 栈和队列	1
-	设计一个有getMin功能的栈（士★☆☆☆）	1
-	由两个栈组成的队列（尉★★☆☆）	5
-`
+> 第1章 栈和队列	1  
+	设计一个有getMin功能的栈（士★☆☆☆）	1  
+	由两个栈组成的队列（尉★★☆☆）	5  
+
 
 查找不是以某个单词开头的行  
 ^hello可以查找以hello开头的行，那么怎么查找不是以hello开头的行？  
@@ -219,7 +218,7 @@ string1、string2也可以不是字符，可以是其他的位置限定符，如
 
 
 ### 工具
-http://regexr.com/，推荐，可以用来练习、调试正则表达式。  
+http://regexr.com/ ，推荐，可以用来练习、调试正则表达式。  
 http://www.regexpal.com/ ,  
 Notepad++软件支持正则表达式搜索(notepad++正则表达式搜索,ctrl+f->Regular expression)  
 SouceInsight软件支持正则表达式搜索(si只支持简单的正则,sourceinsight4.0 Perl Compatible支持复杂正则)  
