@@ -3,7 +3,7 @@
 
 
 ## 速率表
-[11abg速率](#11abg速率)  &emsp;&emsp;  [11n mcs index](#11nmcsindex)  &emsp;&emsp;  [11ac mcs index](#11acmcsindex)  
+[11abg速率](#11abg速率)  &emsp;&emsp;  [11n mcs index](#11n-mcs-index)  &emsp;&emsp;  [11ac mcs index](#11ac-mcs-index)  
 ### 11abg速率
 | 标准           | 频率,带宽,非重叠信道 | 调制方式           | 数据传输速率(Mbps) -兼容性  | 传输距离(m) |
 | -------------- | -------------------- | ------------------ | --------------------------- | ----------- |
@@ -26,7 +26,7 @@
 | 802.11g<br>802.11a | 24, 36                 | OFDM/16-QAM           |
 | 802.11g<br>802.11a | 48, 54                 | OFDM/64-QAM           |
 
-[*返回速率表*](#速率表)    &emsp;&emsp;    [*返回目录*](#wifi80211)  
+[*返回速率表*](#速率表)    &emsp;&emsp;    [*返回目录*](#wifi-80211)  
 
 
 ### 11n mcs index
@@ -34,11 +34,11 @@
 
 粗体是常听到和接触到的速率。  
 
-[*返回速率表*](#速率表)    &emsp;&emsp;    [*返回目录*](#wifi80211)  
+[*返回速率表*](#速率表)    &emsp;&emsp;    [*返回目录*](#wifi-80211)  
 
 ### 11ac mcs index
 
-[*返回速率表*](#速率表)    &emsp;&emsp;    [*返回目录*](#wifi80211)  
+[*返回速率表*](#速率表)    &emsp;&emsp;    [*返回目录*](#wifi-80211)  
 
 
 
@@ -49,7 +49,7 @@
 这里再配合下面这张图一起理解下。**链路认证和接入认证是先后两个不同阶段的认证**。  
 ![链路认证和接入认证是先后两个不同阶段的认证](https://github.com/gaheadus/daily_use/blob/master/Resources/%E9%93%BE%E8%B7%AF%E8%AE%A4%E8%AF%81%E5%92%8C%E6%8E%A5%E5%85%A5%E8%AE%A4%E8%AF%81%E6%98%AF%E5%85%88%E5%90%8E%E4%B8%A4%E4%B8%AA%E4%B8%8D%E5%90%8C%E9%98%B6%E6%AE%B5%E7%9A%84%E8%AE%A4%E8%AF%81.png)  
 从表中可以看出，安全策略可分为WEP、WPA、WPA2和WAPI几种，这几种安全策略对应的链路认证其实只有Open和Shared-key Authentication两种，而802.1X和PSK则是属于接入认证方式。  
-[*返回目录*](#wifi80211)  
+[*返回目录*](#wifi-80211)  
 
 
 
@@ -58,4 +58,4 @@ https://zhuanlan.zhihu.com/dot11
 
 https://zhuanlan.zhihu.com/p/21623985
 
-[*返回目录*](#wifi80211)  
+[*返回目录*](#wifi-80211)  
