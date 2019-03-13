@@ -312,3 +312,9 @@ git am --skip           放弃当前git am所引入的patch。
 $ git apply /tmp/patch-ruby-client.patch  
 如果收到的补丁文件是用 git diff 或由其它 Unix 的 diff 命令生成，就该用 git apply 命令来应用补丁。假设补丁文件存在 /tmp/patch-ruby-client.patch，可以这样运行。  
 [*返回目录*](#git)
+
+
+### 十一、TODO，未完  
+https://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000  
+https://learngitbranching.js.org/  
+[*返回目录*](#git)
