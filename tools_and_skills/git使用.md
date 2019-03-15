@@ -4,6 +4,7 @@
     - [新建代码库](#一新建代码库)  &emsp;&emsp;  [配置](#二配置)  &emsp;&emsp;  [增加/删除/修改文件](#三增加删除修改文件)  &emsp;&emsp;  [代码提交](#四代码提交)  &emsp;&emsp;  [分支](#五分支)  
     - [标签](#六标签)  &emsp;&emsp;  [查看信息](#七查看信息)  &emsp;&emsp;  [远程操作](#八远程操作)  &emsp;&emsp;  [撤销](#九撤销)  &emsp;&emsp;  [其他](#十其他)  
 - [patch的使用](#patch的使用)  
+- [git学习网址](#git学习网址)  
 
 
 ## 概念
@@ -314,7 +315,7 @@ $ git apply /tmp/patch-ruby-client.patch
 [*返回目录*](#git)
 
 
-### 十一、TODO，未完  
+### git学习网址  
 https://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000  
 https://learngitbranching.js.org/  
 [*返回目录*](#git)
