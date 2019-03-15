@@ -317,7 +317,7 @@ $ git apply /tmp/patch-ruby-client.patch
 
 ### git学习  
 #### git动画演示
-https://learngitbranching.js.org/，git可视化，动画演示每一步的操作结果(推荐)  
+https://learngitbranching.js.org/ ，git可视化，动画演示每一步的操作结果(推荐)  
 
 上述动画演示操作命令如下：  
 https://www.cnblogs.com/WMCH/p/7876056.html  
