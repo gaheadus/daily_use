@@ -4,7 +4,7 @@
     - [新建代码库](#一新建代码库)  &emsp;&emsp;  [配置](#二配置)  &emsp;&emsp;  [增加/删除/修改文件](#三增加删除修改文件)  &emsp;&emsp;  [代码提交](#四代码提交)  &emsp;&emsp;  [分支](#五分支)  
     - [标签](#六标签)  &emsp;&emsp;  [查看信息](#七查看信息)  &emsp;&emsp;  [远程操作](#八远程操作)  &emsp;&emsp;  [撤销](#九撤销)  &emsp;&emsp;  [其他](#十其他)  
 - [patch的使用](#patch的使用)  
-- [git学习网址](#git学习网址)  
+- [git学习](#git学习)  
 
 
 ## 概念
@@ -319,8 +319,6 @@ $ git apply /tmp/patch-ruby-client.patch
 #### git动画演示
 https://learngitbranching.js.org/，git可视化，动画演示每一步的操作结果(推荐)  
 
-**上述动画演示操作命令如下：**  
-[*https://www.cnblogs.com/WMCH/p/7876056.html*](https://www.cnblogs.com/WMCH/p/7876056.html)  
 上述动画演示操作命令如下：  
 https://www.cnblogs.com/WMCH/p/7876056.html  
 本地  
