@@ -317,7 +317,7 @@ $ git apply /tmp/patch-ruby-client.patch
 
 ### git学习  
 #### git动画演示
-https://learngitbranching.js.org/，可视化，直接看到每一条git命令操作的结果。是git练习的好帮手，推荐。  
+https://learngitbranching.js.org/ ，可视化，直接看到每一条git命令操作的结果。是git练习的好帮手，推荐。  
 **Learngitbranching网站使用方法**，常用命令如下：  
 $ show commands，显示支持的命令  
 $ show solution，查看答案  
