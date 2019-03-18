@@ -41,8 +41,8 @@ HEADˆˆˆ= HEAD\~\~\~= HEADˆ3 = HEAD\~3，
 d921970aadf03b3cf0e71becdaab3147ba71cdefˆ3 = d921970aadf03b3cf0e71becdaab3147ba71cdef \~3 = d921970ˆ3 = d921970 \~3  
 
 小结：  
-HEAD ← HEAD^ / HEAD\~ / HEAD^1 / HEAD\~1 ← HEAD^^ / HEAD\~\~ / HEAD^2 / HEAD\~2 ← …  
-最新提交 ← 最新提交的父提交                 ← 最新提交的父提交的父提交   ← …  
+HEAD ← HEAD^ / HEAD\~ / HEAD\~1 ← HEAD^^ / HEAD\~\~ / HEAD\~2 ← HEAD^^^ / HEAD\~\~\~ / HEAD\~3  
+\~和^的不同：\~后面可以加数字表示多级父提交,如HEAD\~3/ HEAD\~4，^后面不能加数字, HEAD^3没有意义。  
 
 Git有几个内置的符号索引指针：  
 HEAD：永远指向当前分支的最近一次commit  
@@ -317,7 +317,16 @@ $ git apply /tmp/patch-ruby-client.patch
 
 ### git学习  
 #### git动画演示
-https://learngitbranching.js.org/ ，git可视化，动画演示每一步的操作结果(推荐)  
+https://learngitbranching.js.org/，可视化，直接看到每一条git命令操作的结果。是git练习的好帮手，推荐。  
+**Learngitbranching网站使用方法**，常用命令如下：  
+$ show commands，显示支持的命令  
+$ show solution，查看答案  
+$ show goal / hide goal，显示/关闭目标提示  
+$ levels，选择不同级别的关卡进行练习，达到设定的目标可以通关。限定只能使用某些git命令。  
+$ sandbox，进入沙盒中，不在设定的关卡里，可以使用任何git命令，自由发挥。  
+如果想通关练习，那就输levels命令选择关卡；如果想自由发挥，那就输sandbox命令，进入沙盒中。  
+通关过程中，如果想查看答案，输show solution命令。  
+
 
 上述动画演示操作命令如下：  
 https://www.cnblogs.com/WMCH/p/7876056.html  
