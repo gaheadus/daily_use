@@ -423,7 +423,7 @@ repo所支持的命令可以到源码source/.repo/repo/subcmds/目录下查看�
 [repo status](#repo-status) &emsp; [repo diff](#repo-diff) &emsp; [repo checkout](#repo-checkout) &emsp; [repo push](#repo-push) &emsp; [repo update](#repo-update)  
 [repo download](#repo-download) &emsp; [repo upload](#repo-upload) &emsp; [repo selfupdate](#repo-selfupdate) &emsp; [repo prune](#repo-prune) &emsp; [repo abandon](#repo-abandon)  
 [repo remote](#repo-remote) &emsp; [repo grep](#repo-grep) &emsp; [repo manifest](#repo-manifest) &emsp; [repo version](#repo-version) &emsp; [repo help](#repo-help)  
-[返回*repo支持的命令*](#repo支持的命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
+[返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
 ### repo init  
 repo init -u URL [OPTIONS]  
