@@ -1,6 +1,6 @@
 # git
 - [概念](#概念)  
-- [git命令](#git命令摘要)  
+- [git命令](#git命令)  
 - [patch的使用](#patch的使用)  
 - [git学习](#git学习)  
 - [repo](#repo)  
@@ -58,10 +58,10 @@ git diff --stat ORIG_HEAD
 
 1.4 分支  
 一个git仓库，包含多个分支，默认包含master分支。参考《Pro Git》-- 3.Git分支  
-[*返回目录*](#git)
+[返回*概念*](#概念)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
 
-## git命令,摘要  
+## git命令  
 [新建代码库](#一新建代码库)  &emsp;&emsp;  [配置](#二配置)  &emsp;&emsp;  [增加/删除/修改文件](#三增加删除修改文件)  &emsp;&emsp;  [代码提交](#四代码提交)  &emsp;&emsp;  [分支](#五分支)  
 [标签](#六标签)  &emsp;&emsp;  [查看信息](#七查看信息)  &emsp;&emsp;  [远程操作](#八远程操作)  &emsp;&emsp;  [撤销](#九撤销)  &emsp;&emsp;  [其他](#十其他)  
 
@@ -69,7 +69,7 @@ git diff --stat ORIG_HEAD
 $ git init  //在当前目录下新建一个git代码库  
 $ git init [project-name]  //新建一个目录，将其初始化为git代码库  
 $ git clone [url]  //下载一个项目和它的整个代码历史  
-[*返回目录*](#git)
+[返回*git命令*](#git命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
 ### 二、配置  
 Git的设置文件为.gitconfig，它可以在用户主目录下(全局配置)，也可以在项目目录下(项目配置)。  
@@ -77,7 +77,7 @@ $ git config --list  //显示当前的git配置
 $ git config -e [--global]  //编辑git配置文件  
 $ git config [--global] user.name "name"  //设置提交代码时的用户信息，用户名  
 $ git config [--global] user.email "email address"  //设置提交代码时的用户信息，邮箱  
-[*返回目录*](#git)
+[返回*git命令*](#git命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
 ### 三、增加/删除/修改文件  
 $ git diff  //查看变更内容  
@@ -88,7 +88,7 @@ $ git add -p  //添加每个变化前，都会要求确认。对于同一个文�
 $ git rm [file1] [file2] …  //删除工作区文件，并且将这次删除放入暂存区  
 $ git rm --cached [file]  //停止追踪指定文件，但该文件会保留在工作区  
 $ git mv [file-original] [file-destination]  //移动文件/文件改名，并且将这个改名放入暂存区  
-[*返回目录*](#git)
+[返回*git命令*](#git命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
 ### 四、代码提交  
 $ git commit [file1] [file2] … -m [message]  //提交暂存区的指定文件到仓库区  
@@ -98,7 +98,7 @@ $ git commit -am "message" //相当于git add和git commit -m "message"。
 $ git commit -v  //提交时显示所有diff信息  
 $ git commit --amend -m [message]  //使用一次新的commit，替代上一次提交。如果代码没有任何新变化，则用来改写上一次commit的提交信息。  
 $ git commit --amend [file1] [file2]  //重做上一次commit，并包括指定文件的新变化  
-[*返回目录*](#git)
+[返回*git命令*](#git命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
 ### 五、分支  
 $ git branch  //显示所有本地分支  
@@ -118,7 +118,7 @@ $ git cherry-pick [commit] //选择一个commit，合并进当前分支
 $git symbolic-ref HEAD refs/heads/[name]  
 $rm .git/index  
 $git clean -fdx  
-[*返回目录*](#git)
+[返回*git命令*](#git命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
 ### 六、标签  
 $ git tag //列出所有本地标签  
@@ -132,7 +132,7 @@ $ git push [remote] --tags //提交所有tag
 $ git push origin --tags //上传本地tag到远程仓库  
 $ git checkout -b [branch] [tag] //新建一个分支，指向某个tag  
 $ git pull origin --tags //合并远程仓库的tag到本地  
-[*返回目录*](#git)
+[返回*git命令*](#git命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
 
 ### 七、查看信息  
@@ -164,7 +164,7 @@ $ git show [commit] //显示某次提交的元数据和内容变化
 $ git show --name-only [commit] //显示某次提交发生变化的文件  
 $ git show [commit]:[filename] //显示某次提交时，某个文件的内容  
 $ git reflog //查看当前仓库的操作日志。  
-[*返回目录*](#git)
+[返回*git命令*](#git命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
 
 ### 八、远程操作  
@@ -195,7 +195,7 @@ $ git push origin :heads/[name] //删除远程分支。注意":"前面有空格
 
 $ git remote set-url --push [name] [newUrl] //修改远程仓库  
 $ git branch --set-upstream [branch] [remote-branch] //建立追踪关系，在现有分支与指定的远程分支之间  
-[*返回目录*](#git)
+[返回*git命令*](#git命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
 
 ### 九、撤销  
@@ -213,12 +213,12 @@ $ git reset --keep [commit] //重置当前HEAD为指定commit，但保持暂存�
 $ git revert [commit] //新建一个commit，用来撤销指定commit。后者的所有变化都将被前者抵消，并且应用到当前分支  
 $ git stash //暂时将未提交的变化保存，稍后再恢复  
 $ git stash pop //恢复之前保存的变化  
-[*返回目录*](#git)
+[返回*git命令*](#git命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
 
 ### 十、其他  
 $ git archive //生成一个可供发布的压缩包  
-[*返回目录*](#git)
+[返回*git命令*](#git命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
 
 
@@ -314,7 +314,7 @@ git am --skip           放弃当前git am所引入的patch。
 **git apply**  
 $ git apply /tmp/patch-ruby-client.patch  
 如果收到的补丁文件是用 git diff 或由其它 Unix 的 diff 命令生成，就该用 git apply 命令来应用补丁。假设补丁文件存在 /tmp/patch-ruby-client.patch，可以这样运行。  
-[*返回目录*](#git)
+[返回*patch的使用*](#patch的使用)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
 
 ### git学习  
@@ -328,8 +328,7 @@ $ levels，选择不同级别的关卡进行练习，达到设定的目标可以
 $ sandbox，进入沙盒中，不在设定的关卡里，可以使用任何git命令，自由发挥。  
 如果想通关练习，那就输levels命令选择关卡；如果想自由发挥，那就输sandbox命令，进入沙盒中。  
 通关过程中，如果想查看答案，输show solution命令。  
-
-[*返回目录*](#git)
+[返回*git学习*](#git学习)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
 
 
@@ -339,8 +338,7 @@ $ sandbox，进入沙盒中，不在设定的关卡里，可以使用任何git�
 - [repo命令详解](#repo命令详解)    
 - [repo和git使用遇到的疑难杂症](#repo和git使用遇到的疑难杂症)    
 - [repo start干了些什么？](#repo-start干了些什么)    
-
-[*返回目录*](#git)  
+[*返回目录*](#git)    
 
 ## repo介绍    
 **①repo是对git的封装。**  
@@ -354,7 +352,7 @@ repo用于管理多个git项目，**同一产品可能包含多个git项目**，
 **git只能同时对一个git库管理**，操作不同git库需要**cd切换到对应的git库目录**。  
 **repo能同时管理多个git库**，**在项目顶层目录**就可以**同时**管理项目下的**多个git库**，**不需要cd到对应的git库目录**，对于管理多个git库的项目很方便。  
 repo命令使用了和git命令**相同的名字**，如repo diff和git diff、repo branch和git branch、repo status和git status、repo checkout和git checkout，**使用方法也一样**。  
-[*返回repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
+[*返回repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 
 ## repo使用步骤  
@@ -412,11 +410,10 @@ $repo start <branchname> 就是逐一为各个版本库创建工作分支，以�
 
 ### git和repo流程表  
 ![](https://github.com/gaheadus/daily_use/blob/master/Resources/git%E5%92%8Crepo%E6%B5%81%E7%A8%8B%E8%A1%A8.png)  
-[*返回repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
+[*返回repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 
-## repo命令详解  
-### repo支持的命令  
+## repo命令  
 repo所支持的命令可以到源码source/.repo/repo/subcmds/目录下查看，如./abandon.py、./branches.py、./checkout.py…，每一个py文件对应一个可支持的repo命令有：abandon/branches/checkout/cherry_pick/diff/diffmanifests/download/forall/grep/ help/info/init/list/manifest/overview/prune/rebase/selfupdate/smartsync/stage/start/status/sync/upload/version/__init__等。  
 获取帮助：repo help [command]，获取command的详细的帮助信息内容  
 
@@ -424,7 +421,7 @@ repo所支持的命令可以到源码source/.repo/repo/subcmds/目录下查看�
 [repo status](#repo-status) &emsp; [repo diff](#repo-diff) &emsp; [repo checkout](#repo-checkout) &emsp; [repo push](#repo-push) &emsp; [repo update](#repo-update)  
 [repo download](#repo-download) &emsp; [repo upload](#repo-upload) &emsp; [repo selfupdate](#repo-selfupdate) &emsp; [repo prune](#repo-prune) &emsp; [repo abandon](#repo-abandon)  
 [repo remote](#repo-remote) &emsp; [repo grep](#repo-grep) &emsp; [repo manifest](#repo-manifest) &emsp; [repo version](#repo-version) &emsp; [repo help](#repo-help)  
-[返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
+[*返回repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 ### repo init  
 repo init -u URL [OPTIONS]  
@@ -449,7 +446,7 @@ manifests/ manifests.git/ manifest.xml repo/
 （*）.repo/manifests：此为repo配置信息的工作目录（将配置信息的工作目录和相应的实际git目录分离管理，并且配置信息中的.git目录实际只是指向实际git库的软连接），其中可能包含一个或多个xml文件描述的配置。每个xml文件是独立的一套配置，配置内容包括当前repo工作目录包含哪些git项目、所有git项目所处的默认公共分支、以及远端地址等。  
 （*）.repo/manifest.xml：repo工作目录中的内容同一时刻只能采用manifests中的一个xml文件做为其配置，该文件就是其软连接，通过init的-m选项指定采用哪个文件；另外，同一xml文件也可能处于manifests库的不同版本或者不同分支，通过init的-b选项指定使用manifests中的哪个分支，每次init命令都会从服务器更新最新的配置。这里通过-m指定的manifests中的xml文件中，有两个需要注意：default.xml是稳定版，default_head.xml是开发版，开发版始终包含最新的内容。  
 （*）.repo/repo：此为repo脚本集的git库，用于repo管理所需的各种脚本，repo的所有子命令就是其中的对应脚本实现。该脚本也通过git管理，.repo/repo/.git为对应的git目录。这里包含repo命令所需的所有子命令脚本实现，由python完成（我们可以在.repo/repo/subcmds中看到类似repo的init等的子命令脚本实现，如repo的init子命令即repo init，它由.repo/repo/subcmds/init.py实现），这个目录本身又由git来管理。不同的repo库或者不同版本的repo库，其repo命令实现会有些不同，所以也对应不同的repo脚本集，建议每次采用对应repo项目的最新的repo库做为其repo命令集实现。第一次使用repo时，采用的repo脚本实际是一个简单的repo的引导脚本，它既符合shell语法，又符合python语法，最终会将所需的具体脚本实现下载至最新的.repo/repo中，后面类似"repo init"、"repo sync"等脚本的实现，全都有这里的内容来实现。我们发现.repo/repo/repo，这个文件其实就是当前repo库中最新的repo引导脚本，可供其它没有使用过repo的用户做为repo的引导脚本来使用。  
-[返回*repo支持的命令*](#repo支持的命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
+[返回*repo命令*](#repo命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 ### repo sync  
 $ repo sync [project-list]  
@@ -479,7 +476,7 @@ manifests manifests.git manifest.xml projects repo
 （*）.repo/../*：此为repo的工作区。在repo目录（即.repo）之外，根据repo配置（即.repo/manifest.xml文件），从.repo/projects/*中提取出指定分支的各个git项目（即.repo/projects中git项目的子集）的工作目录，形成repo工作目录，可供开发使用。其中每个git工作目录中的.git只是指向.repo/projects/*的软连接，在repo工作目录中的某个git工作目录更新相应的git库，其实最终会更新到.repo/projects中对应的git库。刚刚repo sync之后，当前工作目录不处于任何分支，其中的修改只能本地保存无法提交至远端，若想提交工作，需要先创建一个分支保存工作内容。  
 repo sync做了什么？fetch+merge还是fetch+rebase？  
 repo upload呢？  
-[返回*repo支持的命令*](#repo支持的命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
+[返回*repo命令*](#repo命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 ### repo start  
 **初始化分支**  
@@ -499,7 +496,7 @@ repo start stable --all
 假设清单文件中设定的分支是gingerbread-exdroid-stable，那么执行以上指令就是对所有项目，在gingerbread-exdroid-stable的基础上创建特性分支stable。  
 repo start stable platform/build platform/bionic  
 假设清单文件中设定的分支是gingerbread-exdroid-stable，那么执行以上指令就是对platform/build、platform/bionic项目，在gingerbread-exdroid-stable的基础上创建特性分支stable。  
-[返回*repo支持的命令*](#repo支持的命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
+[返回*repo命令*](#repo命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 ### repo branch  
 $ repo branch [projectname]  
@@ -513,7 +510,7 @@ repo branch等后不加具体工程名，则对源码根目录下所有工程操
 （1）repo分支：这里通过repo init -b ，中的-b所指定的分支，是manifests的分支，不同分支，其中的文件清单内容有所不同。  
 （2）清单文件指定的分支：通过清单文件manifest.xml中的default实体的revision属性，指定版本库默认的分支为revision属性值，该属性值做为repo sync之后工作目录中所有git项目的公共起点分支，也就是说，该manifest对应所有的git项目都有一个以revision属性值为名的分支，repo sync之后，在任意一个repo工作目录下的git库中，使用git branch或者repo start创建的分支，都是基于该git库中revision属性值为名的分支来创建。我们可以将这个分支设置为和repo分支类似的名字。  
 （3）git分支：除了repo管理的用于repo配置的repo分支，和用于设置工作目录起点的清单文件分支，每个工作目录对应的git库，也可设置自己的工作分支，和平时使用git时的含义一样。  
-[返回*repo支持的命令*](#repo支持的命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
+[返回*repo命令*](#repo命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 ### repo forall -c  
 在源码根目录执行  
@@ -542,7 +539,7 @@ REPO_REMOTE 指定项目远程仓库的名称
 REPO_LREV 指定项目最后一次提交服务器仓库对应的哈希值  
 REPO_RREV 指定项目在克隆时的指定分支，manifest里的revision属性  
 如果-c后面所带的shell指令中有上述环境变量，则需要用单引号把shell指令括起来。  
-[返回*repo支持的命令*](#repo支持的命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
+[返回*repo命令*](#repo命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 ### repo status  
 $ repo status [projectname]  //显示分支及修改情况  
@@ -566,7 +563,7 @@ U 未合并  需要冲突解决
 m 修改  在暂存区，在工作区，被修改  
 d 删除  在暂存区，不在工作区  
 两个表示状态的字母后面，显示文件名信息。如果有文件重名还会显示改变前后的文件名及文件的相似度。  
-[返回*repo支持的命令*](#repo支持的命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
+[返回*repo命令*](#repo命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 ### repo diff  
 $ repo diff [ project-list ]  
@@ -574,22 +571,22 @@ $ repo diff [ project-list ]
 实际是对git diff 命令的封装,用于分别显示各个项目工作区下的文件差异。  
 repo diff                            ---查看所有项目  
 repo diff platform/build platform/bionic ---只查看其中两个项目  
-[返回*repo支持的命令*](#repo支持的命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
+[返回*repo命令*](#repo命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 ### repo checkout  
 $repo checkout <branchname> [projectname]   
 实际上是对git checkout 命令的封装，但不能带-b参数，所以不能用此命令来创建特性分支。  
-[返回*repo支持的命令*](#repo支持的命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
+[返回*repo命令*](#repo命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 ### repo push  
 repo push <remotename> [--all|<project>...]  
 向服务器提交代码。repo会自己查询需要向服务器提交的项目并提示用户。  
-[返回*repo支持的命令*](#repo支持的命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
+[返回*repo命令*](#repo命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 ### repo update  
 $ repo update[ project-list ]  
 上传修改的代码  ，如果你本地的代码有所修改，那么在运行 repo sync 的时候，会提示你上传修改的代码，所有修改的代码分支会上传到 Gerrit (基于web 的代码review 系统), Gerrit 受到上传的代码，会转换为一个个变更，从而可以让人们来review 修改的代码。  
-[返回*repo支持的命令*](#repo支持的命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
+[返回*repo命令*](#repo命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 ### repo download  
 $ repo download  target revision  
@@ -598,7 +595,7 @@ repo download {project change[/patchset]}...
 repo download命令主要用于代码审核者下载和评估贡献者提交的修订。  
 贡献者的修订在Git版本库中refs/changes//引用方式命名（缺省的patchset为1），和其他Git引用一样，用git fetch获取，该引用所指向的最新的提交就是贡献者待审核的修订。  
 使用repo download命令实际上就是用git fetch获取到对应项目的refs/changes//patchset>引用，并自动切换到对应的引用上。  
-[返回*repo支持的命令*](#repo支持的命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
+[返回*repo命令*](#repo命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 ### repo upload  
 repo upload [--re --cc] {[<project>]...|--replace <project>}  
@@ -609,7 +606,7 @@ repo upload 相当于git push，但是又有很大的不同。它不是将版本
 --replace 发送此分支的更新补丁集  
 --re=REVIEWERS 要求指定的人员进行审核  
 --cc=CC 同时发送通知到如下邮件地址  
-[返回*repo支持的命令*](#repo支持的命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
+[返回*repo命令*](#repo命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 ### repo selfupdate  
 repo selfupdate  
@@ -617,12 +614,12 @@ repo selfupdate
 选项:  
 -h, –help 显示这个帮助信息后退出.  
 –no-repo-verify 不要验证repo源码.  
-[返回*repo支持的命令*](#repo支持的命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
+[返回*repo命令*](#repo命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 ### repo prune  
 $ repo prune [project list]  
 删除已经合并分支。实际上是对git branch -d 命令的封装，该命令用于扫描项目的各个分支，并删除已经合并的分支。  
-[返回*repo支持的命令*](#repo支持的命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
+[返回*repo命令*](#repo命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 ### repo abandon  
 repo abandon <branchname> [projectname]  
@@ -632,7 +629,7 @@ repo abandon <branchname> [projectname]
 $ repo forall -c git checkout -b bra1 / repo start bra1 --all  
 $ repo forall -c git checkout -b bra2  
 $ repo abandon bra1 / $ repo abandon bra1 packages/apps/Contacts  
-[返回*repo支持的命令*](#repo支持的命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
+[返回*repo命令*](#repo命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 ### repo remote  
 repo remote add <remotename> <url> [<project>...]  
@@ -642,7 +639,7 @@ repo remote rm <remotename> [<project>...]
 repo remote add org ssh://10.11.10.11/git_repo  
 这个指令根据xml文件添加的远程分支，方便于向服务器提交代码，执行之后的build目录下看到新的远程分支org。  
 repo remote rm org //删除远程仓库  
-[返回*repo支持的命令*](#repo支持的命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
+[返回*repo命令*](#repo命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 ### repo grep  
 repo grep {pattern | -e pattern} [<project>...]  
@@ -652,7 +649,7 @@ repo grep {pattern | -e pattern} [<project>...]
 repo grep -e '\#define' --and -\( -e MAX_PATH -e PATH_MAX \)  
 \#查找一行, 里面有 'NODE'或'Unexpected', 并且在一个文件中这两个都有的.  
 repo grep --all-match -e NODE -e Unexpected  
-[返回*repo支持的命令*](#repo支持的命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
+[返回*repo命令*](#repo命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 ### repo manifest  
 repo manifest [-o {-|NAME.xml} [-r]]  
@@ -661,12 +658,12 @@ manifest检验工具，用于显示manifest文件内容。
 -h, –help 显示这个帮助信息后退出  
 -r, –revision-as-HEAD 把某版次存为当前的HEAD  
 -o -|NAME.xml, –output-file=-|NAME.xml 把manifest存为NAME.xml  
-[返回*repo支持的命令*](#repo支持的命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
+[返回*repo命令*](#repo命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 ### repo version  
 $ repo version  
 作用：显示repo版本  
-[返回*repo支持的命令*](#repo支持的命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
+[返回*repo命令*](#repo命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 ### repo help  
 repo help [--all|command]  
@@ -674,7 +671,7 @@ repo help [--all|command]
 选项:  
 -h, –help 显示这个帮助信息后退出  
 -a, –all 显示完整的命令列表  
-[*返回repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
+[返回*repo命令*](#repo命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 
 ## repo和git使用遇到的疑难杂症  
@@ -766,7 +763,7 @@ $ repo init -u git://android.git.kernel.org/platform/manifest.git
 如果不提供 -b REVISION 或者 –manifest-branch=REVISION参数，则检出 manifest Git 库的 master 分支  
 如果不提供 -m NAME.xml 或者 –manifest-name=NAME.xml 参数，则使用缺省值 default.xml  
 如果提供 –mirror 参数，则后续同步操作会有相应的体现  
-[*返回repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
+[返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 
 ## repo start干了些什么？  
@@ -794,4 +791,4 @@ Android 源码网站在介绍 repo 的使用模型中，有一个图片： http:
 899       return True  
 原来如此， repo start <branch_name> 就是逐一为各个版本库创建工作分支，以便在此分支下进行工作。  
 读者可以按图索骥，找到 repo 各个命令的实现，破解心中的疑惑。  
-[*返回repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
+[返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
