@@ -352,7 +352,7 @@ repo用于管理多个git项目，**同一产品可能包含多个git项目**，
 对于所有git管理的项目，例如mygitproject，其中mygitproject/.git是git目录（或git库）；mygitproject/中除.git之外的内容为git工作目录，来自相应git目录中的某个版本。  
 对于所有repo管理的项目，例如myrepoproject，其中myrepoproject/.repo是repo目录（或repo库）；myrepoproject/中除.repo之外的内容为repo工作目录，来自相应repo目录中的某个版本。  
 git只能同时对单个git库管理，操作不同git库需要**cd切换到对应的git库目录**。  
-封装后repo能**同时**管理多个git库，**在项目顶层目录**就可以**同时**管理项目下的多个git库，**不需要cd到对应的git库目录**，对于管理多个git库的项目很方便。  
+**repo能同时管理多个git库**，**在项目顶层目录**就可以**同时**管理项目下的**多个git库**，**不需要cd到对应的git库目录**，对于管理多个git库的项目很方便。  
 repo命令使用了和git命令**相同的名字**，如repo diff和git diff、repo branch和git branch、repo status和git status、repo checkout和git checkout，**使用方法也一样**。  
 [*返回repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
