@@ -1,8 +1,6 @@
 # git
 - [概念](#概念)  
-- [git命令,摘要](#git命令摘要)  
-    - [新建代码库](#一新建代码库)  &emsp;&emsp;  [配置](#二配置)  &emsp;&emsp;  [增加/删除/修改文件](#三增加删除修改文件)  &emsp;&emsp;  [代码提交](#四代码提交)  &emsp;&emsp;  [分支](#五分支)  
-    - [标签](#六标签)  &emsp;&emsp;  [查看信息](#七查看信息)  &emsp;&emsp;  [远程操作](#八远程操作)  &emsp;&emsp;  [撤销](#九撤销)  &emsp;&emsp;  [其他](#十其他)  
+- [git命令](#git命令摘要)  
 - [patch的使用](#patch的使用)  
 - [git学习](#git学习)  
 - [repo](#repo)  
@@ -64,6 +62,9 @@ git diff --stat ORIG_HEAD
 
 
 ## git命令,摘要  
+[新建代码库](#一新建代码库)  &emsp;&emsp;  [配置](#二配置)  &emsp;&emsp;  [增加/删除/修改文件](#三增加删除修改文件)  &emsp;&emsp;  [代码提交](#四代码提交)  &emsp;&emsp;  [分支](#五分支)  
+[标签](#六标签)  &emsp;&emsp;  [查看信息](#七查看信息)  &emsp;&emsp;  [远程操作](#八远程操作)  &emsp;&emsp;  [撤销](#九撤销)  &emsp;&emsp;  [其他](#十其他)  
+
 ### 一、新建代码库  
 $ git init  //在当前目录下新建一个git代码库  
 $ git init [project-name]  //新建一个目录，将其初始化为git代码库  
@@ -342,17 +343,17 @@ $ sandbox，进入沙盒中，不在设定的关卡里，可以使用任何git�
 [*返回目录*](#git)  
 
 ## repo介绍    
-**①**repo**是对**git**的封装。**  
-**②**repo**用于管理一个工程**(project)**下多个**git**仓库**(**项目**)**。**  
-**repo**命令行工具对**Git**命令进行了封装，可以**管理多个**git**项目**，从而更好地对代码进行集中式管理。  
-**repo**是**Google**用**Python**脚本写的调用**Git**的脚本**，用于下载、管理Android项目的软件仓库。**Repo**主要包含**Repo**配置信息以及**Repo**锁管理的**Git**项目集合**。  
-**repo**使用**Python**对**git**进行了一定的封装**，简化了**对多个**Git**版本库的管理**。它并不是用于取代git，用repo管理的版本库都需要使用git命令来进行操作。  
-repo用于管理多个git项目，**同一产品可能包含多个**git**项目**，不同的git项目集合，可能形成不同产品，通过repo可以实现方便的管理。  
+**①repo是对git的封装。**  
+**②repo用于管理一个工程(project)下多个git仓库(项目)**。  
+repo命令行工具**对Git命令进行了封装**，可以**管理多个git项目**，从而更好地对代码进行集中式管理。  
+**repo**是Google**用Python脚本写的调用Git的脚本**，用于下载、管理Android项目的软件仓库。repo主要包含Repo配置信息以及Repo所管理的Git项目集合。  
+repo**使用Python对git进行了一定的封装**，简化了**对多个Git版本库的管理**。它并不是用于取代git，用repo管理的版本库都需要使用git命令来进行操作。  
+repo用于管理多个git项目，**同一产品可能包含多个git项目**，不同的git项目集合，可能形成不同产品，通过repo可以实现方便的管理。  
 对于所有git管理的项目，例如mygitproject，其中mygitproject/.git是git目录（或git库）；mygitproject/中除.git之外的内容为git工作目录，来自相应git目录中的某个版本。  
 对于所有repo管理的项目，例如myrepoproject，其中myrepoproject/.repo是repo目录（或repo库）；myrepoproject/中除.repo之外的内容为repo工作目录，来自相应repo目录中的某个版本。  
-git只能同时对单个git库管理，操作不同git库需要**cd**切换到对应的**git**库目录。  
-封装后repo能同时管理多个git库，在项目顶层目录就可以管理项目下的多个git库，**不需要**cd**到对应的**git**库目录**，对于管理多个git库的项目很方便。  
-repo命令使用了和git命令**相同的名字**，如repo branch和git branch、repo status和git status、repo checkout和git checkout，**使用方法也一样**。  
+git只能同时对单个git库管理，操作不同git库需要**cd切换到对应的git库目录**。  
+封装后repo能**同时**管理多个git库，**在项目顶层目录**就可以**同时**管理项目下的多个git库，**不需要cd到对应的git库目录**，对于管理多个git库的项目很方便。  
+repo命令使用了和git命令**相同的名字**，如repo diff和git diff、repo branch和git branch、repo status和git status、repo checkout和git checkout，**使用方法也一样**。  
 [*返回repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
 
