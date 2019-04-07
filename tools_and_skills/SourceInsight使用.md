@@ -61,6 +61,10 @@ alt+. / alt+x，前进
 Contex window，动态刷新。  
 Relation window，锁定，不让动态刷新。需要查看不同的relation时可以建立多个relation window，或者手动刷新。  
 
+同一份源代码，建立多个sourceinsight工程，便于对比阅读和分析，大型项目这样做很有必要。例如Android4.2源码，我一般会建两个工程Android4.2、Android4.2_cmp。  
+也有必要将一份源码复制为多份，一份用于修改，一份不修改、保持原始不变，便于对比和分析，例如建立Android4.2_bak源码文件夹，同样的，建立多个对应的sourceinsight工程，如Android4.2_bak、Android4.2_bak_cmp。  
+一般情况下，有了这样四个sourceinsight工程就很方便了，多个sourceinsight工程之间切换阅读，便于对比和分析。  
+
 
 ## 有用功能  
 **菜单-&gt; Search -&gt; Selection History很有用(ctrl+shift+m)，可以打开之前浏览过的代码位置。**  
