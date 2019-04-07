@@ -1,12 +1,11 @@
-# SourceInsight快捷键、常用功能
+# SourceInsight使用  
 - [快捷键](#快捷键)  
+- [使用](#使用)  
+- [sourceinsight4](#sourceinsight4)  
 - [正则表达式,搜索,替换](#正则表达式搜索替换)  
-  - [si正则搜索](#si正则搜索)
-  - [si支持的正则表达式](#si支持的正则表达式)
-  - [si re分组的使用](#si-re分组的使用)
-  - [perl正则, 推荐使用](#perl正则推荐使用)
 
-## 快捷键  
+
+# 快捷键  
 **菜单 -&gt; Help -&gt; Create Key List，查看、修改快捷键。**  
 **ctrl+鼠标左击:跳到函数/宏/变量定义(声明),或者ctrl+=**。//按住ctrl,然后点击鼠标左键。  
 **ctrl+鼠标右击:弹出对话框,显示函数/宏/变量定义；显示reference按钮**。  
@@ -48,12 +47,20 @@
 到块(大括号)的上面                    : Ctrl+Shift+[  
 转到下一个链接                       : Shift+f9, Ctrl+Shift+L  
 *附：ads快捷键：ctrl+shift+b，返回*
+[返回*快捷键*](#快捷键)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [返回*目录*](#SourceInsight使用)  
 
-## 我的常用快捷键  
+
+
+# 常用功能  
+## 我的使用习惯  
 ctrl+d，打开文件所在目录  
 alt+, / alt+z，后退  
 alt+. / alt+x，前进  
 将常用功能赋予操作方便的快捷键，Option -&gt; Key Assignments。
+
+Contex window，动态刷新。
+Relation window，锁定，不让动态刷新。需要查看不同的relation时可以建立多个relation window，或者手动刷新。
+
 
 ## 有用功能  
 **菜单-&gt; Search -&gt; Selection History很有用(ctrl+shift+m)，可以打开之前浏览过的代码位置。**  
@@ -70,10 +77,59 @@ si3.5: C:\Users\lenovo\Documents\Source Insight\Projects，si4.0: C:\Users\lenov
 ## 取消自动对齐  
 自动对齐往往不是我们要求的格式，自动对齐后反而需要去修改，更麻烦。  
 取消自动对齐：Options-&gt;File Type Options-&gt;Auto Indenting-&gt;Auto Indent设置为none。  
-[*返回目录*](#SourceInsight快捷键常用功能)
+[返回*常用功能*](#常用功能)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [返回*目录*](#SourceInsight使用)  
+
+
+
+
+# sourceinsight4  
+alt+m,在最近浏览过的两个文件之间切换显示。
+ctrl+shift+m，可以打开之前浏览过的代码位置(菜单-> Search -> Selection History)。
+
+菜单-> File -> Reload As Encoding -> Chinese Simplified(GB2312)，解决中文乱码问题。
+
+Relation window，右击relation window可以新建关系窗口，多个关系窗以tab的形式显示，很好。
+
+菜单-> Project -> Copy Project，复制当前共存。一般，在看大型代码时，会建立同一份代码的多个工程，这时候可以使用这里的复制工程。这样可以省去新建一个工程的多个步骤。
+菜单-> Project -> Export Project File List…，将工程中的源代码文件名导出保存。以后在新建工程的时候就可以从file list新建了，不再需要一个目录一个目录的去选择了。
+
+菜单-> Project -> Project Report，对工程中每个文件定义的函数、变量等进行统计、并列举出来，强大。
+
+菜单-> Project -> Export Project to HTML…，将源代码导出到html，这样可以使用网页浏览器查看源代码了，牛。
+
+菜单-> Project -> Import External Symbols…；
+
+文件比较 / 目录比较，和Beyond Compare一样。菜单-> Tools -> Compare Files.. / Directory Compare，工具栏 。
+
+Snippet window，常用程序结构片段，如for、while等结构。打开Snippet window，可以选择一种结构插入代码中。
+
+Clip window，粘贴板，保存一些常用的东西。
+
+
+命令行：
+$ sourceinsight4 dtu.c    //使用sourceinsight打开指定文件。如果当前打开了sourceinsight那么直接打开指定文件，如果当前没有打开sourceinsight那么先打开sourceinsight再打开指定文件。
+$ sourceinsight4 -n dtu.c  //在独立的sourceinsight实例在打开指定文件
+$ sourceinsight4 +100 dtu.c  //打开指定文件并跳转到第100行。和vi一样。
+
+```Source Insight's command line has the following syntax:
+sourceinsight4 [-option] [ [+linenumber file] [+file] [file] [symbolname] ]
+Optional parameters are shown here inside […] brackets. Any number of options, files, and symbol names may be given on the command line.
+Each option given on the command line must be preceded by a dash (-) or a forward slash (/).
+```
+[返回*sourceinsight4*](#sourceinsight4)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [返回*目录*](#SourceInsight使用)  
+
+
 
 
 # 正则表达式,搜索,替换  
+- [si正则搜索](#si正则搜索)
+- [si支持的正则表达式](#si支持的正则表达式)
+- [si re分组的使用](#si-re分组的使用)
+- [perl正则, 推荐使用](#perl正则推荐使用)
+
+[返回*目录*](#SourceInsight使用)  
+
+
 ## si正则搜索  
 1.正则搜索时将Whole Words Only选项去掉  
 2.注意：sourceinsight中\w不代表所有单个大小写字母、数字、下划线，不表示[a-zA-Z0-9_], sourceinsight中\w表示空格或tab，\w-white；而python/perl中\w表示单个大小写字母、数字、下划线，[a-zA-Z0-9_]，\w-word。  
@@ -89,7 +145,8 @@ Source insight帮助文档的解释如下：//**应该多看看这个帮助文�
 **Multi-Line Matches:** Most places in the program where you can specify a regular expression also has a &quot;regular expression syntax&quot; selection. If you select the &quot; **multi-line**&quot; version of the syntax, then **the dot (.) character matches new-lines**. **For example .\* matches the whole file**. **Example: begin.\*end matches everything from &quot;begin&quot; to &quot;end&quot; across multiple lines.**&quot;begin&quot; could be at line 1 and &quot;end&quot; could be at line 100.  
 
 5.搜索函数调用使用add\_pa\_tx\_packet\(.\*\)  
-[*返回目录*](#SourceInsight快捷键常用功能)
+[返回*正则表达式,搜索,替换*](#正则表达式搜索替换)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [返回*目录*](#SourceInsight使用)  
+
 
 ## si支持的正则表达式  
 参考**帮助文档, menu -&gt; help -&gt; help…(f1)**  
@@ -131,7 +188,8 @@ void func(int var1, int var2)
 void func(int var2, int var1)，  
 如果没有RE，这下子可就麻烦了，所有调用func的地方都要手工挨个修改，好在有RE。按下Ctrl+h，选择使用RE进行替换，在Old中输入&quot;func(\(.\*\), \(.\*\))&quot;，在New中输入&quot;func(\2, \1)&quot;，然后执行，你会发现全部搞定了。  
 当然ctrl+h只能在本文件中搜索替换，要想替换整个工程的，可以使用ctrl+shift+h。  
-[*返回目录*](#SourceInsight快捷键常用功能)
+[返回*正则表达式,搜索,替换*](#正则表达式搜索替换)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [返回*目录*](#SourceInsight使用)  
+
 
 ## si re分组的使用  
 **使用分组捕获感兴趣的字符，以便以后使用。**  
@@ -275,4 +333,4 @@ echo &quot;ab2c121a&quot;|perl -ne &#39;print $1 if /(?&lt;!--2)(c.\*)/;&#39;  #
 
 正向预搜索内部的表达式,始终采用&quot;普通模式（从左向右）&quot;模式,反向预搜索内部的表达式,始终采用 &quot;从右向左&quot;模式.  
 例如：想要匹配字符a但不匹配abc,可以为/a(?!bc)/ 再如：想要所有以.pl结尾但不是a.pl的文件名,可以/.\*(?&lt;!a)\\.pl/; 注意要从右向左。  
-[*返回目录*](#SourceInsight快捷键常用功能)
+[返回*正则表达式,搜索,替换*](#正则表达式搜索替换)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [返回*目录*](#SourceInsight使用)  
