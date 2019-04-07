@@ -1,6 +1,6 @@
 # SourceInsight使用  
 - [快捷键](#快捷键)  
-- [使用](#使用)  
+- [常用功能](#常用功能)  
 - [sourceinsight4](#sourceinsight4)  
 - [正则表达式,搜索,替换](#正则表达式搜索替换)  
 
@@ -115,7 +115,7 @@ $ sourceinsight4 +100 dtu.c  //打开指定文件并跳转到第100行。和vi�
 sourceinsight4 [-option] [ [+linenumber file] [+file] [file] [symbolname] ]
 Optional parameters are shown here inside […] brackets. Any number of options, files, and symbol names may be given on the command line.
 Each option given on the command line must be preceded by a dash (-) or a forward slash (/).
-`
+`  
 [返回*sourceinsight4*](#sourceinsight4)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [返回*目录*](#SourceInsight使用)  
 
 
