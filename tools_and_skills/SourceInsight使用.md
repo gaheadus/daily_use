@@ -56,6 +56,7 @@
 ctrl+d，打开文件所在目录  
 alt+, / alt+z，后退  
 alt+. / alt+x，前进  
+f1/f8/f12，都配置为语法高亮快捷键；shift+f8，取消所有语法高亮。  
 将常用功能赋予操作方便的快捷键，Option -&gt; Key Assignments。  
 
 Contex window，动态刷新。  
