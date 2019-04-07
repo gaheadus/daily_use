@@ -46,7 +46,7 @@
 到块(大括号)的下面                    : Ctrl+Shift+]  
 到块(大括号)的上面                    : Ctrl+Shift+[  
 转到下一个链接                       : Shift+f9, Ctrl+Shift+L  
-*附：ads快捷键：ctrl+shift+b，返回*
+*附：ads快捷键：ctrl+shift+b，返回*  
 [返回*快捷键*](#快捷键)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [返回*目录*](#SourceInsight使用)  
 
 
@@ -83,14 +83,14 @@ si3.5: C:\Users\lenovo\Documents\Source Insight\Projects，si4.0: C:\Users\lenov
 
 
 # sourceinsight4  
-alt+m,在最近浏览过的两个文件之间切换显示。
+alt+m,在最近浏览过的两个文件之间切换显示。  
 ctrl+shift+m，可以打开之前浏览过的代码位置(菜单-> Search -> Selection History)。
 
 菜单-> File -> Reload As Encoding -> Chinese Simplified(GB2312)，解决中文乱码问题。
 
 Relation window，右击relation window可以新建关系窗口，多个关系窗以tab的形式显示，很好。
 
-菜单-> Project -> Copy Project，复制当前共存。一般，在看大型代码时，会建立同一份代码的多个工程，这时候可以使用这里的复制工程。这样可以省去新建一个工程的多个步骤。
+菜单-> Project -> Copy Project，复制当前共存。一般，在看大型代码时，会建立同一份代码的多个工程，这时候可以使用这里的复制工程。这样可以省去新建一个工程的多个步骤。  
 菜单-> Project -> Export Project File List…，将工程中的源代码文件名导出保存。以后在新建工程的时候就可以从file list新建了，不再需要一个目录一个目录的去选择了。
 
 菜单-> Project -> Project Report，对工程中每个文件定义的函数、变量等进行统计、并列举出来，强大。
@@ -106,26 +106,27 @@ Snippet window，常用程序结构片段，如for、while等结构。打开Snip
 Clip window，粘贴板，保存一些常用的东西。
 
 
-命令行：
-$ sourceinsight4 dtu.c    //使用sourceinsight打开指定文件。如果当前打开了sourceinsight那么直接打开指定文件，如果当前没有打开sourceinsight那么先打开sourceinsight再打开指定文件。
-$ sourceinsight4 -n dtu.c  //在独立的sourceinsight实例在打开指定文件
-$ sourceinsight4 +100 dtu.c  //打开指定文件并跳转到第100行。和vi一样。
+命令行：  
+$ sourceinsight4 dtu.c    //使用sourceinsight打开指定文件。如果当前打开了sourceinsight那么直接打开指定文件，如果当前没有打开sourceinsight那么先打开sourceinsight再打开指定文件。  
+$ sourceinsight4 -n dtu.c  //在独立的sourceinsight实例在打开指定文件。  
+$ sourceinsight4 +100 dtu.c  //打开指定文件并跳转到第100行。和vi一样。  
 
-```Source Insight's command line has the following syntax:
+`Source Insight's command line has the following syntax:
 sourceinsight4 [-option] [ [+linenumber file] [+file] [file] [symbolname] ]
 Optional parameters are shown here inside […] brackets. Any number of options, files, and symbol names may be given on the command line.
 Each option given on the command line must be preceded by a dash (-) or a forward slash (/).
-```
+`
+
 [返回*sourceinsight4*](#sourceinsight4)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [返回*目录*](#SourceInsight使用)  
 
 
 
 
 # 正则表达式,搜索,替换  
-- [si正则搜索](#si正则搜索)
-- [si支持的正则表达式](#si支持的正则表达式)
-- [si re分组的使用](#si-re分组的使用)
-- [perl正则, 推荐使用](#perl正则推荐使用)
+- [si正则搜索](#si正则搜索)  
+- [si支持的正则表达式](#si支持的正则表达式)  
+- [si re分组的使用](#si-re分组的使用)  
+- [perl正则, 推荐使用](#perl正则推荐使用)  
 
 [返回*目录*](#SourceInsight使用)  
 
