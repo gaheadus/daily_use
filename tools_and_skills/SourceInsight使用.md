@@ -56,10 +56,10 @@
 ctrl+d，打开文件所在目录  
 alt+, / alt+z，后退  
 alt+. / alt+x，前进  
-将常用功能赋予操作方便的快捷键，Option -&gt; Key Assignments。
+将常用功能赋予操作方便的快捷键，Option -&gt; Key Assignments。  
 
-Contex window，动态刷新。
-Relation window，锁定，不让动态刷新。需要查看不同的relation时可以建立多个relation window，或者手动刷新。
+Contex window，动态刷新。  
+Relation window，锁定，不让动态刷新。需要查看不同的relation时可以建立多个relation window，或者手动刷新。  
 
 
 ## 有用功能  
@@ -84,26 +84,26 @@ si3.5: C:\Users\lenovo\Documents\Source Insight\Projects，si4.0: C:\Users\lenov
 
 # sourceinsight4  
 alt+m,在最近浏览过的两个文件之间切换显示。  
-ctrl+shift+m，可以打开之前浏览过的代码位置(菜单-> Search -> Selection History)。
+ctrl+shift+m，可以打开之前浏览过的代码位置(菜单-> Search -> Selection History)。  
 
-菜单-> File -> Reload As Encoding -> Chinese Simplified(GB2312)，解决中文乱码问题。
+菜单-> File -> Reload As Encoding -> Chinese Simplified(GB2312)，解决中文乱码问题。  
 
-Relation window，右击relation window可以新建关系窗口，多个关系窗以tab的形式显示，很好。
+Relation window，右击relation window可以新建关系窗口，多个关系窗以tab的形式显示，很好。  
 
 菜单-> Project -> Copy Project，复制当前共存。一般，在看大型代码时，会建立同一份代码的多个工程，这时候可以使用这里的复制工程。这样可以省去新建一个工程的多个步骤。  
-菜单-> Project -> Export Project File List…，将工程中的源代码文件名导出保存。以后在新建工程的时候就可以从file list新建了，不再需要一个目录一个目录的去选择了。
+菜单-> Project -> Export Project File List…，将工程中的源代码文件名导出保存。以后在新建工程的时候就可以从file list新建了，不再需要一个目录一个目录的去选择了。  
 
-菜单-> Project -> Project Report，对工程中每个文件定义的函数、变量等进行统计、并列举出来，强大。
+菜单-> Project -> Project Report，对工程中每个文件定义的函数、变量等进行统计、并列举出来，强大。  
 
-菜单-> Project -> Export Project to HTML…，将源代码导出到html，这样可以使用网页浏览器查看源代码了，牛。
+菜单-> Project -> Export Project to HTML…，将源代码导出到html，这样可以使用网页浏览器查看源代码了，牛。  
 
-菜单-> Project -> Import External Symbols…；
+菜单-> Project -> Import External Symbols…；  
 
-文件比较 / 目录比较，和Beyond Compare一样。菜单-> Tools -> Compare Files.. / Directory Compare，工具栏 。
+文件比较 / 目录比较，和Beyond Compare一样。菜单-> Tools -> Compare Files.. / Directory Compare，工具栏 。  
 
-Snippet window，常用程序结构片段，如for、while等结构。打开Snippet window，可以选择一种结构插入代码中。
+Snippet window，常用程序结构片段，如for、while等结构。打开Snippet window，可以选择一种结构插入代码中。  
 
-Clip window，粘贴板，保存一些常用的东西。
+Clip window，粘贴板，保存一些常用的东西。  
 
 
 命令行：  
@@ -116,7 +116,6 @@ sourceinsight4 [-option] [ [+linenumber file] [+file] [file] [symbolname] ]
 Optional parameters are shown here inside […] brackets. Any number of options, files, and symbol names may be given on the command line.
 Each option given on the command line must be preceded by a dash (-) or a forward slash (/).
 `
-
 [返回*sourceinsight4*](#sourceinsight4)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [返回*目录*](#SourceInsight使用)  
 
 
