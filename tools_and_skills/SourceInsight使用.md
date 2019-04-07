@@ -217,7 +217,7 @@ void func(int var2, int var1)
 如果没有RE，这下子可就麻烦了，所有调用func的地方都要手工挨个修改，好在有RE。按下ctrl+h，选择使用RE进行替换，在Old中输入&quot;func(\(.\*\), \(.\*\))&quot;，在New中输入&quot;func(\2, \1)&quot;，然后执行，你会发现全部搞定了。  
 当然ctrl+h只能在本文件中搜索替换，要想替换整个工程的，可以使用ctrl+shift+h。  
 备注：()不需要转义，反而用做分组的()需要转义，容易搞混淆， **推荐使用强大很多的perl compatible re** 。  
-[*返回目录*](#SourceInsight快捷键常用功能)
+[返回*正则表达式,搜索,替换*](#正则表达式搜索替换)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [返回*目录*](#SourceInsight使用)  
 
 ## perl正则,推荐使用  
 **sourceinsight4.0推荐使用Perl Compatible正则。si re不支持复杂表达式，而且很多字符容易混淆，不推荐。**  
