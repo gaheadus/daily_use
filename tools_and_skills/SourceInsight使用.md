@@ -58,7 +58,7 @@ ctrl+shift+m, 打开“浏览历史记录”弹出框
 其他  
 跳到基本类型(即跳到原型)             : Alt+0  
 转到下一个链接                       : Shift+f9, Ctrl+Shift+L  
-**不移动鼠标指针、移动页面视图：alt+方向键,alt+← alt+→ alt+↑ alt+↓**  
+不移动鼠标指针、移动页面视图：alt+方向键,alt+← alt+→ alt+↑ alt+↓  
 
 *附：ads快捷键：ctrl+shift+b，返回*  
 [返回*快捷键*](#快捷键)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [返回*目录*](#SourceInsight使用)  
