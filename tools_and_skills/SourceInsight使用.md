@@ -13,20 +13,21 @@
 **后退:alt+,  前进:alt+.**  
 **不移动鼠标指针、移动页面视图：alt+方向键,alt+← alt+→ alt+↑ alt+↓**  
 **书签: ctrl+m**  
+ctrl+shift+m, 打开“浏览历史记录”弹出框  
+
 **按住alt，按住鼠标左键拖动，选中一个区块；**  
+
 **符号索引窗口: f7、alt+g**  
 **ctrl+g:跳到某一行**  
+
+到块(大括号)的下面                    : Ctrl+Shift+]  
+到块(大括号)的上面                    : Ctrl+Shift+[  
+
 **高亮当前单词: shift+f8。按一次高亮，按两次取消高亮。//si4改为f8**  
 **显示/隐藏函数列表窗口：alt+f8**  
-**上一个函数        :  (KeyPad) -**，方法：先取`消小键盘Num Lock`，然后才可以使用-/+进行跳转。  
-**到下一个函数    : (KeyPad) +**  
-**回到前一个修改   : Alt+(KeyPad) -**，方法：先取`消小键盘Num Lock`，然后才可以使用alt+-/+进行跳转。  
-**转到下一个修改  : Alt+(KeyPad) + (键盘左边的Alt)**  
-**鼠标选中变量,alt+/,弹出symbol info框；区分:鼠标选中变量,ctrl+/,弹出搜索框；**  
-**撤销修改：ctrl+z， 恢复修改：ctrl+y**  
 
-**搜索: ctrl+f , 向后搜索: f3, 向前搜索: f4，f12 : incremental search?**  
-取消循环搜索，ctrl+f,弹出搜索框,将Wrap Around选项去掉。  
+**搜索: ctrl+f , 向后搜索: f3, 向前搜索: f4。取消循环搜索，ctrl+f,弹出搜索框,将Wrap Around选项去掉。**  
+**shift+f3,向后搜索鼠标所在单词；shift+f4,向前搜索鼠标所在单词。**  
 **在多个文件中搜索 : ctrl+f然后选择Files,或按ctrl+shift+f组合键** ，在弹出的Search files窗口选择需要搜索的文件夹或者文件。当要查询的文件夹包含子文件夹时，可以勾选Options中的Include Subdirectiories，实现对各层文件的递归搜索。
 
 **搜索: ctrl+/，Lookup Reference。//** 菜单栏有一个带问号的图标,打开搜索结果。  
@@ -37,15 +38,23 @@
 单文件替换:选择Search/Replace或按ctrl+h组合键，在弹出的Replace窗口进行查找操作。在Search项目里勾选Selection则仅对当前选中的文档部分进行替换。另外如果勾选了Confirm Replacements则是逐个确认替换，否则会同时替换所有符合替换条件内容。  
 多文件替换:选择Search/Replace files或按Ctrl+Shift+H组合键，在弹出的Replace files 窗口进行查找操作。除了增加New框(替换后的内容)外，其余均与Search files窗口相同，可参照查找部分的说明进行操作。
 
+**上一个函数        :  (KeyPad) -**，方法：先取`消小键盘Num Lock`，然后才可以使用-/+进行跳转。  
+**到下一个函数    : (KeyPad) +**  
+**回到前一个修改   : Alt+(KeyPad) -**，方法：先取`消小键盘Num Lock`，然后才可以使用alt+-/+进行跳转。  
+**转到下一个修改  : Alt+(KeyPad) + (键盘左边的Alt)**  
+**鼠标选中变量,alt+/,弹出symbol info框；区分:鼠标选中变量,ctrl+/,弹出搜索框；**  
+**撤销修改：ctrl+z， 恢复修改：ctrl+y**  
+
+
 **跳到基本类型(即跳到原型)             : Alt+0**  
 **从当前位置选择到文件结束             : Ctrl+Shift+End**  
 **从当前位置选择到行结束               : Shift+End**  
 **从当前位置选择到行的开始             : Shift+Home**  
 **从当前位置选择到文件顶部             : Ctrl+Shift+Home**  
 
-到块(大括号)的下面                    : Ctrl+Shift+]  
-到块(大括号)的上面                    : Ctrl+Shift+[  
+其他  
 转到下一个链接                       : Shift+f9, Ctrl+Shift+L  
+
 *附：ads快捷键：ctrl+shift+b，返回*  
 [返回*快捷键*](#快捷键)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [返回*目录*](#SourceInsight使用)  
 
