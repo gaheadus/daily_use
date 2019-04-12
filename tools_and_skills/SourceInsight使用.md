@@ -27,7 +27,7 @@ ctrl+shift+m, 打开“浏览历史记录”弹出框
 **显示/隐藏函数列表窗口：alt+f8**  
 
 **搜索: ctrl+f , 向后搜索: f3, 向前搜索: f4。取消循环搜索，ctrl+f,弹出搜索框,将Wrap Around选项去掉。**  
-**shift+f3,向后搜索鼠标所在单词；shift+f4,向前搜索鼠标所在单词。**  
+**shift+f3,向后搜索鼠标所在单词；shift+f4,向前搜索鼠标所在单词。更快捷**,省去了ctrl+f、弹出搜索框、输入字搜索符串、按确认开始搜索这样的多个步骤。  
 **在多个文件中搜索 : ctrl+f然后选择Files,或按ctrl+shift+f组合键** ，在弹出的Search files窗口选择需要搜索的文件夹或者文件。当要查询的文件夹包含子文件夹时，可以勾选Options中的Include Subdirectiories，实现对各层文件的递归搜索。
 
 **搜索: ctrl+/，Lookup Reference。//** 菜单栏有一个带问号的图标,打开搜索结果。  
