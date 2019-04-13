@@ -1,11 +1,47 @@
-# word通配符,查找与替换
-- [word通配符--使用实例](#word通配符--使用实例)
-- [word通配符表](#word通配符表)
-  - [word查找栏代码&通配符一览表](#word查找栏代码通配符一览表)
-  - [word替换栏代码&通配符一览表](#word替换栏代码通配符一览表)
-- [word通配符用法详解](#word通配符用法详解)
-- [word换行符](#word换行符)
+# word使用
+- [word快捷键](#word快捷键)
+- [word通配符,查找与替换](#word通配符查找与替换)
 
+# word快捷键  
+ctrl+f：查找  
+ctrl+h：替换  
+ctrl+g：定位  
+
+ctrl+b:加粗  
+ctrl+i：斜体  
+ctrl+u：下划线  
+ctrl+[：增加字体大小。同ctrl+shift+大于号(>)。  
+ctrl+]：减小字体大小。同ctrl+shift+小于号(<)。  
+shift+f3：改变字母大小写  
+ctrl+y: 恢复 / ctrl+z取消修改  
+
+ctrl+等于号(=) : 使所选文本成为下标  
+ctrl+shift+等于号(=) : 使所选文本成为上标  
+ctrl+q/e/r：左对齐/居中/右对齐  
+
+ctrl+enter: 分页  
+
+按alt，激活菜单栏(提示)，再按一次，取消菜单栏激活。  
+alt+f，打开“文件”菜单，  
+alt+h，打开“开始”菜单，<- 按alt激活菜单的时候有提示  
+
+按esc关闭弹出对话框、关闭弹出菜单栏。  
+esc键，取消当前任务，关闭、取消当前窗口，中止、停下现在的工作。  
+电脑键盘上的esc键诞生于1960年，位于电脑键盘的左上方，英文单词escape的缩写。escape翻译成中文为逃脱，逃跑，漏出，泄漏之意。对于一般用户而言，esc键并不常用，但是借助esc键却能实现不少快捷操作。  
+
+shift+alt+d：输入日期；shift+alt+t：输入时间。  
+
+
+
+
+
+# word通配符,查找与替换
+[word通配符--使用实例](#word通配符--使用实例)  
+[word通配符表](#word通配符表)  
+  &emsp;&emsp;&emsp;&emsp;[word查找栏代码&通配符一览表](#word查找栏代码通配符一览表)  
+  &emsp;&emsp;&emsp;&emsp;[word替换栏代码&通配符一览表](#word替换栏代码通配符一览表)  
+[word通配符用法详解](#word通配符用法详解)  
+[word换行符](#word换行符)  
 
 
 ## word通配符--使用实例
