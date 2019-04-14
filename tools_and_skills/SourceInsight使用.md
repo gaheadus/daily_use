@@ -34,13 +34,13 @@ ctrl+shift+m, 打开“浏览历史记录”弹出框
 
 **搜索: ctrl+/，Lookup Reference。//** 菜单栏有一个带问号的图标,打开搜索结果。  
 在Search Method中有四种可选的查找方式：Simple String、Regular Expression、 Keyword Expression和Look Up Reference。其中Simple String是最普通的查找方式，可以查找文件中出现的任意字符或字符，甚至可以查找 \_upap || u 这样的字符串，但是在工程较大时，查找过程会较慢。Regular Expression查找方式为正则表达式。Keyword Expression和Look Up Reference查找的结果基本相同，但是显示方式略有差异。这两种方式都是使用SI预先建立的数据库，查找起来速度相当快。但通常这种速度只对在查找标识符时有明显效果。对于像函数名，变量名等的查找，强烈建议使用这两种方式进行查找。  
-选择Search/Search Project，在弹出的Search Project窗口进行查找操作。操作与Loopup References几乎完全一致，它们各自保存上次搜索的配置。
+选择Search/Search Project，在弹出的Search Project窗口进行查找操作。操作与Loopup References几乎完全一致，它们各自保存上次搜索的配置。  
+a.在搜索结果页面，按ctrl+l(字母l)跳到搜索结果对应的代码位置；  
+b.在搜索结果页面，点击工具栏go to next link(shift+f8)/go to next link(shift+f9)，就可以跳到搜索结果对应的代码位置，再次点击可以在多个搜索结果之间跳转。和页面搜索f3/f4类似。  
 
 **替换: ctrl+h**  
 单文件替换:选择Search/Replace或按ctrl+h组合键，在弹出的Replace窗口进行查找操作。在Search项目里勾选Selection则仅对当前选中的文档部分进行替换。另外如果勾选了Confirm Replacements则是逐个确认替换，否则会同时替换所有符合替换条件内容。  
 多文件替换:选择Search/Replace files或按Ctrl+Shift+H组合键，在弹出的Replace files 窗口进行查找操作。除了增加New框(替换后的内容)外，其余均与Search files窗口相同，可参照查找部分的说明进行操作。  
-a.在搜索结果页面，按ctrl+l(字母l)跳到搜索结果对应的代码位置；  
-b.在搜索结果页面，点击工具栏go to next link(shift+f8)/go to next link(shift+f9)，就可以跳到搜索结果对应的代码位置，再次点击可以在多个搜索结果之间跳转。和页面搜索f3/f4类似。  
 
 
 
