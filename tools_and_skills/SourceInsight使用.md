@@ -2,6 +2,7 @@
 - [快捷键](#快捷键)  
 - [常用功能](#常用功能)  
 - [sourceinsight4](#sourceinsight4)  
+- [碰到的问题](#碰到的问题)
 - [正则表达式,搜索,替换](#正则表达式搜索替换)  
 
 
@@ -73,6 +74,10 @@ b.在搜索结果页面，点击工具栏go to next link(shift+f8)/go to next li
 转到下一个链接                       : Shift+f9, Ctrl+Shift+L  
 不移动鼠标指针、移动页面视图：alt+方向键,alt+← alt+→ alt+↑ alt+↓  
 
+
+si4的ctrl+,键改不了，不知道怎么改。  
+
+
 *附：ads快捷键：ctrl+shift+b，返回*  
 [返回*快捷键*](#快捷键)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [返回*目录*](#SourceInsight使用)  
 
@@ -80,7 +85,7 @@ b.在搜索结果页面，点击工具栏go to next link(shift+f8)/go to next li
 
 # 常用功能  
 ## 我的使用习惯  
-ctrl+d，打开文件所在目录  
+ctrl+d，打开文件所在目录，si4 -- File: Show File in Explorer..  
 alt+, / alt+z，后退  
 alt+. / alt+x，前进  
 f1/f8/f12，都配置为语法高亮快捷键；shift+f8，取消所有语法高亮。  
@@ -149,6 +154,18 @@ Optional parameters are shown here inside […] brackets. Any number of options,
 Each option given on the command line must be preceded by a dash (-) or a forward slash (/).
 `  
 [返回*sourceinsight4*](#sourceinsight4)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [返回*目录*](#SourceInsight使用)  
+
+
+
+# 碰到的问题  
+1.中文乱码  
+单个文件乱码解决办法：  
+菜单栏中File -> Reload As Encoding... -> Chinese Simplified (GB18030)，选择后，点击load，问题解决。  
+
+所有文件乱码解决办法：  
+菜单栏中 Options -> Preferences -> File标签中，最下面的“Default encoding” ，改成System Default(Windows ANSI) 或者Chinese Simplified(GB2312) CP:936（简体中文的都可以选），点击确定，问题解决。  
+然后关闭所有打开的文件，然后再打开文件即可。  
+
 
 
 
