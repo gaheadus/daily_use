@@ -90,7 +90,7 @@ alt+, / alt+z，后退
 alt+. / alt+x，前进  
 f1/f8/f12，都配置为语法高亮快捷键；shift+f8，取消所有语法高亮。  
 将常用功能赋予操作方便的快捷键，Option -&gt; Key Assignments。    
-f9/f10，配置为跳到搜索结果的上一个链接/跳到下一个链接。ctrl+l(字母l)和f9/f10配合使用。    
+f9/f10，配置为跳到搜索结果的上一个链接/下一个链接。ctrl+l(字母l)和f9/f10配合使用。    
 
 Contex window，动态刷新。  
 Relation window，锁定，不让动态刷新。需要查看不同的relation时可以建立多个relation window，或者手动刷新。  
