@@ -101,7 +101,7 @@ $ git commit --amend -m [message]  //使用一次新的commit，替代上一次�
 $ git commit --amend [file1] [file2]  //重做上一次commit，并包括指定文件的新变化  
 
 $ git commit -m "提交信息" --author "Authorname <authoremail@mydomain.com>" //指定提交的作者。单独为某个提交指定提交作者，不使用git config配置的默认值。  
-提交的作者，和真实的提交者，可以不是同一个人。例如，执行git commit/ git push操作的是A，但是使用git commit时指定--author为B，这样在git log里看到的是作者B，而不是提交者A。
+提交的作者，和真实的提交者，可以不是同一个人。例如，执行git commit/ git push操作的是A，但是使用git commit时指定--author为B，这样在git log里看到的是作者B，而不是提交者A。  
 
 我提交(commit)里的用户名和邮箱不对，如果这只是单个提交(commit)，修改它：  
 $ git commit --amend --author "New Authorname <authoremail@mydomain.com>"  
