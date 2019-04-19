@@ -12,13 +12,17 @@
 **ctrl+鼠标右击:弹出对话框, 弹出symbol info框,显示函数/宏/变量定义。或:alt+/。**。  
 **按esc关闭弹出对话框、关闭弹出菜单栏。-- esc键，取消当前任务，关闭、取消当前窗口，中止、停下现在的工作。**  
 
+鼠标双击(、或)、或{、或}，选中括号内的内容。
+
 **后退:alt+,  前进:alt+.**  
 **书签: ctrl+m**  
 ctrl+shift+m, 打开“浏览历史记录”弹出框  
 
 **撤销修改：ctrl+z， 恢复修改：ctrl+y**  
-**按住alt，按住鼠标左键拖动，选中一个区块，然后进行复制/粘贴/编辑。**  
+**按住alt，按住鼠标左键拖动，可以选中一个矩形区块(多行多列的一部分区域)，然后进行复制/粘贴/编辑。**  
 **按住ctrl，滚动鼠标滑轮，放大/缩小页面(其他软件也一样)。**  
+按住ctrl，点击方向键←→↑↓，以单词长度移动光标。
+按住shift，点击方向键←→↑↓，连续选择多个字符。
 
 **ctrl+g:跳到某一行**  
 
@@ -35,15 +39,15 @@ ctrl+shift+m, 打开“浏览历史记录”弹出框
 **搜索: ctrl+/，Lookup Reference。//** 菜单栏有一个带问号的图标,打开搜索结果。  
 在Search Method中有四种可选的查找方式：Simple String、Regular Expression、 Keyword Expression和Look Up Reference。其中Simple String是最普通的查找方式，可以查找文件中出现的任意字符或字符，甚至可以查找 \_upap || u 这样的字符串，但是在工程较大时，查找过程会较慢。Regular Expression查找方式为正则表达式。Keyword Expression和Look Up Reference查找的结果基本相同，但是显示方式略有差异。这两种方式都是使用SI预先建立的数据库，查找起来速度相当快。但通常这种速度只对在查找标识符时有明显效果。对于像函数名，变量名等的查找，强烈建议使用这两种方式进行查找。  
 选择Search/Search Project，在弹出的Search Project窗口进行查找操作。操作与Loopup References几乎完全一致，它们各自保存上次搜索的配置。  
-a.在搜索结果页面，按ctrl+l(字母l)跳到搜索结果对应的代码位置；  
-b.在搜索结果页面，点击工具栏go to next link(shift+f8)/go to next link(shift+f9)，就可以跳到搜索结果对应的代码位置，再次点击可以在多个搜索结果之间跳转。和页面搜索f3/f4类似。  
+a.在搜索结果页面，按ctrl+l(字母l)跳到搜索结果对应的代码位置，再按一次回到搜索结果的位置；  
+b.在搜索结果页面，点击工具栏go to next link(shift+f8)/go to next link(shift+f9)，跳转到鼠标所在搜索结果对应的代码位置，再次点击可以在跳转到下一个/上一个搜索结果对应代码的位置。和页面搜索f3/f4类似。  
 
 **替换: ctrl+h**  
 单文件替换:选择Search/Replace或按ctrl+h组合键，在弹出的Replace窗口进行查找操作。在Search项目里勾选Selection则仅对当前选中的文档部分进行替换。另外如果勾选了Confirm Replacements则是逐个确认替换，否则会同时替换所有符合替换条件内容。  
 多文件替换:选择Search/Replace files或按Ctrl+Shift+H组合键，在弹出的Replace files 窗口进行查找操作。除了增加New框(替换后的内容)外，其余均与Search files窗口相同，可参照查找部分的说明进行操作。  
 
-**符号索引窗口：alt+l，检索当前文件内的符号。**  
-**符号索引窗口: f7 / alt+g，检索整个工程中的符号。**  
+**符号索引：alt+l，激活符号检索框，检索当前文件内的符号。**  
+**符号索引: f7 / alt+g，激活符号检索框，检索整个工程中的符号。**  
 可以检索函数名、变量名、宏定义、枚举、结构体名称、结构体成员名等等。  
 符号检索，并不需要输完整的名字字符串，输名字的一部分就可以检索了；也不要求输下划线_等符号。  
 在检索字符串后加左括号(表示检索函数名。  
@@ -63,10 +67,10 @@ b.在搜索结果页面，点击工具栏go to next link(shift+f8)/go to next li
 **从当前位置选择到行的开始             : Shift+Home**  
 **从当前位置选择到文件顶部             : Ctrl+Shift+Home**  
 
-**上一个函数        :  (KeyPad) -**，方法：先取`消小键盘Num Lock`，然后才可以使用-/+进行跳转。  
-**到下一个函数    : (KeyPad) +**  
-**回到前一个修改   : Alt+(KeyPad) -**，方法：先取`消小键盘Num Lock`，然后才可以使用alt+-/+进行跳转。  
-**转到下一个修改  : Alt+(KeyPad) + (键盘左边的Alt)**  
+**上一个函数** : 数字小键盘区-，需要取消小键盘Num Lock功能，然后才可以使用-/+进行跳转。  
+**下一个函数** : 数字小键盘区+  
+**前一个修改** : Alt+数字小键盘区-，需要取消小键盘Num Lock功能，然后才可以使用alt+-/+进行跳转。  
+**下一个修改** : Alt+数字小键盘区+  
 
 
 其他  
@@ -85,12 +89,13 @@ si4的ctrl+,键改不了，不知道怎么改。
 
 # 常用功能  
 ## 我的使用习惯  
-ctrl+d，打开文件所在目录，si4 -- File: Show File in Explorer..  
+ctrl+d，打开文件所在目录，si4对应的是“File: Show File in Explorer...”  
 alt+, / alt+z，后退  
 alt+. / alt+x，前进  
 f1/f8/f12，都配置为语法高亮快捷键；shift+f8，取消所有语法高亮。  
-将常用功能赋予操作方便的快捷键，Option -&gt; Key Assignments。    
-f9/f10，配置为跳到搜索结果的上一个链接/下一个链接。ctrl+l(字母l)和f9/f10配合使用。    
+将常用功能赋予操作方便的快捷键，Option -&gt; Key Assignments。  
+f9/f10，配置为跳到搜索结果的上一个链接/下一个链接，和ctrl+l(字母l)配合使用。  
+`注：alt+z/alt+x、f1/f12配置为快捷键方便左右手都可以使用；将软件自带shift+f8/shift+f9快捷键删除；shift+f8配置为清除所有语法高亮，方便高亮字符太多的时候一次性清除。`  
 
 Contex window，动态刷新。  
 Relation window，锁定，不让动态刷新。需要查看不同的relation时可以建立多个relation window，或者手动刷新。  
@@ -124,7 +129,10 @@ si3.5: C:\Users\lenovo\Documents\Source Insight\Projects，si4.0: C:\Users\lenov
 alt+m,在最近浏览过的两个文件之间切换显示。  
 ctrl+shift+m，可以打开之前浏览过的代码位置(菜单-> Search -> Selection History)。  
 
-菜单-> File -> Reload As Encoding -> Chinese Simplified(GB2312)，解决中文乱码问题。  
+文件比较 / 目录比较，和Beyond Compare一样。菜单-> Tools -> Compare Files.. / Directory Compare。  
+
+Clip window，粘贴板，保存一些常用的东西。双击粘贴板中的一条，将粘贴板中的内容输入到光标所在位置。  
+Snippet window，常用程序结构片段，如for、while等结构。打开Snippet window，可以选择一种结构插入代码中。双击片段中的一条，将片段中的内容输入到光标所在位置。  
 
 Relation window，右击relation window可以新建关系窗口，多个关系窗以tab的形式显示，很好。  
 
@@ -137,11 +145,6 @@ Relation window，右击relation window可以新建关系窗口，多个关系�
 
 菜单-> Project -> Import External Symbols…；  
 
-文件比较 / 目录比较，和Beyond Compare一样。菜单-> Tools -> Compare Files.. / Directory Compare，工具栏 。  
-
-Snippet window，常用程序结构片段，如for、while等结构。打开Snippet window，可以选择一种结构插入代码中。  
-
-Clip window，粘贴板，保存一些常用的东西。  
 
 
 命令行：  
