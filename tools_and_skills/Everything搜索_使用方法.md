@@ -1,11 +1,25 @@
 ## Everything搜索 使用方法
-- [简单例子](#1简单例子)  
-- [常用搜索语法](#2常用搜索语法)  
-- [使用例子](#3使用例子)  
-- [Everything介绍](#4Everything介绍)  
-- [CSDN链接](#5CSDN链接)  
+[Everything介绍](#1Everything介绍)  
+[使用例子](#2使用例子)  
+[常用例子](#3常用例子)  
+[常用功能](#4常用功能)  
+[常用搜索语法](#5常用搜索语法)  
+[CSDN链接](#6CSDN链接)  
 
-## 1.简单例子
+
+## 1.Everything介绍
+Everything是voidtools开发的一款 **文件搜索工具** ，官网描述为&quot;基于名称 **实时** 定位 **文件和目录** （Locate files and folders by name instantly）&quot;。  
+它体积小巧，界面简洁易用，快速建立索引，快速搜索，同时占用极低的系统资源，实时跟踪文件变化，并且还可以通过http或ftp形式分享搜索。  
+在搜索框输入文字，它就会只显示过滤后的文件和目录。Everything搜索只基于文件和文件夹的名称，所以它创建数据库很快。一个刚安装完的Windows XP SP2系统(约20,000份文件)，需要一秒钟。索引一百万份文件则需要一分钟。  
+如果你希望能按文件名进行高速搜索文件，并且硬盘分区都是使用NTFS格式的，又或者需要远程搜索其他计算机上的文件，那么你绝对不能错过Everything这款仅几百KB的免费软件。它绝对值得你收藏与试用的。  
+
+**Everything用于文件、文件夹查找，重复文件查找，非常好用。**  
+新发现，Everything可以搜索文件内容。  
+[*返回目录*](#everything搜索-使用方法)
+
+
+
+## 2.使用例子
 abc      &emsp;&emsp;   搜索名字为abc的文件和文件夹  
 123 abc  &emsp;&emsp;     搜索文件名包含123和abc的文件和文件夹  
 \*.jpg     &emsp;&emsp;   搜索jpg后缀文件。\*可以不写，\*.jpg或.jpg都可以。  
@@ -30,7 +44,78 @@ f:\ video:红楼梦  -- 在f盘搜索中有&quot;红楼梦&quot;的视频文件
 红楼梦 \~ !.lnk //这样写则只会显示\~开头的临时文件。名字中包含”红楼梦”的临时文件。  
 [*返回目录*](#everything搜索-使用方法)
 
-## 2.常用搜索语法
+
+## 3.常用例子  
+1.路径中包含空格时，路径外加双括号，如&quot;C:\Program Files&quot;。  
+2.在搜索框里只填路径，列出该目录及其子目录下所有文件、文件夹，包括隐藏文件。搜索速度比find命令快多了。  
+例如输入F:\sourcecode\test\apps列出该目录及其子目录下所有文件和文件夹；如果输入F:\sourcecode\test\apps test.c则是在该目录下查找test.c文件。  
+
+**使用技巧**  
+**1.指定路径搜索**  
+TDDOWNLOAD\ abc        在 **所有TDDOWNLOAD文件夹** 下搜索包含abc字符的文件及文件夹  
+TDDOWNLOAD\ \*.jpg      在所有TDDOWNLOAD文件夹下搜索jpg后缀文件  
+F:\TDDOWNLOAD\ abc     在 **F:\TDDOWNLOAD\目录** 下搜索包含abc字符的文件及文件夹  
+F:\TDDOWNLOAD\ \*.jpg   在F:\TDDOWNLOAD\目录下搜索jpg后缀文件  
+abc F:\TDDOWNLOAD\、F:\TDDOWNLOAD\ abc，都可以，目录可以放在文件名的前面、也可以放在文件名的后面  
+注意：TDDOWNLOAD\ abc ，目录后的斜杠\与被搜索字符之间有一个空格；  
+         通配符\*可以省略不写，F:\TDDOWNLOAD\ \*.jpg或F:\TDDOWNLOAD\ .jpg都可以。  
+
+**2.多关键词搜索** 123 abc            搜索包含123和abc的文件和文件夹  
+123|abc            搜索包含123或abc的文件和文件夹 
+\*.jpg|\*.flv  
+.jpg | .flv           搜索jpg或flv后缀文件（两种表示方式任选一种，第二种竖线|两边加空格）  
+在Everything的搜索框中可以输入多个关键词，以空格分开，表示搜索结果要包括全部关键词。大家肯定对这种做法不会陌生，因为它正是搜索引擎的惯例。  
+
+**3.其他**  
+（1）Everything的文件共享功能  
+Everything 内置了HTTP、ETP/FTP服务器的功能，你可以将你的硬盘变成一个网站或FTP，方便别人下载你的文件。并且，HTTP的分享还拥有一个方便的搜索功能呢，使用时只要点击菜单&quot;工具&quot;-&quot;HTTP服务器&quot;或&quot;ETP/FTP服务器&quot;后，就可以启动服务了。启动HTTP服务后，你只要在浏览器中输入`http://本机ip:端口号`即可进行访问。  
+FTP的服务则需要FTP客户端来访问，你还可以在&quot;工具&quot;-&quot;选项&quot;-&quot;HTTP&quot;或&quot;FTP&quot;中设置端口号和访问密码等。反正有了Everything，你就可以在局域网内随心所欲地分享文件了！当然，如果你的机器有外网的IP（如电信的ADSL），还能让Internet上的任何人访问你硬盘里的文件呢。不得不说，这是一个非常非常棒的应用。  
+（2）Everything 高效搜索技巧之正则表达式  
+正则表达式搜索，使用前缀修饰符regex:，或者通过菜单打开正则表达式选项，菜单Search → Enable Regex。  
+（3）Everything使用 **局限**  
+Everything仅支持 **基于NTFS文件系统** ，对于 FAT32格式的文件系统，Everything将不支持，这是 Everything 的一个局限。如果你的文件系统还是FAT32，若想使用Everything的话，则你需要转换你的分区格式。  
+在XP系统中可以在命令行下运行convert X:/FS:NTFS ，而后按提示完成系统格式转换操作后就可以Evergything了， 其中X代表你要转换的盘符。  
+
+**更多例子**  
+实例1：找到所有c目录及其下任意子目录的txt文件        c:\windows\*.txt  
+实例2：找出所有bmp和jpg文件        \*.bmp | \*.jpg  
+实例3：找出所有名为download文件夹下的所有avi文件        download\ .avi  
+实例4：找出所有名字中含.tx的文件夹        folder:.tx  
+实例5：搜索空txt文件        \*.txt file:size:0  
+实例6：搜索所有大于1MB的常见图像文件        \<\*.bmp|\*.jpg|\*.png|\*.tga\> size:\>1mb  
+实例7：查找所有全字匹配1.txt的文件        ww:1.txt  
+实例8：查找wi开头的h文件和cpp文件        file:\<wi\*.h|wi\*.cpp\> 或wi\* \<ext:h|cpp\>  
+实例9：d盘2016/1/1至2016/6/1的修改过的word文件        \*.doc|\*docx  dm:2015/1-2015/6  
+实例10：XXX第N集.rmvb&quot;，XXX是电视剧名，N是数字        regex:.\*第[0-9]+集  
+实例11：连续的RAR压缩包 XXXX.partN.rar        regex:.\*part[0-9]+.rar  
+实例12：连续的ZIP压缩包 XXXX.zN        regex:.\*\.z[0-9]+  
+实例13：搜索所有纯中文目标        regex:^[^0-9a-z]\*$  
+实例14：搜索带中文字符的目标        regex:^.\*[^!-~]+.\*$  
+实例15：找到所有c:\windows目录下的txt文件        regex:c:\\windows\^\*.txt  
+实例16：列出所有c:\windows的N级子目录        regex:c:\\windows\^\*(\^\*){N}$  
+实例17：列出所有c:\windows的N级子目录下的txt文件        regex:c:\\windows\^\*(\^\*){N}\.txt$  
+[*返回目录*](#everything搜索-使用方法)
+
+
+## 4.常用功能
+1.Everythin，如果搜索结果是文件，那么双击文件就可以打开文件；如果搜索结果是文件夹，那么就会弹出windows自带文件浏览器、并且打开文件夹目录。和Windows自带文件浏览器的功能是一样的。
+
+2.而且，在Everything里对文件进行的操作，和在Windows自带文件浏览器里进行的操作，效果是一样的，比如删除文件、重命、复制等。这些操作都可以直接在Everything搜索结果里进行，并不需要打开文件所在目录、再操作。
+并且，everything搜索结果的右键菜单和windows自带文件浏览器的右键菜也是一样的。
+
+3.路径中包含空格时，需要在路径外加双括号，如"C:\Program Files"。
+
+4.在搜索框里填路径，而不是文件名，则列出该目录及其子目录下所有文件、文件夹，包括隐藏文件。相当于windows自带文件浏览器，但是又更强大，Windows自带文件浏览器只会显示当前目录下文件，everything会显示当前目录、及其子目录下文件。
+例如输入F:\sourcecode\test\apps列出该目录及其子目录下所有文件和文件夹；如果输入F:\sourcecode\test\apps test.c则是在该目录下查找test.c文件。搜索速度比find命令快多了。
+
+5.打开多个搜索框
+有时候需要希望打开多个搜索窗口，比如搜索到某一个关键词后，希望保持搜索窗口不关闭，继续搜索另外一个关键词，这时需要另外打开一个搜索窗口，怎么操作？
+方法：菜单→文件→新建搜索窗口，快捷键ctrl+n。  
+[*返回目录*](#everything搜索-使用方法)  
+
+
+
+## 5.常用搜索语法
 **1.操作符**  
 空格 &emsp;&emsp; 逻辑与，例：li ch，搜索文件名中既含li又含ch  
 |  &emsp;&emsp; 逻辑或，例：1.txt | 2.txt，搜索文件名含1或2的txt文件  
@@ -95,68 +180,6 @@ F:\sourcecode\ startwith:test content:测试  //在F:\sourcecode\目录下，查
 [*返回目录*](#everything搜索-使用方法)
 
 
-## 3.使用例子
-1.路径中包含空格时，路径外加双括号，如&quot;C:\Program Files&quot;。  
-2.在搜索框里只填路径，列出该目录及其子目录下所有文件、文件夹，包括隐藏文件。搜索速度比find命令快多了。  
-例如输入F:\sourcecode\test\apps列出该目录及其子目录下所有文件和文件夹；如果输入F:\sourcecode\test\apps test.c则是在该目录下查找test.c文件。  
-
-**使用技巧**  
-**1.指定路径搜索**  
-TDDOWNLOAD\ abc        在 **所有TDDOWNLOAD文件夹** 下搜索包含abc字符的文件及文件夹  
-TDDOWNLOAD\ \*.jpg      在所有TDDOWNLOAD文件夹下搜索jpg后缀文件  
-F:\TDDOWNLOAD\ abc     在 **F:\TDDOWNLOAD\目录** 下搜索包含abc字符的文件及文件夹  
-F:\TDDOWNLOAD\ \*.jpg   在F:\TDDOWNLOAD\目录下搜索jpg后缀文件  
-abc F:\TDDOWNLOAD\、F:\TDDOWNLOAD\ abc，都可以，目录可以放在文件名的前面、也可以放在文件名的后面  
-注意：TDDOWNLOAD\ abc ，目录后的斜杠\与被搜索字符之间有一个空格；  
-         通配符\*可以省略不写，F:\TDDOWNLOAD\ \*.jpg或F:\TDDOWNLOAD\ .jpg都可以。  
-
-**2.多关键词搜索** 123 abc            搜索包含123和abc的文件和文件夹  
-123|abc            搜索包含123或abc的文件和文件夹 
-\*.jpg|\*.flv  
-.jpg | .flv           搜索jpg或flv后缀文件（两种表示方式任选一种，第二种竖线|两边加空格）  
-在Everything的搜索框中可以输入多个关键词，以空格分开，表示搜索结果要包括全部关键词。大家肯定对这种做法不会陌生，因为它正是搜索引擎的惯例。  
-
-**3.其他**  
-（1）Everything的文件共享功能  
-Everything 内置了HTTP、ETP/FTP服务器的功能，你可以将你的硬盘变成一个网站或FTP，方便别人下载你的文件。并且，HTTP的分享还拥有一个方便的搜索功能呢，使用时只要点击菜单&quot;工具&quot;-&quot;HTTP服务器&quot;或&quot;ETP/FTP服务器&quot;后，就可以启动服务了。启动HTTP服务后，你只要在浏览器中输入`http://本机ip:端口号`即可进行访问。  
-FTP的服务则需要FTP客户端来访问，你还可以在&quot;工具&quot;-&quot;选项&quot;-&quot;HTTP&quot;或&quot;FTP&quot;中设置端口号和访问密码等。反正有了Everything，你就可以在局域网内随心所欲地分享文件了！当然，如果你的机器有外网的IP（如电信的ADSL），还能让Internet上的任何人访问你硬盘里的文件呢。不得不说，这是一个非常非常棒的应用。  
-（2）Everything 高效搜索技巧之正则表达式  
-正则表达式搜索，使用前缀修饰符regex:，或者通过菜单打开正则表达式选项，菜单Search → Enable Regex。  
-（3）Everything使用 **局限**  
-Everything仅支持 **基于NTFS文件系统** ，对于 FAT32格式的文件系统，Everything将不支持，这是 Everything 的一个局限。如果你的文件系统还是FAT32，若想使用Everything的话，则你需要转换你的分区格式。  
-在XP系统中可以在命令行下运行convert X:/FS:NTFS ，而后按提示完成系统格式转换操作后就可以Evergything了， 其中X代表你要转换的盘符。  
-
-**更多例子**  
-实例1：找到所有c目录及其下任意子目录的txt文件        c:\windows\*.txt  
-实例2：找出所有bmp和jpg文件        \*.bmp | \*.jpg  
-实例3：找出所有名为download文件夹下的所有avi文件        download\ .avi  
-实例4：找出所有名字中含.tx的文件夹        folder:.tx  
-实例5：搜索空txt文件        \*.txt file:size:0  
-实例6：搜索所有大于1MB的常见图像文件        \<\*.bmp|\*.jpg|\*.png|\*.tga\> size:\>1mb  
-实例7：查找所有全字匹配1.txt的文件        ww:1.txt  
-实例8：查找wi开头的h文件和cpp文件        file:\<wi\*.h|wi\*.cpp\> 或wi\* \<ext:h|cpp\>  
-实例9：d盘2016/1/1至2016/6/1的修改过的word文件        \*.doc|\*docx  dm:2015/1-2015/6  
-实例10：XXX第N集.rmvb&quot;，XXX是电视剧名，N是数字        regex:.\*第[0-9]+集  
-实例11：连续的RAR压缩包 XXXX.partN.rar        regex:.\*part[0-9]+.rar  
-实例12：连续的ZIP压缩包 XXXX.zN        regex:.\*\.z[0-9]+  
-实例13：搜索所有纯中文目标        regex:^[^0-9a-z]\*$  
-实例14：搜索带中文字符的目标        regex:^.\*[^!-~]+.\*$  
-实例15：找到所有c:\windows目录下的txt文件        regex:c:\\windows\^\*.txt  
-实例16：列出所有c:\windows的N级子目录        regex:c:\\windows\^\*(\^\*){N}$  
-实例17：列出所有c:\windows的N级子目录下的txt文件        regex:c:\\windows\^\*(\^\*){N}\.txt$  
-[*返回目录*](#everything搜索-使用方法)
-
-
-## 4.Everything介绍
-Everything是voidtools开发的一款 **文件搜索工具** ，官网描述为&quot;基于名称 **实时** 定位 **文件和目录** （Locate files and folders by name instantly）&quot;。  
-它体积小巧，界面简洁易用，快速建立索引，快速搜索，同时占用极低的系统资源，实时跟踪文件变化，并且还可以通过http或ftp形式分享搜索。  
-在搜索框输入文字，它就会只显示过滤后的文件和目录。Everything搜索只基于文件和文件夹的名称，所以它创建数据库很快。一个刚安装完的Windows XP SP2系统(约20,000份文件)，需要一秒钟。索引一百万份文件则需要一分钟。  
-如果你希望能按文件名进行高速搜索文件，并且硬盘分区都是使用NTFS格式的，又或者需要远程搜索其他计算机上的文件，那么你绝对不能错过Everything这款仅几百KB的免费软件。它绝对值得你收藏与试用的。  
-
-**Everything用于文件、文件夹查找，重复文件查找，非常好用。**  
-**新发现，Everything可以搜索文件内容，不错。**  
-[*返回目录*](#everything搜索-使用方法)
-
-## 5.CSDN链接
+## 6.CSDN链接
 https://blog.csdn.net/gaheadus/article/details/86532621  
 [*返回目录*](#everything搜索-使用方法)
