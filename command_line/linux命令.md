@@ -27,12 +27,22 @@ $ find ./test -path "./test/test3" -prune -o -print
 ### 输入、输出，重定向    
 1.重定向输入输出  
 重定向符：>输出重定向，<输入重定向，|管道重定向，tee多路输出重定向。  
-$ ls > list.txt //重定向输出, $ ls > list.txt 2>&1  
+$ ls > list.txt //重定向输出,
+**$ ls > list.txt 2>&1**  
 $ cat < list.txt //重定向输入,cat list.txt, 参考:《Linux程序设计(第4版)Neil Matthew,陈健译》-- 11.3.3 输入和输出重定向  
 $ cat file.txt | grep string  //管道重定向输入输出。grep命令的输入是被重定向的cat命令的输出。  
 $ ls | tee > list.txt  //多路重定向输出  
 管道重定向，将前一个命令的输出、重定向到后一个命令的输入，将前一个命令的输出当做后一个命令的输入。  
 tee,多路重定向输出，向标准输出设备输出结果，同时将此结果重定向输出到其他文件。  
+
+**为什么使用2>&1？**  
+$./test.sh > test.log 2>&1  
+$./test.sh > test.log 2>test.log  
+同样是将错误输出到和1一样的test.log  
+那为什么我们要用2>&1呢？这是因为如果用command > file 2>file的写法，stdout和stderr都直接送到file中, file会被打开两次,这样stdout和stderr会互相覆盖,这样写相当使用了FD1和FD2两个同时去抢占file的管道，而command >file 2>&1这条命令就将stdout直接送向file, stderr 继承了FD1管道后,再被送往file,此时,file只被打开了一次,也只使用了一个管道FD1,它包括了stdout和stderr的内容。  
+从IO效率上,前一条命令的效率要比后面一条的命令效率要低；所以我们要使用2>&1。  
+是&1而不是1，这里&是什么？这里&相当于等效于标准输出。  
+
 
 2.特殊形式指定输入输出  
 $ find . -type f -exec ls -l {} \\;  
