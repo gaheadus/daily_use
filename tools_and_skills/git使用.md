@@ -493,12 +493,12 @@ repo upload呢？
 
 ### repo start  
 **初始化分支**  
-_$** repo start master --all**_  
+$** repo start master --all**  
 --all意思为对所有项目操作，也可以只对某个项目操作如$ repo start mybranch frameworks/base。  
 repo初如化分支后，可切入各git库进行git的操作。  
 $repo start branchname --all\#在源码根目录下执行，对源码目录下所有工程建立branchname分支。  
 $repo start branchname frameworks/base/\#在源码根目录下执行，对frameworks/base/工程建立branchname分支。  
-$repo start branchname **. \#**在对应工程目录下执行，创建branchname分支。"."代表当前工作的工程目录。  
+$repo start branchname . #在对应工程目录下执行，创建branchname分支。"."代表当前工作的工程目录。  
 repo start <newbranchname> [--all|<project>...]  
 创建并切换分支。刚克隆下来的代码是没有分支的，repo start实际是对git checkout -b命令的封装。  
 为指定的项目或所有的项目（若使用-all），以清单文件中为设定的分支，创建特定的分支。  
