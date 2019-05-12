@@ -492,8 +492,8 @@ repo upload呢？
 [返回*repo命令*](#repo命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 ### repo start  
-**初始化分支**  
-$** repo start master --all**  
+初始化分支  
+$ repo start master --all  
 --all意思为对所有项目操作，也可以只对某个项目操作如$ repo start mybranch frameworks/base。  
 repo初如化分支后，可切入各git库进行git的操作。  
 $repo start branchname --all\#在源码根目录下执行，对源码目录下所有工程建立branchname分支。  
