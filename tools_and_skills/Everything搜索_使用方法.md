@@ -1,7 +1,7 @@
 ## Everything搜索 使用方法
 [Everything介绍](#1Everything介绍)  
-[使用例子](#2使用例子)  
-[常用例子](#3常用例子)  
+[使用方法](#2使用方法)  
+[更多例子](#3更多例子)  
 [常用功能](#4常用功能)  
 [常用搜索语法](#5常用搜索语法)  
 [CSDN链接](#6CSDN链接)  
@@ -69,38 +69,7 @@ f:\ video:红楼梦  -- 在f盘搜索中有”红楼梦”的视频文件
 [*返回目录*](#everything搜索-使用方法)
 
 
-## 3.常用功能  
-1.路径中包含空格时，路径外加双括号，如&quot;C:\Program Files&quot;。  
-2.在搜索框里只填路径，列出该目录及其子目录下所有文件、文件夹，包括隐藏文件。搜索速度比find命令快多了。  
-例如输入F:\sourcecode\test\apps列出该目录及其子目录下所有文件和文件夹；如果输入F:\sourcecode\test\apps test.c则是在该目录下查找test.c文件。  
-
-**使用技巧**  
-**1.指定路径搜索**  
-TDDOWNLOAD\ abc        在 **所有TDDOWNLOAD文件夹** 下搜索包含abc字符的文件及文件夹  
-TDDOWNLOAD\ \*.jpg      在所有TDDOWNLOAD文件夹下搜索jpg后缀文件  
-F:\TDDOWNLOAD\ abc     在 **F:\TDDOWNLOAD\目录** 下搜索包含abc字符的文件及文件夹  
-F:\TDDOWNLOAD\ \*.jpg   在F:\TDDOWNLOAD\目录下搜索jpg后缀文件  
-abc F:\TDDOWNLOAD\、F:\TDDOWNLOAD\ abc，都可以，目录可以放在文件名的前面、也可以放在文件名的后面  
-注意：TDDOWNLOAD\ abc ，目录后的斜杠\与被搜索字符之间有一个空格；  
-         通配符\*可以省略不写，F:\TDDOWNLOAD\ \*.jpg或F:\TDDOWNLOAD\ .jpg都可以。  
-
-**2.多关键词搜索** 123 abc            搜索包含123和abc的文件和文件夹  
-123|abc            搜索包含123或abc的文件和文件夹 
-\*.jpg|\*.flv  
-.jpg | .flv           搜索jpg或flv后缀文件（两种表示方式任选一种，第二种竖线|两边加空格）  
-在Everything的搜索框中可以输入多个关键词，以空格分开，表示搜索结果要包括全部关键词。大家肯定对这种做法不会陌生，因为它正是搜索引擎的惯例。  
-
-**3.其他**  
-（1）Everything的文件共享功能  
-Everything 内置了HTTP、ETP/FTP服务器的功能，你可以将你的硬盘变成一个网站或FTP，方便别人下载你的文件。并且，HTTP的分享还拥有一个方便的搜索功能呢，使用时只要点击菜单&quot;工具&quot;-&quot;HTTP服务器&quot;或&quot;ETP/FTP服务器&quot;后，就可以启动服务了。启动HTTP服务后，你只要在浏览器中输入`http://本机ip:端口号`即可进行访问。  
-FTP的服务则需要FTP客户端来访问，你还可以在&quot;工具&quot;-&quot;选项&quot;-&quot;HTTP&quot;或&quot;FTP&quot;中设置端口号和访问密码等。反正有了Everything，你就可以在局域网内随心所欲地分享文件了！当然，如果你的机器有外网的IP（如电信的ADSL），还能让Internet上的任何人访问你硬盘里的文件呢。不得不说，这是一个非常非常棒的应用。  
-（2）Everything 高效搜索技巧之正则表达式  
-正则表达式搜索，使用前缀修饰符regex:，或者通过菜单打开正则表达式选项，菜单Search → Enable Regex。  
-（3）Everything使用 **局限**  
-Everything仅支持 **基于NTFS文件系统** ，对于 FAT32格式的文件系统，Everything将不支持，这是 Everything 的一个局限。如果你的文件系统还是FAT32，若想使用Everything的话，则你需要转换你的分区格式。  
-在XP系统中可以在命令行下运行convert X:/FS:NTFS ，而后按提示完成系统格式转换操作后就可以Evergything了， 其中X代表你要转换的盘符。  
-
-**更多例子**  
+## 3.更多例子  
 实例1：找到所有c目录及其下任意子目录的txt文件        c:\windows\*.txt  
 实例2：找出所有bmp和jpg文件        \*.bmp | \*.jpg  
 实例3：找出所有名为download文件夹下的所有avi文件        download\ .avi  
@@ -118,6 +87,17 @@ Everything仅支持 **基于NTFS文件系统** ，对于 FAT32格式的文件系
 实例15：找到所有c:\windows目录下的txt文件        regex:c:\\windows\^\*.txt  
 实例16：列出所有c:\windows的N级子目录        regex:c:\\windows\^\*(\^\*){N}$  
 实例17：列出所有c:\windows的N级子目录下的txt文件        regex:c:\\windows\^\*(\^\*){N}\.txt$  
+
+**其他**  
+（1）Everything的文件共享功能  
+Everything 内置了HTTP、ETP/FTP服务器的功能，你可以将你的硬盘变成一个网站或FTP，方便别人下载你的文件。并且，HTTP的分享还拥有一个方便的搜索功能呢，使用时只要点击菜单&quot;工具&quot;-&quot;HTTP服务器&quot;或&quot;ETP/FTP服务器&quot;后，就可以启动服务了。启动HTTP服务后，你只要在浏览器中输入`http://本机ip:端口号`即可进行访问。  
+FTP的服务则需要FTP客户端来访问，你还可以在&quot;工具&quot;-&quot;选项&quot;-&quot;HTTP&quot;或&quot;FTP&quot;中设置端口号和访问密码等。反正有了Everything，你就可以在局域网内随心所欲地分享文件了！当然，如果你的机器有外网的IP（如电信的ADSL），还能让Internet上的任何人访问你硬盘里的文件呢。不得不说，这是一个非常非常棒的应用。  
+（2）Everything 高效搜索技巧之正则表达式  
+正则表达式搜索，使用前缀修饰符regex:，或者通过菜单打开正则表达式选项，菜单Search → Enable Regex。  
+（3）Everything使用 **局限**  
+Everything仅支持 **基于NTFS文件系统** ，对于 FAT32格式的文件系统，Everything将不支持，这是 Everything 的一个局限。如果你的文件系统还是FAT32，若想使用Everything的话，则你需要转换你的分区格式。  
+在XP系统中可以在命令行下运行convert X:/FS:NTFS ，而后按提示完成系统格式转换操作后就可以Evergything了， 其中X代表你要转换的盘符。  
+
 [*返回目录*](#everything搜索-使用方法)
 
 
