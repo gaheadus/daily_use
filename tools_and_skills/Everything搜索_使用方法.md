@@ -21,35 +21,34 @@ Everything是voidtools开发的一款 **文件搜索工具** ，官网描述为&
 
 ## 2.使用方法  
 1.基本例子  
-abc            搜索名字为abc的文件和文件夹  
-123 abc       搜索文件名包含123和abc的文件和文件夹  
-*.txt        搜索txt后缀文件。通配符*可以不写，*.txt或.txt都可以。  
-           *.txt和.txt的不同，*.txt表示搜索.txt格式文件(文件名后缀是.txt)，而.txt表示搜索文件名中包含.txt字符的文件，不一定是.txt格式文件(文件名后缀可以是.txt也可以不是.txt)。如下：  
+abc          --    搜索名字为abc的文件和文件夹  
+123 abc      --   搜索文件名包含123和abc的文件和文件夹  
+\*.txt       --   搜索txt后缀文件。通配符\*可以不写，\*.txt或.txt都可以。  
+          --   \*.txt和.txt的不同，\*.txt表示搜索.txt格式文件(文件名后缀是.txt)，而.txt表示搜索文件名中包含.txt字符的文件，不一定是.txt格式文件(文件名后缀可以是.txt也可以不是.txt)。如下：  
 
 上图中，.txt的搜索结果中有一个名为“word文档.txt哈哈哈.docx”的文件。  
 
 2.指定路径搜索：  
-F:\TDDOWNLOAD\ abc     在F:\TDDOWNLOAD\目录下搜索包含abc字符的文件及文件夹  
-abc F:\TDDOWNLOAD\   目录放在文件名的前面或者后面都可以  
+F:\TDDOWNLOAD\ abc    --   在F:\TDDOWNLOAD\目录下搜索包含abc字符的文件及文件夹  
+abc F:\TDDOWNLOAD\   --  目录放在文件名的前面或者后面都可以  
 
-TDDOWNLOAD\ abc        在所有TDDOWNLOAD文件夹下搜索包含abc字符的文件及文件夹  
-TDDOWNLOAD\ *.jpg      在所有TDDOWNLOAD文件夹下搜索jpg后缀文件  
-F:\TDDOWNLOAD\ abc     在F:\TDDOWNLOAD\目录下搜索包含abc字符的文件及文件夹  
-F:\TDDOWNLOAD\ *.jpg   在F:\TDDOWNLOAD\目录下搜索jpg后缀文件  
+TDDOWNLOAD\ abc       --   在所有TDDOWNLOAD文件夹下搜索包含abc字符的文件及文件夹  
+TDDOWNLOAD\ \*.jpg    --    在所有TDDOWNLOAD文件夹下搜索jpg后缀文件  
+F:\TDDOWNLOAD\ abc    --   在F:\TDDOWNLOAD\目录下搜索包含abc字符的文件及文件夹  
+F:\TDDOWNLOAD\ \*.jpg   --  在F:\TDDOWNLOAD\目录下搜索jpg后缀文件  
 
 abc F:\TDDOWNLOAD\、F:\TDDOWNLOAD\ abc，都可以，目录可以放在文件名的前面、也可以放在文件名的后面  
 注意：TDDOWNLOAD\ abc ，目录后的斜杠\与被搜索字符之间有一个空格；  
 
 3.多个条件搜索  
-*.txt              一个条件，搜索txt格式文件  
-F:\temp *.txt       两个条件，在F:\temp目录下、搜索txt格式文件  
-F:\temp *.txt content:"project source root directory"   三个条件，在F:\temp目录下、搜索txt格式文件、并且其内容包含"project source root directory"字符串  
+\*.txt            --    一个条件，搜索txt格式文件  
+F:\temp \*.txt    --     两个条件，在F:\temp目录下、搜索txt格式文件  
+F:\temp \*.txt content:"project source root directory"   --   三个条件，在F:\temp目录下、搜索txt格式文件、并且其内容包含"project source root directory"字符串  
 
 4.多个关键词搜索  
-123 abc            搜索包含123和abc的文件和文件夹  
-123|abc            搜索包含123或abc的文件和文件夹  
-*.jpg|*.flv  
-.jpg | .flv           搜索jpg或flv后缀文件（两种表示方式任选一种，第二种竖线|两边加空格）  
+123 abc          --    搜索包含123和abc的文件和文件夹  
+123|abc           --   搜索包含123或abc的文件和文件夹  
+\*.jpg|\*.flv    --    搜索jpg或flv后缀文件  
 在Everything的搜索框中可以输入多个关键词，以空格分开，表示搜索结果要包括全部关键词。大家肯定对这种做法不会陌生，因为它正是搜索引擎的惯例。  
 
 5.使用搜索前缀：  
@@ -61,11 +60,11 @@ f:\ video:    -- 搜索视频文件
 f:\ video:红楼梦  -- 在f盘搜索中有”红楼梦”的视频文件  
 
 6.使用操作符：  
-红楼梦 //搜索名字中包含”红楼梦”的文件，结果中有.doc文件、.lnk链接文件、~开头的临时文件。  
+红楼梦 //搜索名字中包含”红楼梦”的文件，结果中有.doc文件、.lnk链接文件、\~开头的临时文件。  
 红楼梦 !.lnk //搜索文件名不含.lnk的文件。有时搜索结果出现一堆链接文件.lnk，看上去杂乱，可以使用!过滤这些文件。  
-红楼梦 !~ !.lnk //排除~开头的临时文件和.lnk链接文件。多个!可以连用，中间用空格隔开。  
-红楼梦 !~ .lnk //这样写则只会显示.lnk文件。名字中包含”红楼梦”的.lnk文件。  
-红楼梦 ~ !.lnk //这样写则只会显示~开头的临时文件。名字中包含”红楼梦”的临时文件。  
+红楼梦 !\~ !.lnk //排除~开头的临时文件和.lnk链接文件。多个!可以连用，中间用空格隔开。  
+红楼梦 !\~ .lnk //这样写则只会显示.lnk文件。名字中包含”红楼梦”的.lnk文件。  
+红楼梦 \~ !.lnk //这样写则只会显示~开头的临时文件。名字中包含”红楼梦”的临时文件。  
 [*返回目录*](#everything搜索-使用方法)
 
 
