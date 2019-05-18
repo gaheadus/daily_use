@@ -120,6 +120,15 @@ si3.5: C:\Users\lenovo\Documents\Source Insight\Projects，si4.0: C:\Users\lenov
 ## 取消自动对齐  
 自动对齐往往不是我们要求的格式，自动对齐后反而需要去修改，更麻烦。  
 取消自动对齐：Options-&gt;File Type Options-&gt;Auto Indenting-&gt;Auto Indent设置为none。  
+
+## 空格为等宽间距显示  
+设置空格为等宽间距(固定间距),比如设置注释中的空格为等宽间距，将鼠标放置在注释上，Options -> Style Properties ->Fixed Whitespace-OFF。这样每个空格占一个字符的宽度，会使得注释很整齐。
+也可以设置函数参数中的空格为等宽间距，代码中空格为等宽间距……。
+
+参数间空格的显示
+1.sourceinsight函数定义/函数声明，设置参数与类型声明之间的空格：一个空格占用一个字符宽度，Options -> Style Properties -> Declaration...及其子项设置，Declare Parameters->Underline选择取消。
+2.Options -> Style Properties -> Default Text -> Scale设置为100%,Scale设置为其他值会造成空格无法对齐。
+
 [返回*常用功能*](#常用功能)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [返回*目录*](#SourceInsight使用)  
 
 
