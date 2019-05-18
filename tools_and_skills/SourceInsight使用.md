@@ -121,7 +121,7 @@ si3.5: C:\Users\lenovo\Documents\Source Insight\Projects，si4.0: C:\Users\lenov
 自动对齐往往不是我们要求的格式，自动对齐后反而需要去修改，更麻烦。  
 取消自动对齐：Options-&gt;File Type Options-&gt;Auto Indenting-&gt;Auto Indent设置为none。  
 
-## 空格为等宽间距显示  
+## 空格等宽间距显示  
 设置空格为等宽间距(固定间距),比如设置注释中的空格为等宽间距，将鼠标放置在注释上，Options -> Style Properties ->Fixed Whitespace-OFF。这样每个空格占一个字符的宽度，会使得注释很整齐。
 也可以设置函数参数中的空格为等宽间距，代码中空格为等宽间距……。
 
