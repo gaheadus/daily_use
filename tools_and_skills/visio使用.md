@@ -1,9 +1,10 @@
 # visio使用  
-(visio教程官网)[#visio教程官网]  &emsp;&emsp;&emsp;&emsp;  (基本操作)[#基本操作]
+[visio教程官网](#visio教程官网)  &emsp;&emsp;&emsp;&emsp;  [基本操作](#基本操作)
 
 
 ## visio教程官网
 visio教程官网：https://support.office.com/zh-cn/article/visio-%E7%9A%84%E6%95%99%E7%A8%8B-c8fd9b8b-6e8c-4252-937d-a0eea0cddd94  
+
 
 ## 基本操作
 1.若要创建图表，请从“形状”窗口拖动图形开始。  
@@ -16,4 +17,4 @@ a.选择形状。
 b.在“开始”选项卡上的“工具”组中，单击“连接点”工具╳。  
 c.按Ctrl并单击要添加连接点的位置。放置新连接点后，会自动选择该连接点。  
 
-
+[返回*visio使用*](#visio使用)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*基本操作*](#基本操作)  
