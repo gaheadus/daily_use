@@ -126,8 +126,9 @@ si3.5: C:\Users\lenovo\Documents\Source Insight\Projects，si4.0: C:\Users\lenov
 也可以设置函数参数中的空格为等宽间距，代码中空格为等宽间距……。
 
 参数间空格的显示
-1.sourceinsight函数定义/函数声明，设置参数与类型声明之间的空格：一个空格占用一个字符宽度，Options -> Style Properties -> Declaration...及其子项设置，Declare Parameters->Underline选择取消。
-2.Options -> Style Properties -> Default Text -> Scale设置为100%,Scale设置为其他值会造成空格无法对齐。
+sourceinsight函数定义/函数声明，设置参数与类型声明之间的空格：  
+1.一个空格占用一个字符宽度，Options -> Style Properties -> Declaration...及其子项设置->Fixed Whitespace设置为OFF，Declare Parameters->取消Underline。  
+2.Options -> Style Properties -> Default Text -> Scale设置为100%,Scale设置为其他值会造成空格无法对齐。  
 
 [返回*常用功能*](#常用功能)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [返回*目录*](#SourceInsight使用)  
 
