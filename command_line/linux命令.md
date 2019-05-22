@@ -147,8 +147,7 @@ pwd,查看当前工作目录
 
 
 ## 参考网址  
-http://man.linuxde.net/
-
+https://www.runoob.com/linux/linux-command-manual.html
 
 
 ## 专题讲解  
