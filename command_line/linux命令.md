@@ -76,7 +76,7 @@ $ cd ~/bin ; ls
 
 
 ## 常用Linux命令  
-[ls](#ls) &emsp; [cd](#cd) &emsp; [pwd](#pwd) &emsp; [文件的切割、合并](#文件的切割合并) &emsp;  
+[ls](#ls) &emsp; [cd](#cd) &emsp; [pwd](#pwd) &emsp;
 
 ### ls  
 ls, 列出文件与目录, list  
@@ -143,100 +143,6 @@ pwd,查看当前工作目录
 [root@localhost init.d]# /bin/pwd -L  
 /etc/init.d  
 
-
-### 文件的切割、合并
-`Linux下文件切割、合并 的 三种方法：  
-$ split + cat  
-$ dd + cat  
-$ knife + cat  
-`
-
-#### split+cat,简单,推荐  
-Linux下文件的切割与合并(split+cat)  
-当前目录下有sp4.exe文件容量129M ，我用64M的U盘把spe.exe考到另一台机器上。这个U盘一次装不下129M ，只能将文件分割成多个小的部分，多次拷贝。  
-**文件切割：**  
-\# split -b 60m sp4.exe partial  //文件切割,分配每个切割大小为60MByte。  
-用-b或-C指定分块大小。-b,--bytes=SIZE,SIZE值为每一输出档案的大小，单位为byte。-C,--line-bytes=SIZE。  
-SIZE可加入单位: b 代表 512，k 代表 1K，m 代表1Meg。  
-\# ls //按partialaa、partialab、partialac的格式生成如下文件,生成的文件自动添加了后缀aa/ab/ac  
--rw-r--r--    1 root     root     62914560  5月 18 00:40 partialaa   
--rw-r--r--    1 root     root     62914560  5月 18 00:41 partialab   
--rw-r--r--    1 root     root      8576176  5月 18 00:41 partialac   //partialaa/partialab为60mbyte，剩下的给partialac。  
-**拷贝到另一台机器上，将多个部分合并：**  
-\# cat partialaa partialab partialac > sp4.exe 或 cat partiala* > sp4.exe  //文件合并。用jion也可以合并。  
-附注：  
-#split -b 60m sp4.exe       //如果不指定输出名字，那么输出文件名将会是xaa,xab,…的形式。  
-#split -b 60m sp4.exe split//指定输出文件名为split，那么输出文件将会是splitaa,splitab…,  
-
-文件1.Android开发.zip,大小为3.9G，下面对它进行切割、合并操作。  
-$ ls -l 1.Android开发.zip  
--rwx------+ 1 Administrators None 4196507906 Oct 13 22:41 1.Android开发.zip  
-**切割：**  
-$ split -b 2048m 1.Android_origin.zip partial //按2048M=2G大小切割。  
-$ ls -l partiala\*  
--rw-r--r--+ 1 lenovo None 2147483648 Oct 14 00:13 partialaa  
--rw-r--r--+ 1 lenovo None 2049024258 Oct 14 00:14 partialab  
-**合并：**  
-$ cat partialaa partialab > backup_now.zip  
-$ ls -l backup_now.zip  
--rw-r--r--+ 1 lenovo None 4196507906 Oct 14 00:19 backup_now.zip  
-
-
-#### dd+cat  
-Linux文件切割、合并(dd+cat)  
-将一个140kbyte的文件originFile分割成两部分，一部分为part1，大小为60kbyte，剩下的分给另一部分part2。  
-**文件切割**  
-\# dd if=originFile bs=1024 count=60 skip=0    of=part1  //count*bs=60*1024byte=60kbyte  
-\# dd if=originFile bs=1024 count=80 skip=60  of=part2  //skip=60,忽略file1已经切割的大小  
-第一部分，count\*bs=60\*1024byte=60kbyte,  
-第二部分，skip=60\*1024byte=60kbyte=第一部分的大小,剩下140kbyte-60kbyte=80kbyte=80\*1024byte。  
-**文件合并**  
-\# cat part1 part2 > bakFile  
-
-
-#### knife+cat  
-knife工具到http://see.online.sh.cn/ch/sw/dl/split.htm下载。  
-[root@rhas3 knife-2.0.1]\# ls  
-knife  link  linkfiles.pl  sp4.exe  
-**分割：**  
-`
-[root@rhas3 knife-2.0.1]# ./knife -c sp4.exe 500   ( 500：字节大小)   
-Cutting......Cutted Over :-)   
-[root@rhas3 knife-2.0.1]# ls -l   
-总用量 44   
--rwxr-xr-x    1 root     root        12949 2000-02-28  knife 
--rwxr-xr-x    1 root     root           17 2000-02-28  link 
--rwxr-xr-x    1 root     root         1088 2000-02-28  linkfiles.pl 
--rw-r--r--    1 root     root         1543 2000-02-28  sp4.exe 
--rw-r--r--    1 root     root          500  5月 18 00:49 sp4.exe.k00 
--rw-r--r--    1 root     root          500  5月 18 00:49 sp4.exe.k01 
--rw-r--r--    1 root     root          500  5月 18 00:49 sp4.exe.k02 
--rw-r--r--    1 root     root           43  5月 18 00:49 sp4.exe.k03 
-`
-
-**合并：**  
-`
-[root@rhas3 knife-2.0.1]# ./link sp4.exe.k00 sp4.exe.k01 sp4.exe.k02 sp4.exe.k03                                                                                  
-Please intput the file name you want to LINK up, one by one. 
-Just input OK when you have finished inputting.(一定要全输完在ok) 
-ok 
-In this order: 
-  
-Now it's time you type the name of the output file. 
-  
--->;sp4.exe 
-[root@rhas3 knife-2.0.1]# 
-OK!
-`
-
-
-#### 总结和技巧
-字节为最小存储单位，byte。  
-ls/split/dd等linux命令，使用的数据单位都是字节(byte)。  
-$ ls -l | grep 1.Android  
--rwx------+ 1 Administrators None 4196507906 Oct 13 22:41 1.Android开发.zip  
-4196507906指的是字节(bytes)。  
-
 [*返回:常用Linux命令*](#常用Linux命令)          &emsp;&emsp;              [*返回:页首*](#Linux命令)
 
 
@@ -246,7 +152,7 @@ https://www.runoob.com/linux/linux-command-manual.html
 
 
 ## 专题讲解  
-[文件查找](#文件查找) &emsp; [字符处理](#字符处理) &emsp;  
+[文件查找](#文件查找) &emsp; [字符处理](#字符处理) &emsp;&emsp;   [文件的切割、合并](#文件的切割合并) &emsp;  
 
 ### 文件查找  
 [which](#which) &emsp; [whereis](#whereis) &emsp; [locate](#locate) &emsp; [find](#find) &emsp; [xargs](#xargs)  
@@ -771,7 +677,124 @@ type       显示指定命令的类型
 
 
 #### sed
+[*返回:专题讲解*](#专题讲解)          &emsp;&emsp;              [*返回:页首*](#Linux命令)
 
+
+
+
+### 文件的切割、合并
+Linux下文件切割、合并 的 三种方法：  
+$ split + cat  
+$ dd + cat  
+$ knife + cat  
+
+#### 1.split+cat,简单,推荐  
+Linux下文件的切割与合并(split+cat)  
+当前目录下有sp4.exe文件容量129M ，我用64M的U盘把spe.exe考到另一台机器上。这个U盘一次装不下129M ，只能将文件分割成多个小的部分，多次拷贝。  
+**文件切割：**  
+\# split -b 60m sp4.exe partial  //文件切割,分配每个切割大小为60MByte。  
+用-b或-C指定分块大小。-b,--bytes=SIZE,SIZE值为每一输出档案的大小，单位为byte。-C,--line-bytes=SIZE。  
+SIZE可加入单位: b 代表 512，k 代表 1K，m 代表1Meg。  
+\# ls //按partialaa、partialab、partialac的格式生成如下文件,生成的文件自动添加了后缀aa/ab/ac  
+-rw-r--r--    1 root     root     62914560  5月 18 00:40 partialaa   
+-rw-r--r--    1 root     root     62914560  5月 18 00:41 partialab   
+-rw-r--r--    1 root     root      8576176  5月 18 00:41 partialac   //partialaa/partialab为60mbyte，剩下的给partialac。  
+**拷贝到另一台机器上，将多个部分合并：**  
+\# cat partialaa partialab partialac > sp4.exe 或 cat partiala* > sp4.exe  //文件合并。用jion也可以合并。  
+附注：  
+#split -b 60m sp4.exe       //如果不指定输出名字，那么输出文件名将会是xaa,xab,…的形式。  
+#split -b 60m sp4.exe split//指定输出文件名为split，那么输出文件将会是splitaa,splitab…,  
+
+文件1.Android开发.zip,大小为3.9G，下面对它进行切割、合并操作。  
+$ ls -l 1.Android开发.zip  
+-rwx------+ 1 Administrators None 4196507906 Oct 13 22:41 1.Android开发.zip  
+**切割：**  
+$ split -b 2048m 1.Android_origin.zip partial //按2048M=2G大小切割。  
+$ ls -l partiala\*  
+-rw-r--r--+ 1 lenovo None 2147483648 Oct 14 00:13 partialaa  
+-rw-r--r--+ 1 lenovo None 2049024258 Oct 14 00:14 partialab  
+**合并：**  
+$ cat partialaa partialab > backup_now.zip  
+$ ls -l backup_now.zip  
+-rw-r--r--+ 1 lenovo None 4196507906 Oct 14 00:19 backup_now.zip  
+
+**$ split --help** 
+Usage: split [OPTION]... [FILE [PREFIX]]  
+Output pieces of FILE to PREFIXaa, PREFIXab, ...;  
+default size is 1000 lines, and default PREFIX is 'x'.  
+With no FILE, or when FILE is -, read standard input.  
+
+Mandatory arguments to long options are mandatory for short options too.  
+  -a, --suffix-length=N   generate suffixes of length N (default 2)  
+      --additional-suffix=SUFFIX  append an additional SUFFIX to file names  
+  -b, --bytes=SIZE        put SIZE bytes per output file  
+  -C, --line-bytes=SIZE   put at most SIZE bytes of records per output file  
+  -d                      use numeric suffixes starting at 0, not alphabetic  
+   &emsp;&emsp;   --numeric-suffixes[=FROM]  same as -d, but allow setting the start value  
+  -e, --elide-empty-files  do not generate empty output files with '-n'  
+      --filter=COMMAND    write to shell COMMAND; file name is $FILE  
+  -l, --lines=NUMBER      put NUMBER lines/records per output file  
+  -n, --number=CHUNKS     generate CHUNKS output files; see explanation below  
+  -t, --separator=SEP     use SEP instead of newline as the record separator; '\0' (zero) specifies the NUL character  
+  -u, --unbuffered        immediately copy input to output with '-n r/...'  
+      --verbose           print a diagnostic just before each output file is opened  
+      --help     display this help and exit  
+      --version  output version information and exit  
+
+The SIZE argument is an integer and optional unit (example: 10K is 10*1024).  
+Units are K,M,G,T,P,E,Z,Y (powers of 1024) or KB,MB,... (powers of 1000).  
+
+
+#### 2.dd+cat  
+Linux文件切割、合并(dd+cat)  
+将一个140kbyte的文件originFile分割成两部分，一部分为part1，大小为60kbyte，剩下的分给另一部分part2。  
+**文件切割**  
+\# dd if=originFile bs=1024 count=60 skip=0    of=part1  //count*bs=60*1024byte=60kbyte  
+\# dd if=originFile bs=1024 count=80 skip=60  of=part2  //skip=60,忽略file1已经切割的大小  
+第一部分，count\*bs=60\*1024byte=60kbyte,  
+第二部分，skip=60\*1024byte=60kbyte=第一部分的大小,剩下140kbyte-60kbyte=80kbyte=80\*1024byte。  
+**文件合并**  
+\# cat part1 part2 > bakFile  
+
+
+#### 3.knife+cat  
+knife工具到http://see.online.sh.cn/ch/sw/dl/split.htm下载。  
+[root@rhas3 knife-2.0.1]\# ls  
+knife  link  linkfiles.pl  sp4.exe  
+**分割：**  
+[root@rhas3 knife-2.0.1]# ./knife -c sp4.exe 500   ( 500：字节大小)   
+Cutting......Cutted Over :-)   
+[root@rhas3 knife-2.0.1]# ls -l   
+总用量 44   
+-rwxr-xr-x    1 root     root        12949 2000-02-28  knife  
+-rwxr-xr-x    1 root     root           17 2000-02-28  link  
+-rwxr-xr-x    1 root     root         1088 2000-02-28  linkfiles.pl  
+-rw-r--r--    1 root     root         1543 2000-02-28  sp4.exe  
+-rw-r--r--    1 root     root          500  5月 18 00:49 sp4.exe.k00  
+-rw-r--r--    1 root     root          500  5月 18 00:49 sp4.exe.k01  
+-rw-r--r--    1 root     root          500  5月 18 00:49 sp4.exe.k02  
+-rw-r--r--    1 root     root           43  5月 18 00:49 sp4.exe.k03  
+
+**合并：**  
+[root@rhas3 knife-2.0.1]# ./link sp4.exe.k00 sp4.exe.k01 sp4.exe.k02 sp4.exe.k03                                                                                  
+Please intput the file name you want to LINK up, one by one.  
+Just input OK when you have finished inputting.(一定要全输完在ok)  
+ok  
+In this order:  
+  
+Now it's time you type the name of the output file.  
+  
+-->;sp4.exe  
+
+
+#### 4.总结和技巧
+字节为最小存储单位，byte。  
+ls/split/dd等linux命令，使用的数据单位都是字节(byte)。  
+$ ls -l | grep 1.Android  
+-rwx------+ 1 Administrators None 4196507906 Oct 13 22:41 1.Android开发.zip  
+4196507906指的是字节(bytes)。  
+
+[*返回:专题讲解*](#专题讲解)          &emsp;&emsp;              [*返回:页首*](#Linux命令)
 
 
 
