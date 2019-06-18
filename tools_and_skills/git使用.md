@@ -808,7 +808,7 @@ Android 源码网站在介绍 repo 的使用模型中，有一个图片： http:
 
 
 ## 专题
-[git log进阶](#git-log进阶)  &emsp;&emsp;  [git stash](#git-stash)  &emsp;&emsp;  [回退到指定日期的版本](#回退到指定日期的版本)    
+[git log进阶](#git-log进阶)  [回退到指定日期的版本](#回退到指定日期的版本)  &emsp;&emsp;  [git stash](#git-stash)  &emsp;&emsp;  
 
 ### git log进阶
 git log --after=2019-06-05 --before=2019-06-18   ， git log --after="2019-06-05" --before="2019-06-18"  
@@ -836,6 +836,12 @@ format（后跟指定格式） 。
 -S 仅显示添加或移除了某个关键字的提交  
 
 
+### 回退到指定日期的版本  
+<pre>
+$ repo forall -c 'commitID=`git log --before "2017-03-17 07:00" -1 --pretty=format:"%H"`; git reset --hard $commitID'  
+</pre>
+
+
 ### git stash  
 常用git stash命令：  
 （1）git stash 对当前的暂存区和工作区状态进行保存。  
@@ -848,11 +854,5 @@ git stash save "save message"  : 执行存储时，添加备注，方便查找�
 （7）git stash drop stash@{$num} ：丢弃stash@{$num}存储，从列表中删除这个存储  
 （8）git stash clear ：删除所有缓存的stash  
 （9）git stash branch <branchname> <stash> 基于进度创建分支  
-
-
-### 回退到指定日期的版本  
-<pre>
-$ repo forall -c 'commitID=`git log --before "2017-03-17 07:00" -1 --pretty=format:"%H"`; git reset --hard $commitID'  
-</pre>
 
 [返回*专题*](#专题)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
