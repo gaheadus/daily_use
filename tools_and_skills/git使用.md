@@ -808,7 +808,7 @@ Android 源码网站在介绍 repo 的使用模型中，有一个图片： http:
 
 
 ## 专题
-[git log进阶](#git-log进阶h)  &emsp;&emsp;  [git stash](#git-stash)  &emsp;&emsp;  [回退到指定日期的版本](#回退到指定日期的版本)    
+[git log进阶](#git-log进阶)  &emsp;&emsp;  [git stash](#git-stash)  &emsp;&emsp;  [回退到指定日期的版本](#回退到指定日期的版本)    
 
 ### git log进阶
 git log --after=2019-06-05 --before=2019-06-18   ， git log --after="2019-06-05" --before="2019-06-18"  
