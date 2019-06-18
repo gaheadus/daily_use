@@ -829,4 +829,4 @@ git stash save "save message"  : 执行存储时，添加备注，方便查找�
 $ repo forall -c 'commitID=`git log --before "2017-03-17 07:00" -1 --pretty=format:"%H"`; git reset --hard $commitID'  
 </pre>
 
-[返回*专题*](#专题)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*回退到指定日期的版本*](#回退到指定日期的版本)    
+[返回*专题*](#专题)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
