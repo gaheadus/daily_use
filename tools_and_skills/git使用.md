@@ -808,7 +808,33 @@ Android 源码网站在介绍 repo 的使用模型中，有一个图片： http:
 
 
 ## 专题
-[git stash](#git-stash)  &emsp;&emsp;  [回退到指定日期的版本](#回退到指定日期的版本)    
+[git log进阶](#git-log进阶h)  &emsp;&emsp;  [git stash](#git-stash)  &emsp;&emsp;  [回退到指定日期的版本](#回退到指定日期的版本)    
+
+### git log进阶
+git log --after=2019-06-05 --before=2019-06-18   ， git log --after="2019-06-05" --before="2019-06-18"  
+git log --since=2019-06-05 --until=2019-06-18  
+显示指定日期之间的提交。  
+还可以指定更精确的时间，如下：  
+git log --after="2019-06-01 10:00" --before="2019-06-18 23:00"  //时间和日期之间有空格，需要外加双引号  
+选项 说明  
+-p 按补丁格式显示每个更新之间的差异。  
+--stat 显示每次更新的文件修改统计信息。  
+--shortstat 只显示 --stat 中最后的行数修改添加移除统计。  
+--name-only 仅在提交信息后显示已修改的文件清单。  
+--name-status 显示新增、 修改、 删除的文件清单。  
+--abbrev-commit 仅显示 SHA-1 的前几个字符， 而非所有的 40 个字符。  
+--relative-date 使用较短的相对时间显示（比如， “2 weeks ago”）。  
+--graph 显示 ASCII 图形表示的分支合并历史。  
+--pretty 使用其他格式显示历史提交信息。 可用的选项包括 oneline， short， full， fuller 和  
+format（后跟指定格式） 。  
+-(n) 仅显示最近的 n 条提交  
+--since, --after 仅显示指定时间之后的提交。  
+--until, --before 仅显示指定时间之前的提交。  
+--author 仅显示指定作者相关的提交。  
+--committer 仅显示指定提交者相关的提交。  
+--grep 仅显示含指定关键字的提交  
+-S 仅显示添加或移除了某个关键字的提交  
+
 
 ### git stash  
 常用git stash命令：  
