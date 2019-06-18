@@ -808,7 +808,7 @@ Android 源码网站在介绍 repo 的使用模型中，有一个图片： http:
 
 
 ## 专题
-[git stash](#gitstash)  &emsp;&emsp;  [git stash](#gitstash)    
+[git stash](#git-stash)  &emsp;&emsp;  [回退到指定日期的版本](#回退到指定日期的版本)    
 
 ### git stash  
 常用git stash命令：  
@@ -825,7 +825,8 @@ git stash save "save message"  : 执行存储时，添加备注，方便查找�
 
 
 ### 回退到指定日期的版本  
+<pre>
 $ repo forall -c 'commitID=`git log --before "2017-03-17 07:00" -1 --pretty=format:"%H"`; git reset --hard $commitID'  
-
+</pre>
 
 [返回*专题*](#专题)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*回退到指定日期的版本*](#回退到指定日期的版本)    
