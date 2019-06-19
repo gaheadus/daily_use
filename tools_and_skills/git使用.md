@@ -811,17 +811,17 @@ Android 源码网站在介绍 repo 的使用模型中，有一个图片： http:
 [git log进阶](#git-log进阶)  [回退到指定日期的版本](#回退到指定日期的版本)  &emsp;&emsp;  [git stash](#git-stash)  &emsp;&emsp;  
 
 ### git log进阶
-显示指定时间的提交  
+**显示指定时间的提交**  
+显示指定日期之间的提交:  
 git log --after=2019-06-05   --before=2019-06-18  
 git log --after="2019-06-05" --before="2019-06-18" //中间没有空格，双引号可要可不要  
 git log --since=2019-06-05 --until=2019-06-18  
-显示指定日期之间的提交。  
 还可以指定更精确的时间，如下：  
 git log --after="2019-06-01 10:00" --before="2019-06-18 23:00"  //中间有空格，需要外加双引号  
 
 git log --author=DuKang //仅显示指定作者相关的提交  
 
-选项 说明  
+> 选项 说明  
 -p 按补丁格式显示每个更新之间的差异。  
 --stat 显示每次更新的文件修改统计信息。  
 --shortstat 只显示 --stat 中最后的行数修改添加移除统计。  
@@ -839,7 +839,7 @@ git log --author=DuKang //仅显示指定作者相关的提交
 --grep 仅显示含指定关键字的提交  
 -S 仅显示添加或移除了某个关键字的提交  
 
-指定输出格式  
+**指定输出格式**  
 git log --pretty=oneline     //按一行输出，完整SHA  
 git log --oneline           //按一行输出，简短SHA  
 
