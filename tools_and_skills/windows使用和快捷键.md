@@ -205,7 +205,7 @@ ctrl+鼠标左击：按住ctrl键的同时鼠标点击链接，在新的后台�
 2.地址栏输入cmd、回车  
 ![地址栏输入cmd、回车1](https://github.com/gaheadus/daily_use/blob/master/Resources/%E5%9C%B0%E5%9D%80%E6%A0%8F%E8%BE%93%E5%85%A5cmd%E3%80%81%E5%9B%9E%E8%BD%A61.png)  -> ![地址栏输入cmd、回车2](https://github.com/gaheadus/daily_use/blob/master/Resources/%E5%9C%B0%E5%9D%80%E6%A0%8F%E8%BE%93%E5%85%A5cmd%E3%80%81%E5%9B%9E%E8%BD%A62.png)  
 打开cmd窗口，并且进入到当前所在路径，如下，  
-![打开cmd窗口，并且进入到当前所在路径](URL)  
+![打开cmd窗口，并且进入到当前所在路径](https://github.com/gaheadus/daily_use/blob/master/Resources/%E6%89%93%E5%BC%80cmd%E7%AA%97%E5%8F%A3%EF%BC%8C%E5%B9%B6%E4%B8%94%E8%BF%9B%E5%85%A5%E5%88%B0%E5%BD%93%E5%89%8D%E6%89%80%E5%9C%A8%E8%B7%AF%E5%BE%84.png)  
 
 扩展：事实上，不仅cmd可以用这样的方式打开，其他的windows自带程序和命令都可以用这种方式打开。例如在文件夹路径里输入powershell、回车，可以在当前路径下打开powershell，同样，在文件夹路径里输入calc、回车，可以打开windows自带计算器，……。  
 其他非windows自带程序，只要将其路径添加到windows环境变量，同样可以使用这样的方式打开。  
