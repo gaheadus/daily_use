@@ -67,9 +67,9 @@ b.在搜索结果页面，点击工具栏go to next link(shift+f8)/go to next li
 **从当前位置选择到行的开始             : Shift+Home**  
 **从当前位置选择到文件顶部             : Ctrl+Shift+Home**  
 
-ctrl + o, 打开文件  
-ctrl + w, 关闭文件;  ctrl + shift + w, 关闭所有文件  
+ctrl + o, 打开**文件列表框**，注意并不是打开文件，和alt+g/f7是一样的打开符号列表框。//这个快捷键和其他软件不一样  
 ctrl + shift + o, 重新加载文件(如果文件在其他编辑器里被修改，sourceinsight还没有同步更新，可以重新加载)  
+ctrl + w, 关闭文件;  ctrl + shift + w, 关闭所有文件  
 
 **上一个函数** : 数字小键盘区-，需要取消小键盘Num Lock功能，然后才可以使用-/+进行跳转。  
 **下一个函数** : 数字小键盘区+  
