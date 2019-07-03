@@ -713,9 +713,8 @@ Android 源码网站在介绍 repo 的使用模型中，有一个图片： http:
 
 
 ## 专题
-[git log进阶](#git-log进阶)  &emsp;&emsp;  [回退到指定日期的版本](#回退到指定日期的版本)  &emsp;&emsp;  [git stash](#git-stash)  &emsp;&emsp;  
-[patch的使用](#patch的使用)  
-
+[git log进阶](#git-log进阶)  &emsp;&emsp;  [回退到指定日期的版本](#回退到指定日期的版本)  &emsp;&emsp;  [git stash](#git-stash)  &emsp;&emsp;  [patch的使用](#patch的使用)  &emsp;&emsp;  
+[*返回目录*](#git)  
 
 
 ### git log进阶
