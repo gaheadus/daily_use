@@ -1,7 +1,6 @@
 # git
 - [概念](#概念)  
 - [git命令](#git命令)  
-- [patch的使用](#patch的使用)  
 - [git学习](#git学习)  
 - [repo](#repo)  
 - [专题](#专题)  
@@ -234,100 +233,6 @@ $ git archive //生成一个可供发布的压缩包
 [返回*git命令*](#git命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
 
-
-## patch的使用  
-**1.打patch、应用patch**  
-打patch，生成补丁：  
-$ git format-patch -n master \\生成最近n次commit的patch  
-$ git format-patch master\~4..master\~2 \\生成master\~4和master\~2之间差异的patch  
-$ git format-patch -s <sha> \\生成指定commit的patch，加签名  
-应用补丁：  
-$ git am 0001-trival-patch.patch  
-git am用了git apply，用它打补丁会生成commit信息。如果出现错误  
-previous rebase directory ../.git/rebase-apply still exists but mbox given  
-可以用  
-$ git am --abort  
-
-前面方法用于**已经commit的**更改，如果是**用git diff生成的本地修改的**patch，则可以用下面方法生成本地修改的patch。  
-打patch，生成补丁：  
-$ git diff > diff.patch  
-应用patch：  
-$ git apply diff.patch  /  $ git apply --ignore-space-change --ignore-whitespace diff.patch  
-或者  
-$ patch -p1 < diff.patch  
-当然这更像svn中的习惯，在git里反正是本地提交，提交的成本很低，所以可以先提交再生成patch。  
-
-branch之间打patch用：  
-$ git cherry-pick  
-
-**git format-patch**  
-git format-patch生成的一系列的patch  
-法一：使用HEAD生成patch  
-$ git format-patch HEAD^ <==最近的1次commit的patch  
-$ git format-patch HEAD^^ <==最近的2次commit的patch  
-$ git format-patch HEAD^^^ <==最近的3次commit的patch  
-$ git format-patch HEAD^^^^ <==最近的4次commit的patch  
-$ git format-patch HEAD^^^^^ <==不支持！！！！error！！！  
-法二：根据commitSHA生成patch  
-$ git format-patch commit  -----根据commit生成patch  
-$ git format-patch commit1..commit4  -----结果是从commit2到4的patch  
-
-git format-patch -1 = git format-patch HEAD^ ,等价操作  
-git format-patch -2 = git format-patch HEAD^^  
-
-**git am**  
-$git am ~/patch/0001-trival-patch.patch  
-如果贡献者也用 Git，且擅于制作 format-patch 补丁，那你的合并工作将会非常轻松。  
-因为这些补丁中除了文件内容差异外，还包含了作者信息和提交消息。所以请鼓励贡献者用format-patch 生成补丁。对于传统的 diff 命令生成的补丁，则只能用 git apply 处理。  
-对于 format-patch 制作的新式补丁，应当使用 git am命令。  
-
-**使用git-am合并git format-patch生成的一系列的patch**  
-$git am \~/patch/0001-trival-patch.patch  
-在git使用当中，会有很多时候别人(供应商或者其他的开发人员)发过来一系列的patch，这些patch通常的是类似这样的名字：  
-0001--JFFS2-community-fix-with-not-use-OOB.patch  
-0002--Community-patch-for-Fix-mount-error-in.patch  
-0003--partial-low-interrupt-latency-mode-for-ARM113.patch  
-0004--for-the-global-I-cache-invalidation-ARM11.patch  
-里面包含了提交的日志，作者，日期等信息。你想做的是把这些patch引入到你的  
-代码库中，最好是也可以把日志也引入进来，方便以后维护用。  
-传统的打patch方式是：patch -p1 < 0001--JFFS2-community-fix-with-not-use-OOB.patch  
-这样来打patch，会把这些有用的信息丢失。  
-由于这些patch显然是用git format-patch来生成的，所以用git的工具应该就可以很好的做好。  
-git-am 就是作这件事情。  
-在使用git-am之前，你要首先git am -abort一次，来放弃掉以前的am信息，这样才可以进行一次全新的am。不然会遇到这样的错误:.git/rebase-apply still exists but mbox given.  
-git-am 可以一次合并一个文件，或者一个目录下所有的patch，或者你的邮箱目录下的patch.  
-下面举两个例子：  
-你现在有一个code base：small-src, 你的patch文件放在~/patch/0001-trival-patch.patch  
-$git am \~/patch/0001-trival-patch.patch  
-如果成功patch上去， 你就可以去喝杯茶了。  
-如果失败了，git 会提示错误， 比如：  
-error: patch failed: android/mediascanner.cpp:452  
-error: android/mediascanner.cpp: patch does not apply  
-这样你就需要先看看patch， 然后改改错误的这个文件，让这个patch能够patch上去。  
-
-**冲突的解决**  
-$git am *.patch  
-来merge这些patch， 报错，Patch failed at 0001 add line这样我们看0001这个patch,原来patch需要的是some text, 而file里面是the text, 所以我们用编辑器把这行改成some text,  
-$vi file  
-$git apply 0001-add-line.patch  
-$git add file  
-$git am --resolved  
-在解决完冲突以后， 比如用git add来让git知道你已经解决完冲突了。  
-如果你发现这个冲突是无法解决的，要撤销整个am的东西。 可以运行git am -abort，  
-如果你想只是忽略这一个patch，可以运行git am -skip来跳过这个patch.  
-
-git format-patch -1     生成最后一个提交对应的patch文件。  
-git am < patch          把一个patch文件加入git仓库中。  
-git am --resolved       如果有冲突，在解决冲突后执行。  
-git am --skip           放弃当前git am所引入的patch。  
-
-**git diff > new.patch**  
-也可以使用git diff来生成patch文件，如:git diff >new.patch。  
-
-**git apply**  
-$ git apply /tmp/patch-ruby-client.patch  
-如果收到的补丁文件是用 git diff 或由其它 Unix 的 diff 命令生成，就该用 git apply 命令来应用补丁。假设补丁文件存在 /tmp/patch-ruby-client.patch，可以这样运行。  
-[返回*patch的使用*](#patch的使用)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
 
 ### git学习  
@@ -808,7 +713,10 @@ Android 源码网站在介绍 repo 的使用模型中，有一个图片： http:
 
 
 ## 专题
-[git log进阶](#git-log进阶)  [回退到指定日期的版本](#回退到指定日期的版本)  &emsp;&emsp;  [git stash](#git-stash)  &emsp;&emsp;  
+[git log进阶](#git-log进阶)  &emsp;&emsp;  [回退到指定日期的版本](#回退到指定日期的版本)  &emsp;&emsp;  [git stash](#git-stash)  &emsp;&emsp;  
+[patch的使用](#patch的使用)  
+
+
 
 ### git log进阶
 **显示指定时间的提交**  
@@ -858,11 +766,13 @@ git log --pretty=format:%ci  // committer date, ISO 8601-like format
 几个格式一起输出：  
 git log –pretty=format:%H,%s,%an,%ae        //中间不能有空格  
 git log –pretty=format:"%H,   %s,%an,%ae"    //中间有空格则必须外加双引号  
+[返回*专题*](#专题)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 
 
 ### 回退到指定日期的版本  
 repo forall -c 'commitID=\`git log --before "2017-03-17 07:00" -1 --pretty=format:"%H"\`; git reset --hard $commitID'  
+[返回*专题*](#专题)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 
 
@@ -878,5 +788,105 @@ git stash save "save message"  : 执行存储时，添加备注，方便查找�
 （7）git stash drop stash@{$num} ：丢弃stash@{$num}存储，从列表中删除这个存储  
 （8）git stash clear ：删除所有缓存的stash  
 （9）git stash branch <branchname> <stash> 基于进度创建分支  
+[返回*专题*](#专题)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
+
+### patch的使用
+**1.打patch、应用patch**  
+打patch，生成补丁：  
+$ git format-patch -n master \\生成最近n次commit的patch  
+$ git format-patch master\~4..master\~2 \\生成master\~4和master\~2之间差异的patch  
+$ git format-patch -s <sha> \\生成指定commit的patch，加签名  
+应用补丁：  
+$ git am 0001-trival-patch.patch  
+git am用了git apply，用它打补丁会生成commit信息。如果出现错误  
+previous rebase directory ../.git/rebase-apply still exists but mbox given  
+可以用  
+$ git am --abort  
+
+上述方法用于已经commit的更改，如果是还没有commit的修改，可以用git diff生成的本地修改的patch，则可以用下面方法生成patch、应用patch：  
+$ git diff > diff.patch  
+$ **patch -p1 < diff.patch** //推荐使用patch命令，git apply命令经常出错  
+$ git apply diff.patch  /  $ git apply --ignore-space-change --ignore-whitespace diff.patch  
+
+patch命令里面的层数-p0 -p1  
+参数-p来指定从第几层开始比较。比如有一个patch文件的补丁头是这样的：  
+--- old/modules/pcitableMon Sep 27 11:03:56 1999  
++++ new/modules/pcitableTue Dec 19 20:05:41 2000  
+如果使用参数-p0，就表示从当前目录，找一个叫作new的目录，在它下面找一个叫modules的目录，再在它下面找一个叫pcitableMon的目录。   
+如果使用参数-p1,就表示忽略第一层，从当前目录找一个叫modules的目录，在它下面找一个叫modules的目录。这样会忽略掉补丁头提到的new目录。  
+
+
+当然这更像svn中的习惯，在git里反正是本地提交，提交的成本很低，所以可以先提交再生成patch。  
+
+branch之间应用patch：  
+$ git cherry-pick  
+
+**git format-patch**  
+git format-patch生成的一系列的patch  
+法一：使用HEAD生成patch  
+$ git format-patch HEAD^ <==最近的1次commit的patch  
+$ git format-patch HEAD^^ <==最近的2次commit的patch  
+$ git format-patch HEAD^^^ <==最近的3次commit的patch  
+$ git format-patch HEAD^^^^ <==最近的4次commit的patch  
+$ git format-patch HEAD^^^^^ <==不支持！！！！error！！！  
+法二：根据commitSHA生成patch  
+$ git format-patch commit  -----根据commit生成patch  
+$ git format-patch commit1..commit4  -----结果是从commit2到4的patch  
+
+git format-patch -1 = git format-patch HEAD^ ,等价操作  
+git format-patch -2 = git format-patch HEAD^^  
+
+**git am**  
+$git am ~/patch/0001-trival-patch.patch  
+如果贡献者也用 Git，且擅于制作 format-patch 补丁，那你的合并工作将会非常轻松。  
+因为这些补丁中除了文件内容差异外，还包含了作者信息和提交消息。所以请鼓励贡献者用format-patch 生成补丁。对于传统的 diff 命令生成的补丁，则只能用 git apply 处理。  
+对于 format-patch 制作的新式补丁，应当使用 git am命令。  
+
+**使用git-am合并git format-patch生成的一系列的patch**  
+$git am \~/patch/0001-trival-patch.patch  
+在git使用当中，会有很多时候别人(供应商或者其他的开发人员)发过来一系列的patch，这些patch通常的是类似这样的名字：  
+0001--JFFS2-community-fix-with-not-use-OOB.patch  
+0002--Community-patch-for-Fix-mount-error-in.patch  
+0003--partial-low-interrupt-latency-mode-for-ARM113.patch  
+0004--for-the-global-I-cache-invalidation-ARM11.patch  
+里面包含了提交的日志，作者，日期等信息。你想做的是把这些patch引入到你的  
+代码库中，最好是也可以把日志也引入进来，方便以后维护用。  
+传统的打patch方式是：patch -p1 < 0001--JFFS2-community-fix-with-not-use-OOB.patch  
+这样来打patch，会把这些有用的信息丢失。  
+由于这些patch显然是用git format-patch来生成的，所以用git的工具应该就可以很好的做好。  
+git-am 就是作这件事情。  
+在使用git-am之前，你要首先git am -abort一次，来放弃掉以前的am信息，这样才可以进行一次全新的am。不然会遇到这样的错误:.git/rebase-apply still exists but mbox given.  
+git-am 可以一次合并一个文件，或者一个目录下所有的patch，或者你的邮箱目录下的patch.  
+下面举两个例子：  
+你现在有一个code base：small-src, 你的patch文件放在~/patch/0001-trival-patch.patch  
+$git am \~/patch/0001-trival-patch.patch  
+如果成功patch上去， 你就可以去喝杯茶了。  
+如果失败了，git 会提示错误， 比如：  
+error: patch failed: android/mediascanner.cpp:452  
+error: android/mediascanner.cpp: patch does not apply  
+这样你就需要先看看patch， 然后改改错误的这个文件，让这个patch能够patch上去。  
+
+**冲突的解决**  
+$git am *.patch  
+来merge这些patch， 报错，Patch failed at 0001 add line这样我们看0001这个patch,原来patch需要的是some text, 而file里面是the text, 所以我们用编辑器把这行改成some text,  
+$vi file  
+$git apply 0001-add-line.patch  
+$git add file  
+$git am --resolved  
+在解决完冲突以后， 比如用git add来让git知道你已经解决完冲突了。  
+如果你发现这个冲突是无法解决的，要撤销整个am的东西。 可以运行git am -abort，  
+如果你想只是忽略这一个patch，可以运行git am -skip来跳过这个patch.  
+
+git format-patch -1     生成最后一个提交对应的patch文件。  
+git am < patch          把一个patch文件加入git仓库中。  
+git am --resolved       如果有冲突，在解决冲突后执行。  
+git am --skip           放弃当前git am所引入的patch。  
+
+**git diff > new.patch**  
+也可以使用git diff来生成patch文件，如:git diff >new.patch。  
+
+**git apply**  
+$ git apply /tmp/patch-ruby-client.patch  
+如果收到的补丁文件是用 git diff 或由其它 Unix 的 diff 命令生成，就该用 patch -p或git apply 命令来应用补丁。  
 [返回*专题*](#专题)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
