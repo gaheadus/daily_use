@@ -198,7 +198,7 @@ Each option given on the command line must be preceded by a dash (-) or a forwar
 
 
 ## si正则搜索  
-1.正则搜索时将Whole Words Only选项去掉  
+1.正则搜索时要将Whole Words Only选项去掉。  
 2.注意：sourceinsight中\w不代表所有单个大小写字母、数字、下划线，不表示[a-zA-Z0-9_], sourceinsight中\w表示空格或tab，\w-white；而python/perl中\w表示单个大小写字母、数字、下划线，[a-zA-Z0-9_]，\w-word。  
 参考帮助文档: \w matches a single white space character. In other words, \w matches either a tab or space character. Example: \wwhile matches either a tab or space character, followed by while.  
 备注：python/perl正则：\s - space,  **\w - word** ,  \d - digital , \r - return , \n - new line , \t - tab , \b - boundary  
