@@ -97,6 +97,7 @@ $ git commit -a  //提交工作区自上次commit之后的变化，直接到仓�
 $ git commit -am "message" //相当于git add和git commit -m "message"。  
 $ git commit -v  //提交时显示所有diff信息  
 $ git commit --amend -m [message]  //使用一次新的commit，替代上一次提交。如果代码没有任何新变化，则用来改写上一次commit的提交信息。  
+$ git commit --amend --no-edit //--no-edit表示不想编辑提交信息，直接用以前的就行。  
 $ git commit --amend [file1] [file2]  //重做上一次commit，并包括指定文件的新变化  
 
 $ git commit -m "提交信息" --author "Authorname <authoremail@mydomain.com>" //指定提交的作者。单独为某个提交指定提交作者，不使用git config配置的默认值。  
@@ -713,7 +714,7 @@ Android 源码网站在介绍 repo 的使用模型中，有一个图片： http:
 
 
 ## 专题
-[git log进阶](#git-log进阶)  &emsp;&emsp;  [回退到指定日期的版本](#回退到指定日期的版本)  &emsp;&emsp;  [git stash](#git-stash)  &emsp;&emsp;  [patch的使用](#patch的使用)  &emsp;&emsp;  
+[git log进阶](#git-log进阶)  &emsp;&emsp;  [回退到指定日期的版本](#回退到指定日期的版本)  &emsp;&emsp;  [git stash](#git-stash)  &emsp;&emsp;  [patch的使用](#patch的使用)  &emsp;&emsp;  [撤销修改:checkout,reset,clean,revert](#撤销修改:checkout,reset,clean,revert)  &emsp;&emsp;  
 [*返回目录*](#git)  
 
 
@@ -791,12 +792,12 @@ git stash save "save message"  : 执行存储时，添加备注，方便查找�
 
 
 ### patch的使用
-**1.打patch、应用patch**  
-打patch，生成补丁：  
-$ git format-patch -n master \\生成最近n次commit的patch  
-$ git format-patch master\~4..master\~2 \\生成master\~4和master\~2之间差异的patch  
-$ git format-patch -s <sha> \\生成指定commit的patch，加签名  
-应用补丁：  
+**打patch，生成补丁，git format-patch：**  
+$ git format-patch -1 和 git format-patch HEAD^ 等效，生成当前分支最近一次提交的patch  
+$ git format-patch -2 和 git format-patch HEAD^^ 等效，生成当前分支最近两次提交的patch  
+$ git format-patch -1 SHA //生成指定提交的patch  
+$ git format-patch -n SHA //从SHA值开始(含SHA值当次)之前的n次提交的patch  
+**应用补丁，git am：**  
 $ git am 0001-trival-patch.patch  
 git am用了git apply，用它打补丁会生成commit信息。如果出现错误  
 previous rebase directory ../.git/rebase-apply still exists but mbox given  
@@ -822,19 +823,27 @@ branch之间应用patch：
 $ git cherry-pick  
 
 **git format-patch**  
-git format-patch生成的一系列的patch  
+使用git format-patch生成的一系列的patch。git format-patch生成的git专用补丁。  
 法一：使用HEAD生成patch  
 $ git format-patch HEAD^ <==最近的1次commit的patch  
 $ git format-patch HEAD^^ <==最近的2次commit的patch  
 $ git format-patch HEAD^^^ <==最近的3次commit的patch  
 $ git format-patch HEAD^^^^ <==最近的4次commit的patch  
 $ git format-patch HEAD^^^^^ <==不支持！！！！error！！！  
-法二：根据commitSHA生成patch  
-$ git format-patch commit  -----根据commit生成patch  
-$ git format-patch commit1..commit4  -----结果是从commit2到4的patch  
+git format-patch -1 和 git format-patch HEAD^ 等效，生成当前分支最近一次提交的patch  
+git format-patch -2 和 git format-patch HEAD^^ 等效，生成当前分支最近两次提交的patch  
+git format-patch -n , n是具体某个数字， 例如 'git format-patch -1' 这时便会根据log生成一个对应的补丁，如果 'git format-patch -2' 那么便会生成2个补丁，当然前提是你的log上有至少有两个记录。  
 
-git format-patch -1 = git format-patch HEAD^ ,等价操作  
-git format-patch -2 = git format-patch HEAD^^  
+法二：根据commit SHA生成patch  
+$ git format-patch -1 SHA //生成指定提交的patch  
+$ git format-patch -n SHA //从SHA值开始(含SHA当次)之前的n次提交的patch(比SHA更旧的提交、在SHA之前的提交)  
+$ git format-patch commit1..commit4 //生成从commit2到commit4的patch  
+$ git format-patch -s SHA //此SHA值提交以后的所有patch(不含SHA当次) (比SHA更新的提交、在SHA之后的提交)  
+
+法三：指定分支  
+$ git format-patch -M master //当前分支所有超前master的提交  
+$ git format-patch -n master //生成最近n次commit的patch  
+$ git format-patch master~4..master~2  //生成master~4和master~2之间差异的patch  
 
 **git am**  
 $git am ~/patch/0001-trival-patch.patch  
@@ -889,3 +898,34 @@ git am --skip           放弃当前git am所引入的patch。
 $ git apply /tmp/patch-ruby-client.patch  
 如果收到的补丁文件是用 git diff 或由其它 Unix 的 diff 命令生成，就该用 patch -p或git apply 命令来应用补丁。  
 [返回*专题*](#专题)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
+
+### 撤销修改:checkout,reset,clean,revert
+1. git checkout -- filename  
+撤销最近一次工作区的修改，git add filename 命令的后悔药  
+git checkout --filename 其实是用版本库的文件替换工作区的文件，无论工作区是修改还是删除，都可以“一键还原”。  
+2. git  reset -- filename  
+撤销暂存区的提交，git commit -m 'msg' 的后悔药  
+git reset --hard HEAD，撤销工作区和暂存区的修改  
+git reset --hard HEAD^ ，回退到上一个版本  
+--soft – 缓存区和工作目录都不会被改变  
+--mixed – 默认选项。撤销暂存区的修改，但工作目录不受影响  
+--hard – 缓存区和工作目录都同步到你指定的提交  
+
+小结：**git checkout / git reset只能撤销已经tracked的文件，git clean用来删除没有tracked的文件。**  
+
+git clean命令用来从你的工作目录中删除所有没有tracked过的文件  
+git clean经常和git reset --hard一起结合使用。reset只影响被track过的文件, 所以需要clean来删除没有track过的文件，结合使用这两个命令能让你的工作目录完全回到一个指定的<commit>的状态。  
+
+git clean -n，是一次clean的演习, 告诉你哪些文件会被删除. 记住他不会真正的删除文件, 只是一个提醒  
+git clean -f，删除当前目录下所有没有track过的文件，他不会删除.gitignore文件里面指定的文件夹和文件, 不管这些文件有没有被track过  
+git clean -f <path>，删除指定路径下的没有被track过的文件  
+git clean -df，删除当前目录下没有被track过的文件和文件夹  
+git clean -xf，删除当前目录下所有没有track过的文件，不管他是否是.gitignore文件里面指定的文件夹和文件  
+
+git clean对于刚编译过的项目也非常有用. 如, 他能轻易删除掉编译后生成的.o和.exe等文件. 这个在打包要发布一个release的时候非常有用。  
+下面的例子要删除所有工作目录下面的修改, 包括新添加的文件. 假设你已经提交了一些快照了, 而且做了一些新的开发  
+git reset --hard  
+git clean -df  
+运行后, 工作目录和缓存区回到最近一次commit时候一摸一样的状态，git status会告诉你这是一个干净的工作目录, 又是一个新的开始了。  
+[返回*专题*](#专题)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
+
