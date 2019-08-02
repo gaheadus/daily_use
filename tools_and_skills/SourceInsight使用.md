@@ -127,13 +127,14 @@ si3.5: C:\Users\lenovo\Documents\Source Insight\Projects，si4.0: C:\Users\lenov
 取消自动对齐：Options-&gt;File Type Options-&gt;Auto Indenting-&gt;Auto Indent设置为none。  
 
 ## 空格等宽间距显示  
-设置空格为等宽间距(固定间距),比如设置注释中的空格为等宽间距，将鼠标放置在注释上，Options -> Style Properties ->Fixed Whitespace-OFF。这样每个空格占一个字符的宽度，会使得注释很整齐。
-也可以设置函数参数中的空格为等宽间距，代码中空格为等宽间距……。
+设置空格为非固定间距
+1.设置空格为等宽间距(固定间距),比如设置注释中的空格为等宽间距，将鼠标放置在注释上，Options -> Style Properties ->Fixed Whitespace设置为OFF。  
+也可以设置函数参数中的空格为等宽间距，代码中空格为等宽间距……。一个空格占用一个字符宽度，Options -> Style Properties -> Declaration...及其子项设置->Fixed Whitespace设置为OFF。  
 
-函数定义/函数声明，设置参数与类型声明之间的空格的显示：  
-1.一个空格占用一个字符宽度，Options -> Style Properties -> Declaration...及其子项设置->Fixed Whitespace设置为OFF，Declare Parameters->取消Underline。  
-2.Options -> Style Properties -> Default Text -> Scale设置为100%,Scale设置为其他值会造成空格无法对齐。  
-
+**参数间空格的显示**  
+设置参数间空格全部显示，不隐藏。   
+有时候参数间多个空格会隐藏，只会显示一个，造成格式上的混乱。如下方法可以设置参数间的空格全部显示，不隐藏。  
+Options -> Preferences -> Display -> Spacing…，将Layout spaces using monospace calculations、Layout tabstops using monospace calculations两个选项取消。  
 [返回*常用功能*](#常用功能)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [返回*目录*](#SourceInsight使用)  
 
 
