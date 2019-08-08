@@ -782,7 +782,7 @@ repo forall -c 'commitID=\`git log --before "2017-03-17 07:00" -1 --pretty=forma
 （1）git stash 对当前的暂存区和工作区状态进行保存。  
      git stash save "save message"  : 执行存储时，添加备注，方便查找，只有git stash也是可以的，但查找时不方便识别。  
      git stash save 将工作区和暂存区的修改保存，只会保存已经被git tracked的文件，对于新增文件，还没有被git track，如果需要保存，使用git stash save -u。  
-     对新增加的文件进行暂存，推荐使用git stash save -u，不推荐git add之后git stash save，这样可以避免在git stash apply的时候将新增文件、不必要的文件纳入跟踪范围。这样git apply恢复的暂存修改可以使用git checkout .和git clean -f取消修改，否则要使用git reset --hard HEAD和rm取消修改，更麻烦。  
+     对新增加的文件进行暂存，推荐使用git stash save -u，不推荐git add之后git stash save，这样可以避免在git stash apply的时候将新增文件、不必要的文件纳入跟踪范围。这样在git apply恢复暂存的修改后，可以使用git checkout .和git clean -f取消修改，否则要使用git reset --hard HEAD和rm取消修改，更麻烦。  
 （2）git stash list  ：列出所有保存的进度列表。  
 （3）git stash show ：显示做了哪些改动，默认show第一个存储,如果要显示其他存贮，后面加stash@{$num}，比如第二个 git stash show stash@{1}  
 （4）git stash show -p : 显示第一个存储的改动，如果想显示其他存存储，命令：git stash show  stash@{$num}  -p ，比如第二个：git stash show  stash@{1}  -p  
