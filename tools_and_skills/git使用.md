@@ -49,8 +49,7 @@ FETCH_HEAD：git fetch后所有分支的头索引指针
 MERGE_HEAD：git merge时另一分支的头索引指针  
 相对索引：HEAD^ HEAD\~ HEAD\~2 HEAD@{2}等  
 
-ORIG_HEAD用于指向前一个操作状态，因此在git pull之后如果想得到pull的  
-内容就可以：  
+ORIG_HEAD用于指向前一个操作状态，因此在git pull之后如果想得到pull的内容可以使用如下命令：  
 git diff ORIG_HEAD  
 git diff --stat  用于生成统计信息。  
 git diff --stat ORIG_HEAD  
@@ -229,8 +228,7 @@ $ git stash pop //恢复之前保存的变化
 
 
 ### 十、其他  
-$ git clean -fd，删除**未被追踪的**文件和文件夹
-
+$ git clean -fd，删除**未被追踪的**文件和文件夹  
 $ git archive //生成一个可供发布的压缩包  
 [返回*git命令*](#git命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
