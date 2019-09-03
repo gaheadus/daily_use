@@ -1,4 +1,6 @@
-# ba机制 -- TODO未完
+
+# 802.11协议
+## ba机制 -- TODO未完
 《IEEE Std 802.11™-2016.pdf》  
 6.3.29 Block Ack  
 11.5 Block ack operation  
@@ -22,3 +24,12 @@
 12.2.1.5 Multi-TID BAR  
 12.2.1.7 Multi-TID BA  
 12.2.3.9 Action and Action No Ack frames -> Block Ack Action frames  
+
+
+
+
+# 网址
+https://www.aboutyun.com//forum.php/?mod=viewthread&tid=16905&extra=page%3D1&page=1&  
+
+
+
