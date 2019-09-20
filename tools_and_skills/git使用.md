@@ -246,6 +246,10 @@ $ levels，选择不同级别的关卡进行练习，达到设定的目标可以
 $ sandbox，进入沙盒中，不在设定的关卡里，可以使用任何git命令，自由发挥。  
 如果想通关练习，那就输levels命令选择关卡；如果想自由发挥，那就输sandbox命令，进入沙盒中。  
 通关过程中，如果想查看答案，输show solution命令。  
+
+#### 参考网址
+http://www.softwhy.com/qiduan/git_course/
+
 [返回*git学习*](#git学习)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
 
