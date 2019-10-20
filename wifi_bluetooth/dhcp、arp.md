@@ -3,8 +3,6 @@
 
 
 ## DHCP  
-[DHCP工作过程的六个主要步骤](#DHCP工作过程的六个主要步骤)  &emsp;&emsp;      
-
 ### DHCP工作过程的六个主要步骤  
 https://www.cnblogs.com/wajika/p/6537085.html  
 
