@@ -9,6 +9,10 @@ Little Kernel(lk)版libc，最精简版。推荐
 https://github.com/littlekernel/lk/tree/master/lib/libc  
 
 
+## gcc源码里的c库  
+http://ftp.gnu.org/gnu/gcc/  
+
+
 ## diet libc  
 diet libc - a libc optimized for small size  
 http://www.fefe.de/dietlibc/  
