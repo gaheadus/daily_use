@@ -49,6 +49,18 @@ https://blog.csdn.net/gueter/article/details/4812822
 [*返回目录*](#wifi-80211)  
 
 
+## 术语
+### 天线与流
+![天线与流](https://github.com/gaheadus/daily_use/blob/master/Resources/%E5%A4%A9%E7%BA%BF%E4%B8%8E%E6%B5%81.png)  
+**M×N:n，M指发射天线的数目，N指接收天线的数目，n指空间流数目。  
+空间流？应该是指无线信号从发射端传输到接收端形成的一个空间通道，流是通道的意思。  
+由此看来，流数应该是动态变化的，n应该是指最多支持的流数。** 有可能多条发送天线对应到一条流、或者多条接收天线对应到一条流？因此流数总是小于等于天线数（n小于等于M、N的最小值）。  
+在不同时刻流是不一样的，例如时刻t1空间存在一个从天线A1 -> B1的传输通道--记为流Stream1，同一时刻t1存在从天线A2 -> B3的传输通道--记为流Stream2，…；时刻t2空间存在一个从天线A1和天线A2 -> B4的传输通道--记为流Stream5，…  
+Explanation of 2×2:2, 3×3:3 -- Lets take one of these apart to understand what each number represents. For instance 2x2:2, the first 2 represents TX (Sending Antenna), the second 2 represents Rx (Receiving Antenna), and the last 2 represents spatial streams in this means that it’s capable of handling two spatial streams.
+
+
+
+
 
 ## 网址收藏
 https://zhuanlan.zhihu.com/dot11
