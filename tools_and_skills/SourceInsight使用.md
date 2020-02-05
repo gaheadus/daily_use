@@ -95,11 +95,10 @@ si4的ctrl+,键改不了，不知道怎么改。
 # 常用功能  
 ## 我的使用习惯  
 ctrl+d，打开文件所在目录，si4对应的是“File: Show File in Explorer...”  
-alt+, / alt+z，后退  
-alt+. / alt+x，前进  
-f1/f8/f12，都配置为语法高亮快捷键；shift+f8，取消所有语法高亮。  
-将常用功能赋予操作方便的快捷键，Option -&gt; Key Assignments。  
-f9/f10，配置为跳到搜索结果的上一个链接/下一个链接，和ctrl+l(字母l)配合使用。  
+alt+, / alt+z，后退, Go Back  
+alt+. / alt+x，前进, Go Forward  
+f1/f8/f12，都配置为语法高亮快(Highlight Word)；shift+f8，取消所有语法高亮(Clear Highlights)。  
+f9/f10，配置为跳到搜索结果的上/下一个链接(Go To Previous Link/Go To Next Link)，ctrl+l(字母l, Jump To Link)。  
 `注：alt+z/alt+x、f1/f12配置为快捷键方便左右手都可以使用；将软件自带shift+f8/shift+f9快捷键删除；shift+f8配置为清除所有语法高亮，方便高亮字符太多的时候一次性清除。`  
 
 Contex window，动态刷新。  
