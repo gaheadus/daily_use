@@ -4,6 +4,7 @@
 [参考网址](#参考网址)  
 [专题讲解](#专题讲解)  
 [应用](#应用)  
+[错误和注意](#错误和注意)  
 [问题](#问题)  
 
 
@@ -514,6 +515,9 @@ find . -name "\\*.foo" -print0 | xargs -0 -i mv {} /tmp/trash
 
 
 #### grep
+grep: General Regular Expression Parser.  
+grep [options] pattern filenames  
+
 grep,搜索文件中匹配符  
 [root@localhost test]# grep 'linux' test.txt     /  grep -n 'linux' test.txt //显示对应的行号  
 [root@localhost test]# cat test.txt | grep 'linux'  /  cat test.txt | grep -n 'linux'  
@@ -802,6 +806,41 @@ $ ls -l | grep 1.Android
 ## 应用  
 //TODO  
 [*返回:应用*](#应用)          &emsp;&emsp;              [*返回:页首*](#Linux命令)
+
+
+
+
+## 错误和注意  
+### 1.删除指定类型的文件  
+**使用git碰到的问题：git status | xargs rm \*.o 删除了所有被修改过的文件，包括.o文件、非.o文件，造成严重后果。**  
+**ls | xargs rm \*.o，这条命令并不是期望的那样只删除.o文件，会删除当前目录下全部普通文件，包括非.o文件。**  
+
+ls | xargs rm \*.o删除了当前目录下所有普通文件？为什么？
+git status | xargs rm \*.o删除了所有修改过的文件？为什么？
+
+ls | xargs rm \*.o，xargs后面的'\*.'被当做正则表达式了？当做正则表达式解释也不对，\*.o表示文件名中必须有一个字母o，不应该删除全部普通文件。而且正则表达式不应该以量词*开头。  
+
+rm \*.o是对的，只会删除.o文件，不会删除其他文件。  
+**然而，把rm \*.o放到xargs后面，command | xargs rm \*.o，其意义和单独的rm \*.o不一样了。无法解释。**  
+**rm \*.o和ls \*.o中'\*.'是通配符，但是command | xargs rm \*.o中'\*.'失去了通配符的含义。xargs后面的命令不能使用'\*.'等符号？**   
+
+删除.o文件可以使用：**rm \*.o，或 ls | grep .o| xargs rm，或 find . -name '\*.o' | xargs rm。**  
+rm \*.o或ls | grep .o| xargs rm只删除当前目录下.o文件，find . -name '\*.o' | xargs rm会删除当前目录及其子目录下.o文件。  
+
+**解决办法：将git status的结果复制到txt文档里，进行手工处理，删除不需要的内容，写成rm filename的方式，粘贴到命令行窗口执行。**  
+
+**为了避免误删，使用xargs rm之前，最好使用ls命令查看一下命令结果是不是期望的，如果结果正确，则将ls换成rm。**  
+**首先使用command | xargs ls \*.o查看结果是否正确，然后才command | xargs rm \*.o删除对应的文件。**  
+例如一个目录下有3.o、4.mp4、4.o、github.lnk、test.mp4、test.o等文件，  
+$ ls | xargs ls \*.mp4  
+3.o   4.mp4    4.mp4    4.o    github.lnk    test.mp4    test.o  
+显然ls | xargs ls \*.mp4不是期望的结果。  
+$ ls | grep .mp4 | xargs ls -l  
+4.mp4    test.mp4  
+ls | grep "\.mp4\>" | xargs ls是期望的结果，于是将ls换成rm：  
+$ ls | grep "\.mp4\>" | xargs rm  //当然，直接用rm \*.mp4就可以，这里只是用ls命令简单举个例子。  
+
+[*返回:错误和注意*](#错误和注意)          &emsp;&emsp;              [*返回:页首*](#Linux命令)
 
 
 
