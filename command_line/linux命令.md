@@ -445,8 +445,23 @@ $find ./.thumbnails/\\* -type f -atime +7 -exec rm {} \\; //用户家目录下�
 
 
 ##### find命令之xargs  
-xargs - build and execute command lines from standard input.  
-在使用 find命令的-exec选项处理匹配到的文件时， find命令将所有匹配到的文件一起传递给exec执行。但有些系统对能够传递给exec的命令长度有限制，这样在find命令运行几分钟之后，就会出现溢出错误。错误信息通常是“参数列太长”或“参数列溢出”。这就是xargs命令的用处所在，特别是与find命令一起使用。  
+加xargs、不加xargs的不同：  
+①首先，要理解find -type f的输出是什么？  
+find的输出是字符，这些字符是文件名(包括普通文件和目录文件)，find -type f输出的是普通文件的文件名。  
+②find -type f | grep "main2015.\*"，grep是对find的结果字符本身进行过滤，如./main20150428111123.log。  
+③find -type f | xargs grep "main2015.\*"，grep是把find的结果字符当做文件名、然后对文件的内容进行过滤。  
+
+**xargs, a UNIX and Linux command for building and executing command lines from standard input. Examples of cutting by character, byte position, cutting based on delimiter and how to modify the output delimiter.**  
+**xargs的作用就是，从标准输入读取字符，将读取到的字符和xargs后其他字符一起组建成命令，然后执行该命令。--读取字符、组建命令、执行命令。  
+例find -type f | xargs grep "something.\*"，xargs从管道|读取find -type f的输出字符，如./filename.txt，将读取到的字符和grep "something.\*"一起组建成命令，如grep "something.\*" ./filename.txt，并执行该命令。
+find -type f | xargs grep -i "something.\*"，也一样，读取字符、组建成命令grep -i "something.\*" ./filename.txt。
+xargs一次读取多少字符呢？ 默认读取一行，可以指定delimiter，一次读取字符个数由分隔符delimiter决定。
+总结：xargs做了三件事：读取字符、组建命令、执行命令。**  
+参考：https://shapeshed.com/unix-xargs/  
+--很多书上的中文完全没有将这个意思翻译出来，大多偏重于介绍xargs可以接收很长的输出。看这种资料还是看英文原文好。  
+
+
+在使用 find命令的-exec选项处理匹配到的文件时，find命令将所有匹配到的文件一起传递给exec执行。但有些系统对能够传递给exec的命令长度有限制，这样在find命令运行几分钟之后，就会出现溢出错误。错误信息通常是“参数列太长”或“参数列溢出”。这就是xargs命令的用处所在，特别是与find命令一起使用。  
 find命令把匹配到的文件传递给xargs命令，而xargs命令每次只获取一部分文件而不是全部，不像-exec选项那样。这样它可以先处理最先获取的一部分文件，然后是下一批，并如此继续下去。  
 在有些系统中，使用-exec选项会为处理每一个匹配到的文件而发起一个相应的进程，并非将匹配到的文件全部作为参数一次执行；这样在有些情况下就会出现进程过多，系统性能下降的问题，因而效率不高； 而使用xargs命令则只有一个进程。另外，在使用xargs命令时，究竟是一次获取所有的参数，还是分批取得参数，以及每一次获取参数的数目都会根据该命令的选项及系统内核中相应的可调参数来确定。  
 
@@ -812,33 +827,21 @@ $ ls -l | grep 1.Android
 
 ## 错误和注意  
 ### 1.删除指定类型的文件  
-**使用git碰到的问题：git status | xargs rm \*.o 删除了所有被修改过的文件，包括.o文件、非.o文件，造成严重后果。**  
-**ls | xargs rm \*.o，这条命令并不是期望的那样只删除.o文件，会删除当前目录下全部普通文件，包括非.o文件。**  
+**使用git碰到的问题：git status | xargs rm \*.o ，本意只想删除.o文件，结果删除了所有被修改过的文件，包括.o文件、非.o文件，造成严重后果。**  
+**同样，ls | xargs rm \*.o，并不是期望的那样只删除.o文件，会删除当前目录下全部普通文件，包括包括.o文件、非.o文件。**  
 
-ls | xargs rm \*.o删除了当前目录下所有普通文件？为什么？
-git status | xargs rm \*.o删除了所有修改过的文件？为什么？
-
-ls | xargs rm \*.o，xargs后面的'\*.'被当做正则表达式了？当做正则表达式解释也不对，\*.o表示文件名中必须有一个字母o，不应该删除全部普通文件。而且正则表达式不应该以量词*开头。  
+ls | xargs rm \*.o删除了当前目录下所有普通文件？为什么？  
+git status | xargs rm \*.o删除了所有修改过的文件？为什么？  
 
 rm \*.o是对的，只会删除.o文件，不会删除其他文件。  
-**然而，把rm \*.o放到xargs后面，command | xargs rm \*.o，其意义和单独的rm \*.o不一样了。无法解释。**  
-**rm \*.o和ls \*.o中'\*.'是通配符，但是command | xargs rm \*.o中'\*.'失去了通配符的含义。xargs后面的命令不能使用'\*.'等符号？**   
+**然而，把rm \*.o放到xargs后面，command | xargs rm \*.o，其意义和单独的rm \*.o不一样了。为什么？**  
 
-删除.o文件可以使用：**rm \*.o，或 ls | grep .o| xargs rm，或 find . -name '\*.o' | xargs rm。**  
-rm \*.o或ls | grep .o| xargs rm只删除当前目录下.o文件，find . -name '\*.o' | xargs rm会删除当前目录及其子目录下.o文件。  
+解释：  
+**xargs做了三件事：读取字符、组建命令、执行命令。**  
+详细解释参考：find命令之xargs  
 
-**解决办法：将git status的结果复制到txt文档里，进行手工处理，删除不需要的内容，写成rm filename的方式，粘贴到命令行窗口执行。**  
-
-**为了避免误删，使用xargs rm之前，最好使用ls命令查看一下命令结果是不是期望的，如果结果正确，则将ls换成rm。**  
-**首先使用command | xargs ls \*.o查看结果是否正确，然后才command | xargs rm \*.o删除对应的文件。**  
-例如一个目录下有3.o、4.mp4、4.o、github.lnk、test.mp4、test.o等文件，  
-$ ls | xargs ls \*.mp4  
-3.o   4.mp4    4.mp4    4.o    github.lnk    test.mp4    test.o  
-显然ls | xargs ls \*.mp4不是期望的结果。  
-$ ls | grep .mp4 | xargs ls -l  
-4.mp4    test.mp4  
-ls | grep "\.mp4\>" | xargs ls是期望的结果，于是将ls换成rm：  
-$ ls | grep "\.mp4\>" | xargs rm  //当然，直接用rm \*.mp4就可以，这里只是用ls命令简单举个例子。  
+ls例举当前目录下所有文件，通过管道|输出给xargs，xargs从管道|读取ls的输出，如filename，和rm \*.o一起组建成命令：rm filename \*.o，然后执行命令，删除filename文件、和\*.o文件。由于ls例举了当前目录下所有文件，因此ls | xargs rm \*.o执行的结果就是删除当前目录下所有文件。  
+git status | xargs rm \*.o，也一样，git status例举所有修改过的文件，因此……。  
 
 [*返回:错误和注意*](#错误和注意)          &emsp;&emsp;              [*返回:页首*](#Linux命令)
 
