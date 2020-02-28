@@ -530,8 +530,16 @@ find . -name "\\*.foo" -print0 | xargs -0 -i mv {} /tmp/trash
 
 
 #### grep
-grep: General Regular Expression Parser.  
-grep [options] pattern filenames  
+grep: General Regular Expression Parser -- 由名字可知,grep后面的参数是当做正则表达式来处理的,例 ls -l | grep ^d。  
+格式：grep [options] pattern filenames  
+
+grep这个应用程序最早由肯·汤普逊写成。grep原先是ed下的一个应用程序，名称来自于g/re/p（globally search a regular expression and print，以正则表达式进行全局查找以及打印）。在ed下，输入g/re/p这个命令后，会将所有符合先定义样式的字符串，以行为单位打印出来。  
+
+Grep, which stands for "global regular expression print," is a powerful tool for matching a regular expression against text in a file, multiple files, or a stream of input. It searches for the PATTERN of text that you specify on the command line, and outputs the results for you.  
+
+grep过滤.o文件怎么写？grep "\.o"？grep "\*.o"？  
+查找以.o结尾的文件，正确的写法是grep "\.o\>"或grep "\.o$"。grep "\*.o"是错误的,re量词\*不能作为第一个字符，grep "\.o"也是错误的，其结果是只要名字中有字母.o就可以，不一定.o是出现在文件名末尾作为后缀。  
+
 
 grep,搜索文件中匹配符  
 [root@localhost test]# grep 'linux' test.txt     /  grep -n 'linux' test.txt //显示对应的行号  
@@ -830,8 +838,8 @@ $ ls -l | grep 1.Android
 **使用git碰到的问题：git status | xargs rm \*.o ，本意只想删除.o文件，结果删除了所有被修改过的文件，包括.o文件、非.o文件，造成严重后果。**  
 **同样，ls | xargs rm \*.o，并不是期望的那样只删除.o文件，会删除当前目录下全部普通文件，包括包括.o文件、非.o文件。**  
 
-ls | xargs rm \*.o删除了当前目录下所有普通文件？为什么？  
-git status | xargs rm \*.o删除了所有修改过的文件？为什么？  
+ls | xargs rm \*.o删除了当前目录下所有普通文件？为什么？
+git status | xargs rm \*.o删除了所有修改过的文件？为什么？
 
 rm \*.o是对的，只会删除.o文件，不会删除其他文件。  
 **然而，把rm \*.o放到xargs后面，command | xargs rm \*.o，其意义和单独的rm \*.o不一样了。为什么？**  
