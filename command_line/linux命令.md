@@ -77,7 +77,7 @@ $ cd ~/bin ; ls
 
 
 ## 常用Linux命令  
-[ls](#ls) &emsp; [cd](#cd) &emsp; [pwd](#pwd) &emsp;
+[ls](#ls) &emsp; [cd](#cd) &emsp; [pwd](#pwd) &emsp; [tree](#tree) &emsp;  
 
 ### ls  
 ls, 列出文件与目录, list  
@@ -143,6 +143,71 @@ pwd,查看当前工作目录
 /etc/rc.d/init.d  
 [root@localhost init.d]# /bin/pwd -L  
 /etc/init.d  
+
+
+### tree
+1)tree  -a 显示所有文件和目录（不加-a,则隐藏目录不显示)  
+(2)tree -d 显示目录名称而非内容  
+(3)tree -f 在每个文件或目录之前，显示完整的相对路径名称  
+(4)tree -F 在执行文件，目录，Socket，符号连接，管道名称名称，各自加上"\*","/","=","@","|"号。  
+(5)tree -r 以相反次序排列  
+(6)tree -t 用文件和目录的更改时间排序  
+(7)tree -L n 只显示 n 层目录 （n 为数字）  
+(8)tree -dirsfirst 目录显示在前,文件显示在后  
+(9)可以加的参数  
+-A 使用ASNI绘图字符显示树状图而非以ASCII字符组合。  
+-C 在文件和目录清单加上色彩，便于区分各种类型。  
+-D 列出文件或目录的更改时间。  
+-g 列出文件或目录的所属群组名称，没有对应的名称时，则显示群组识别码。  
+-i 不以阶梯状列出文件或目录名称。  
+-I 不显示符合范本样式的文件或目录名称。  
+-l 如遇到性质为符号连接的目录，直接列出该连接所指向的原始目录。  
+-n 不在文件和目录清单加上色彩。  
+-N 直接列出文件和目录名称，包括控制字符。  
+-p 列出权限标示。  
+-P 只显示符合范本样式的文件或目录名称。  
+-q 用"?"号取代控制字符，列出文件和目录名称。  
+-s 列出文件或目录大小。  
+usage: tree [-adfghilnpqrstuvxACDFNS] [-H baseHREF] [-T title ] [-L level [-R]]  
+        [-P pattern] [-I pattern] [-o filename] [--version] [--help] [--inodes]  
+        [--device] [--noreport] [--nolinks] [--dirsfirst] [--charset charset]  
+        [--filelimit #] [<directory list>]  
+  -a            All files are listed.  
+  -d            List directories only.  
+  -l            Follow symbolic links like directories.  
+  -f            Print the full path prefix for each file.  
+  -i            Don't print indentation lines.  
+  -q            Print non-printable characters as '?'.  
+  -N            Print non-printable characters as is.  
+  -p            Print the protections for each file.  
+  -u            Displays file owner or UID number.  
+  -g            Displays file group owner or GID number.  
+  -s            Print the size in bytes of each file.  
+  -h            Print the size in a more human readable way.  
+  -D            Print the date of last modification.  
+  -F            Appends '/', '=', '\*', or '|' as per ls -F.  
+  -v            Sort files alphanumerically by version.  
+  -r            Sort files in reverse alphanumeric order.  
+  -t            Sort files by last modification time.  
+  -x            Stay on current filesystem only.  
+  -L level      Descend only level directories deep.  
+  -A            Print ANSI lines graphic indentation lines.  
+  -S            Print with ASCII graphics indentation lines.  
+  -n            Turn colorization off always (-C overrides).  
+  -C            Turn colorization on always.  
+  -P pattern    List only those files that match the pattern given.  
+  -I pattern    Do not list files that match the given pattern.  
+  -H baseHREF   Prints out HTML format with baseHREF as top directory.  
+  -T string     Replace the default HTML title and H1 header with string.  
+  -R            Rerun tree when max dir level reached.  
+  -o file       Output to file instead of stdout.  
+  --inodes      Print inode number of each file.  
+  --device      Print device ID number to which each file belongs.  
+  --noreport    Turn off file/directory count at end of tree listing.  
+  --nolinks     Turn off hyperlinks in HTML output.  
+  --dirsfirst   List directories before files.  
+  --charset X   Use charset X for HTML and indentation line output.  
+  --filelimit # Do not descend dirs with more than # files in them.  
 
 [*返回:常用Linux命令*](#常用Linux命令)          &emsp;&emsp;              [*返回:页首*](#Linux命令)
 
