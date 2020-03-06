@@ -35,11 +35,5 @@ https://yq.aliyun.com/articles/222535
 
 
 
-# p2p
-https://www.kancloud.cn/alex_wsc/android-wifi-nfc-gps/413031  
-https://blog.csdn.net/wirelessdisplay/article/details/53365377  
-https://blog.csdn.net/zerer110/article/details/78491456  
-https://blog.csdn.net/andrewblog/article/details/17561179  
-https://blog.csdn.net/lele_cheny/article/details/16354479  
-https://blog.csdn.net/zjli321/article/details/51944887  
+
 

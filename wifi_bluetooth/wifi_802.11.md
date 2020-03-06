@@ -1,5 +1,5 @@
 # wifi 802.11
-[速率表](#速率表)  &emsp;&emsp;  [认证和数据加密](#认证和数据加密)  &emsp;&emsp;  [网址收藏](#网址收藏)  
+[速率表](#速率表)  &emsp;&emsp;  [认证和数据加密](#认证和数据加密)  &emsp;&emsp;  [p2p](#p2p)  &emsp;&emsp;  [网址收藏](#网址收藏)  
 
 
 ## 速率表
@@ -58,6 +58,16 @@ https://blog.csdn.net/gueter/article/details/4812822
 在不同时刻流是不一样的，例如时刻t1空间存在一个从天线A1 -> B1的传输通道--记为流Stream1，同一时刻t1存在从天线A2 -> B3的传输通道--记为流Stream2，…；时刻t2空间存在一个从天线A1和天线A2 -> B4的传输通道--记为流Stream5，…  
 Explanation of 2×2:2, 3×3:3 -- Lets take one of these apart to understand what each number represents. For instance 2x2:2, the first 2 represents TX (Sending Antenna), the second 2 represents Rx (Receiving Antenna), and the last 2 represents spatial streams in this means that it’s capable of handling two spatial streams.
 
+
+
+## p2p
+https://www.kancloud.cn/alex_wsc/android-wifi-nfc-gps/413031  
+https://blog.csdn.net/wirelessdisplay/article/details/53365377  
+https://blog.csdn.net/zerer110/article/details/78491456  
+https://blog.csdn.net/andrewblog/article/details/17561179  
+https://blog.csdn.net/lele_cheny/article/details/16354479  
+https://blog.csdn.net/zjli321/article/details/51944887  
+http://blog.ifjy.me/wifi/2016/05/15/p2p%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0.html#  
 
 
 
