@@ -146,6 +146,9 @@ pwd,查看当前工作目录
 
 
 ### tree
+**$ tree -d -L 2**  
+**$ tree -A -d -L 2 //如果显示乱码，则加-A参数**  
+
 1)tree  -a 显示所有文件和目录（不加-a,则隐藏目录不显示)  
 (2)tree -d 显示目录名称而非内容  
 (3)tree -f 在每个文件或目录之前，显示完整的相对路径名称  
@@ -208,7 +211,6 @@ usage: tree [-adfghilnpqrstuvxACDFNS] [-H baseHREF] [-T title ] [-L level [-R]]
   --dirsfirst   List directories before files.  
   --charset X   Use charset X for HTML and indentation line output.  
   --filelimit # Do not descend dirs with more than # files in them.  
-
 [*返回:常用Linux命令*](#常用Linux命令)          &emsp;&emsp;              [*返回:页首*](#Linux命令)
 
 
