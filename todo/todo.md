@@ -37,4 +37,5 @@ https://yq.aliyun.com/articles/222535
 
 
 # 软件
-EverEdit
+EverEdit  -- 好用，推荐
+
