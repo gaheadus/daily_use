@@ -718,7 +718,7 @@ Android 源码网站在介绍 repo 的使用模型中，有一个图片： http:
 
 
 ## 专题
-[git log进阶](#git-log进阶)  &emsp;&emsp;  [回退到指定日期的版本](#回退到指定日期的版本)  &emsp;&emsp;  [git stash](#git-stash)  &emsp;&emsp;  [patch的使用](#patch的使用)  &emsp;&emsp;  [撤销修改:checkout,reset,clean,revert](#撤销修改checkoutresetcleanrevert)  &emsp;&emsp;  
+[git log进阶](#git-log进阶)  &emsp;&emsp;  [回退到指定日期的版本](#回退到指定日期的版本)  &emsp;&emsp;  [git stash](#git-stash)  &emsp;&emsp;  [patch的使用](#patch的使用)  &emsp;&emsp;  [撤销修改:checkout,reset,clean,revert](#撤销修改checkoutresetcleanrevert)  &emsp;&emsp;  [git rebase -i](#git-rebase--i)  &emsp;&emsp;  
 [*返回目录*](#git)  
 
 
@@ -936,6 +936,46 @@ git clean -df
 运行后, 工作目录和缓存区回到最近一次commit时候一摸一样的状态，git status会告诉你这是一个干净的工作目录, 又是一个新的开始了。  
 [返回*专题*](#专题)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
+### git rebase -i  
+将多个提交合并成一个提交。操作如下：  
+$ git log --oneline  
+f185c6e (HEAD -> for_rebase, master, for_reset) C5--Add file5  
+6d4c76e C4--Add file4  
+d8bef46 C3--Add file3  
+8ce9fe8 C2--Add file2  
+a63777b C1--Add file1  
+
+如果想将C3 C4 C5三个提交合并成一个提交，怎么写？  
+
+$ git rebase -i HEAD\~3  
+弹出编辑框：  
+pick d8bef46 C3--Add file3        -- *显示的前后次序和git log相反*  
+pick 6d4c76e C4--Add file4  
+pick f185c6e C5--Add file5  
+\# Rebase 8ce9fe8..f185c6e onto 8ce9fe8 (3 commands)  
+\#
+\# Commands:  
+\# p, pick = use commit  
+\# r, reword = use commit, but edit the commit message  
+\# e, edit = use commit, but stop for amending  
+\# s, squash = use commit, but meld into previous commit  
+\# f, fixup = like "squash", but discard this commit's log message  
+\# x, exec = run command (the rest of the line) using shell  
+\# d, drop = remove commit  
+将C4、C5前面的pick改为squash，就可以将C4、C5合并到C3，形成一个提交。  
+根据提示：\# s, squash = use commit, but meld into previous commit，将某个提交融合到(meld into)比自己更早(previous)的提交上，也就是说只能将新的提交合并到旧的提交，但是不能将旧的提交合并到新的提交。上例中只能将C4、C5合并到C3，但反过来不行，不能将C3合并到C4，否则报错。    
+
+git rebase -i进阶  
+$ git rebase -i [start] [end]  
+① (start, end]前开后闭区间，从start到end为止，包括start、不包括end。  
+② 默认省略end，表示当前最新提交HEAD，git rebase -i SHA == git rebase -i SHA HEAD。  
+③ start为旧的提交, end为新的提交，git rebase -i [start] [end] == git rebase -i [old] [new]。从start到end，从旧到新。  
+
+base，基，基础，起点。  
+旧的提交是新的提交的base(基)，旧的提交在前、新的提交在后，新的提交建立在旧的提交的基础之上。  
+rebase， re-base， 重新(re)定义基(base)。  
+
+[返回*专题*](#专题)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 
 ## 网址收藏
