@@ -107,7 +107,14 @@ extends\s+Activity   或extends\s{1,}Activity
 ^\s+可以匹配空行。  
 \s包括空格制表回车换行等，因此^\s+可以匹配这样的行：多个空格、\t、\r、\n、或者他们的组合。  
 不同系统下换行符不一样，Linux为\n，Windows为\r\n，因此用\s+能兼顾两种情况，通用。  
+
+ **|的两侧不能有多余的空格**  
+|两侧不能有多余的空格，例:查找文件名为test.c、test1.c、test2.c的文件， ((test)&emsp;|&emsp;(test1)&emsp;|&emsp;(test2))\\.c，实际上查找的是test&emsp;.c、&emsp;test1&emsp;.c、&emsp;test2.c -- 文件名test后面有空格、test1前后都有空格、test2前面有空格，显然是不对的。  
+正确写法，RE：((test)|(test1)|(test2))\\.c。  
+|的两侧不能有多余的符号，空格也不例外 -- **空格会作为有效字符参与匹配**。  
+不仅|的两侧不能有多余的空格，其他元字符的两侧也不能有多余的空格。  
 [*返回专题*](#三专题)  &emsp;&emsp;  [*返回目录*](#正则表达式使用)  
+
 
 ### 2.分组
 使用分组捕获感兴趣的字符，以便后续引用。  
@@ -160,8 +167,28 @@ RE: "^(\d{1,2})((\.\d{1,2}){1,2})(?!(\.\d))(.+)"，"\1\2 \5"。
 分析2: 替换框填"\1\2 \5"，①(?!(\.\d))中的(\.\d)占用编号，但是无意义，因此不需要填\4，②括号嵌套的时候，外层括号包含了内层括号的内容，上述\2包括了\3所代表的内容，因此替换框填只填\2、不需要填\3。  
 [*返回专题*](#三专题)  &emsp;&emsp;  [*返回目录*](#正则表达式使用)  
 
+### 3. |的两侧是否需要加括号？
+①加括号，将被()括住的内容当做一个整体，((test)|(test1)|(test2))\\.c表示匹配test.c或test1.c或test2.c  
+那么(test|test1|test2)\\.c表示什么？  
+![RE_show1](https://github.com/gaheadus/daily_use/blob/master/Resources/RE_show1.png)  
+![RE_show2](https://github.com/gaheadus/daily_use/blob/master/Resources/RE_show2.png)  
+结论：
+|将位于其两侧的字符当做一个整体，相当于加了括号， (test|test1|test2)\\.c 和 ((test)|(test1)|(test2))\\.c 等效，都表示匹配test.c或test1.c或test2.c。  
+|将位于其两侧的所有非|字符当做一个整体。  
 
-### 3.贪婪&非贪婪
+②外边的括号也不加，test|test1|test2\\.c 只匹配test，为什么？  
+![RE_show3](https://github.com/gaheadus/daily_use/blob/master/Resources/RE_show3.png)  
+按照之前的解释: |将位于其两侧的所有非|字符当做一个整体，因此test|test1|test2\\.c表示匹配test或test1或test2.c，.c单独和test2结合，不再和前面的test、test1结合了。  
+和(test|test1|test2)\\.c不同的是：(test|test1|test2)作为一个整体和.c结合。  
+
+③优先匹配  
+上述test|test1|test2\\.c表示匹配test或test1或test2.c，然而，优先匹配最先出现的test，于是上述只匹配到test。  
+如果把test去掉，test1|test2\\.c表示匹配test1或test2.c  
+![RE_show4](https://github.com/gaheadus/daily_use/blob/master/Resources/RE_show4.png)  
+小结：test|test1|test2这样的表达式是没有意义的，优先匹配到test，结果是只匹配到了test，写成Atest|Btest1|Ctest2才有意义。  
+
+
+### 4.贪婪&非贪婪
 正则表达式贪婪与非贪婪模式 http://www.cnblogs.com/xudong-bupt/p/3586889.html  
 1.什么是正则表达式的贪婪与非贪婪匹配  
 如：String str="abcaxc";    Patter p="ab.*c";  
@@ -175,7 +202,7 @@ RE: "^(\d{1,2})((\.\d{1,2}){1,2})(?!(\.\d))(.+)"，"\1\2 \5"。
 [*返回专题*](#三专题)  &emsp;&emsp;  [*返回目录*](#正则表达式使用)  
 
 
-### 4.预搜索(环视)
+### 5.预搜索(环视)
 预搜索，也称环视。  
 正向预搜索："(?=xxxxx)"，"(?!xxxxx)"  
 格式"(?=xxxxx)"在被匹配的字符串中，它对所处的位置的附加条件是：所在位置的右侧，必须能够匹配上xxxxx这部分的表达式。因为它只是在此作为这个位置上附加的条件，所以它并不影响后边的表达式去真正匹配这个位置之后的字符。这就类似 "\b"，本身不匹配任何字符，"\b" 只是将所在位置之前、之后的字符取来进行了一下判断，不会影响后边的表达式来真正的匹配。⇐ 小结:欲搜索和\b^$等一样，是对位置进行限制的附加条件，本身不参与匹配，也可以理解为锚点。  
