@@ -147,7 +147,7 @@ $ git status //显示有变更的文件
 $ git log //显示当前分支的版本历史  
 $ git log --pretty=oneline  
 $ git log --oneline //显示更简短的SHA值,等效$ git log --abbrev-commit --pretty=oneline  
-$ git log --graph  //以图表形式输出提交日志  
+$ **git log --graph**  //以图表形式输出提交日志。推荐使用，可以清晰看到分支的合并历史。  
 $ git log --stat //显示commit历史，以及每次commit发生变更的文件  
 $ git log -S [keyword] //搜索提交历史，根据关键词  
 $ git log [tag] HEAD --pretty=format:%s //显示某个commit之后的所有变动，每个commit占据一行  
