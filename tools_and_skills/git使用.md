@@ -128,40 +128,78 @@ $git clean -fdx
 [返回*git命令*](#git命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
 ### 六、标签  
+git标签分为两种类型：轻量标签和附注标签。轻量标签是指向提交对象的引用，附注标签则是仓库中的一个独立对象。建议使用附注标签。  
+创建轻量标签不需要传递参数，直接指定标签名称即可。  
+创建附注标签时，参数a即annotated的缩写，指定标签类型，后附标签名。参数m指定标签说明，说明信息会保存在标签对象中。  
+$ git tag [tag-name] //创建轻量标签。基于最新提交创建标签。  
+$ git tag [tag-name] SHA //基于某个提交创建标签。如果不指定commit，默认在当前最新提交HEAD上打tag。  
+$ git tag [tag-name] SHA -m "注释"  //给tag加注释  
+$ git tag -a [tag-name] //创建附注标签  
+$ git tag -a [tag-name] -m 'yourMessage'  
+$ git tag -d [tag-name] //删除标签  
 $ git tag //列出所有本地标签  
+$ git tag -l "v0.1.\*"  //搜索符合模式的标签  
 $ git show [tag] //查看tag信息  
-$ git tag <tag-name> //基于最新提交创建标签  
-$ git tag -d <tag-name> //删除标签  
-$ git tag -a [tag-name] -m 'yourMessage' //创建带注释的tag  
-$ git push origin:refs/tags/[tag-name] //删除远程tag  
+$ git checkout -b [branch] [tag] //新建一个分支，指向某个tag  
 $ git push [remote] [tag] //提交指定tag  
 $ git push [remote] --tags //提交所有tag   
 $ git push origin --tags //上传本地tag到远程仓库  
-$ git checkout -b [branch] [tag] //新建一个分支，指向某个tag  
+$ git push origin:refs/tags/[tag-name] //删除远程tag  
 $ git pull origin --tags //合并远程仓库的tag到本地  
+参考：https://git-scm.com/book/zh/v2/Git-%E5%9F%BA%E7%A1%80-%E6%89%93%E6%A0%87%E7%AD%BE  
 [返回*git命令*](#git命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
 
 ### 七、查看信息  
 $ git status //显示有变更的文件  
 $ git log //显示当前分支的版本历史  
+$ **git log --graph**  //显示ASCII图形表示的提交历史和分支合并历史。推荐。  
+&emsp;&emsp;&emsp;&emsp;\*表示一个commit， 注意不要管*在哪一条主线上  
+&emsp;&emsp;&emsp;&emsp;|表示分支前进  
+&emsp;&emsp;&emsp;&emsp;/表示分叉  
+&emsp;&emsp;&emsp;&emsp;\\表示合入  
+$ git log --graph --decorate  
+$ git log --graph --decorate --pretty=format:"%H - %cn, %an : %s" --all  
+$ git log --graph --decorate --oneline --all  
+&emsp;&emsp;&emsp;&emsp;--decorate： 标记会让git log显示每个commit的引用  
+&emsp;&emsp;&emsp;&emsp;--simplify-by-decoration：只显示被branch或tag引用的commit  
+&emsp;&emsp;&emsp;&emsp;--oneline： 一行显示  
+&emsp;&emsp;&emsp;&emsp;--all: 所有分支  
+
+$ git log -p//查看修改的具体内容，不仅显示commit日志，而且同时显示每次commit的代码改变。  
+$ git log -p filename //显示指定文件相关的每一次diff，查看某个文件filename修改的具体内容  
+$ git log -4//查看分支最近4次修改记录  
+$ git log -2 -p//查看最近2次修改的具体内容。注意这里参数顺序-2 -p，不能把-p放到-2之前。  
+$ git log --author="username"  //显示某个用户的所有提交  
+$ git log --author="John\|Mary"
+
+过滤合并提交  
+git log输出时默认包括合并提交。但是，如果你的团队采用强制合并策略（意思是merge你修改的上游分支而不是将你的分支rebase到上游分支），你的项目历史中会有很多外来的提交。  
+你可以通过--no-merges标记来排除这些提交：  
+git log --no-merges  
+另一方面，如果你只对合并提交感兴趣，你可以使用--merges标记：  
+git log --merges  
+它会返回所有包含两个父节点的提交。  
+
+按提交信息来过滤提交，你可以使用--grep标记。它和上面的--author标记差不多，只不过它搜索的是提交信息而不是作者。  
+比如说，你的团队规范要求在提交信息中包括相关的issue编号，你可以用下面这个命令来显示这个issue相关的所有提交：  
+git log --grep="JRA-224:"  //你也可以传入-i参数来忽略大小写匹配。  
+区分：  
+$ git grep "Hello" //从当前目录的所有文件中查找文本内容  
+$ git grep "Hello" v2.5 //在某一版本中搜索文本  
+
 $ git log --pretty=oneline  
+$ git log -5 --pretty --oneline //显示过去5次提交  
 $ git log --oneline //显示更简短的SHA值,等效$ git log --abbrev-commit --pretty=oneline  
-$ **git log --graph**  //以图表形式输出提交日志。推荐使用，可以清晰看到分支的合并历史。  
 $ git log --stat //显示commit历史，以及每次commit发生变更的文件  
 $ git log -S [keyword] //搜索提交历史，根据关键词  
 $ git log [tag] HEAD --pretty=format:%s //显示某个commit之后的所有变动，每个commit占据一行  
 $ git log [tag] HEAD --grep feature //显示某个commit之后的所有变动，其”提交说明”必须符合搜索条件  
 $ git log --follow [file] //显示某个文件的版本历史，包括文件改名  
 $ git whatchanged [file] //显示某个文件的版本历史，包括文件改名、文件模式、其他  
-$ git log -4//查看分支最近4次修改记录  
-$ git log -p//查看修改的具体内容，不仅显示commit日志，而且同时显示每次commit的代码改变。  
-$ git log -2 -p//查看最近2次修改的具体内容。注意这里参数顺序-2 -p，不能把-p放到-2之前。  
-$ git log -p filename //显示指定文件相关的每一次diff，查看某个文件filename修改的具体内容  
-$ git log -5 --pretty --oneline //显示过去5次提交  
 $ git log --before="1 days" //显示之前1天的版本  
 $ git shortlog -sn //显示所有提交过的用户，按提交次数排序  
-$ git log --author="username"  //显示某个用户的所有提交  
+
 $ git blame [file] //显示指定文件是什么人在什么时间修改过  
 $ git diff //显示暂存区和工作区的差异  
 $ git diff --cached [file] //显示暂存区和上一个commit的差异  
@@ -172,8 +210,10 @@ $ git show [commit] //显示某次提交的元数据和内容变化
 $ git show --name-only [commit] //显示某次提交发生变化的文件  
 $ git show [commit]:[filename] //显示某次提交时，某个文件的内容  
 $ git reflog //查看当前仓库的操作日志。  
-$ git grep "Hello" //从当前目录的所有文件中查找文本内容  
-$ git grep "Hello" v2.5 //在某一版本中搜索文本  
+
+Git log用法：  
+https://git-scm.com/book/zh/v2/Git-%E5%9F%BA%E7%A1%80-%E6%9F%A5%E7%9C%8B%E6%8F%90%E4%BA%A4%E5%8E%86%E5%8F%B2  
+https://www.cnblogs.com/biglucky/p/5076885.html  
 [返回*git命令*](#git命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
 
