@@ -62,7 +62,7 @@ git diff --stat ORIG_HEAD
 
 ## git命令  
 [新建代码库](#一新建代码库)  &emsp;&emsp;  [配置](#二配置)  &emsp;&emsp;  [增加/删除/修改文件](#三增加删除修改文件)  &emsp;&emsp;  [代码提交](#四代码提交)  &emsp;&emsp;  [分支](#五分支)  
-[标签](#六标签)  &emsp;&emsp;  [查看信息](#七查看信息)  &emsp;&emsp;  [远程操作](#八远程操作)  &emsp;&emsp;  [撤销](#九撤销)  &emsp;&emsp;  [其他](#十其他)  
+[标签](#六标签)  &emsp;&emsp;  [查看信息](#七查看信息)  &emsp;&emsp;  [远程操作](#八远程操作)  &emsp;&emsp;  [撤销](#九撤销)  &emsp;&emsp;  [版本回退](#十版本回退)  &emsp;&emsp;  [其他](#十一其他)  
 [*返回目录*](#git)    
 
 ### 一、新建代码库  
@@ -152,6 +152,20 @@ $ git pull origin --tags //合并远程仓库的tag到本地
 
 ### 七、查看信息  
 $ git status //显示有变更的文件  
+$ git whatchanged [file] //显示某个文件的版本历史，包括文件改名、文件模式、其他  
+$ git diff //显示暂存区和工作区的差异  
+$ git diff --cached [file] //显示暂存区和上一个commit的差异  
+$ git diff HEAD //显示工作区与当前分支最新commit之间的差异  
+$ git diff [first-branch] …[second-branch] //显示两次提交之间的差异  
+$ git diff --shortstat "@{0 day ago}" //显示今天你写了多少行代码  
+$ git show [commit] //显示某次提交的元数据和内容变化  
+$ git show --name-only [commit] //显示某次提交发生变化的文件  
+$ git show [commit]:[filename] //显示某次提交时，某个文件的内容  
+$ git reflog //查看当前仓库的操作日志。  
+$ git blame [file] //显示指定文件是什么人在什么时间修改过  
+
+
+git log:  
 $ git log //显示当前分支的版本历史  
 $ **git log --graph**  //显示ASCII图形表示的提交历史和分支合并历史。推荐。  
 &emsp;&emsp;&emsp;&emsp;\*表示一个commit， 注意不要管*在哪一条主线上  
@@ -177,6 +191,63 @@ $ git log --author="John\|Mary"
 Consider only commits that are enough to explain how the files that match the specified paths came to be.  
 Paths may need to be prefixed with -- to separate them from options or the revision range, when confusion arises.  
 
+$ git log --pretty=oneline     //按一行输出，完整SHA  
+$ git log --oneline           //按一行输出，简短SHA  
+$ git log --stat //显示commit历史，以及每次commit发生变更的文件  
+$ git log -S [keyword] //搜索提交历史，根据关键词  
+$ git log [tag] HEAD --pretty=format:%s //显示某个commit之后的所有变动，每个commit占据一行  
+$ git log [tag] HEAD --grep feature //显示某个commit之后的所有变动，其”提交说明”必须符合搜索条件  
+$ git log --follow [file] //显示某个文件的版本历史，包括文件改名  
+$ git log --before="1 days" //显示之前1天的版本  
+$ git shortlog -sn //显示所有提交过的用户，按提交次数排序  
+
+git log指定显示格式  
+对于git log格式需求，可以使用--pretty=format:"<string>"选项。它允许你使用像printf一样的占位符来输出提交。  
+
+```
+$ git log --pretty=format:"%H, commiter:%cn, data:%cd"
+3317cf8b5f8a55cdb34cb43f1c781c635b1dc98f, commiter:gaheadus, data:Wed Sep 23 00:39:35 2020 +0800
+692e13965edaeb9dead6df8c5cd451543f422b32, commiter:gaheadus, data:Sun Sep 20 22:10:30 2020 +0800
+62ac6cb94c8275746fc21fd9bc99e01a2964dcce, commiter:gaheadus, data:Sun Sep 20 21:09:15 2020 +0800
+8900fe8184748b3ede0bc2204efed62025cf17ac, commiter:gaheadus, data:Sat Sep 19 23:02:25 2020 +0800
+08a2ddd819079eb36054ac32e1a89523e0d7633a, commiter:gaheadus, data:Sat Aug 1 01:35:06 2020 +0800
+```
+
+```
+git log --pretty=format 常用的选项
+选项	说明
+%H	提交的完整哈希值
+%h	提交的简写哈希值
+%T	树的完整哈希值
+%t	树的简写哈希值
+%P	父提交的完整哈希值
+%p	父提交的简写哈希值
+%an	作者名字
+%ae	作者的电子邮件地址
+%ad	作者修订日期（可以用 --date=选项 来定制格式）
+%ar	作者修订日期，按多久以前的方式显示
+%cn	提交者的名字
+%ce	提交者的电子邮件地址
+%cd	提交日期
+%cr	提交日期（距今多长时间）
+%s	提交说明
+%Cred: 切换到红色
+%Cgreen: 切换到绿色
+%Cblue: 切换到蓝色
+%Creset: 重设颜色
+%C(...): 制定颜色, as described in color.branch.* config option
+```
+
+几个格式一起输出：  
+git log –pretty=format:%H,%s,%an,%ae        //中间不能有空格  
+git log –pretty=format:"%H, &emsp;&emsp; %s,%an,%ae"    //中间有空格则必须外加双引号  
+
+指定显示颜色：  
+$ git log -9 --graph --pretty=format:%H,%Cred%an,%cn,%Cgreen%cd,%Cblue%s,%Creset%P  
+$ git log -9 --graph --pretty=format:%h,%Cred%an,%cn,%Cgreen%cd,%Cblue%s,%Creset%p  
+参考：https://git-scm.com/docs/pretty-formats  
+
+
 过滤合并提交  
 git log输出时默认包括合并提交。但是，如果你的团队采用强制合并策略（意思是merge你修改的上游分支而不是将你的分支rebase到上游分支），你的项目历史中会有很多外来的提交。  
 你可以通过--no-merges标记来排除这些提交：  
@@ -191,35 +262,6 @@ git log --grep="JRA-224:"  //你也可以传入-i参数来忽略大小写匹配�
 区分：  
 $ git grep "Hello" //从当前目录的所有文件中查找文本内容  
 $ git grep "Hello" v2.5 //在某一版本中搜索文本  
-
-$ git log --pretty=oneline  
-$ git log -5 --pretty --oneline //显示过去5次提交  
-$ git log --oneline //显示更简短的SHA值,等效$ git log --abbrev-commit --pretty=oneline  
-$ git log --stat //显示commit历史，以及每次commit发生变更的文件  
-$ git log -S [keyword] //搜索提交历史，根据关键词  
-$ git log [tag] HEAD --pretty=format:%s //显示某个commit之后的所有变动，每个commit占据一行  
-$ git log [tag] HEAD --grep feature //显示某个commit之后的所有变动，其”提交说明”必须符合搜索条件  
-$ git log --follow [file] //显示某个文件的版本历史，包括文件改名  
-$ git whatchanged [file] //显示某个文件的版本历史，包括文件改名、文件模式、其他  
-$ git log --before="1 days" //显示之前1天的版本  
-$ git shortlog -sn //显示所有提交过的用户，按提交次数排序  
-
-git log自定义显示格式  
-对于git log格式需求，可以使用--pretty=format:"<string>"选项。它允许你使用像printf一样的占位符来输出提交。  
-$ git log -9 --graph --pretty=format:%H,%Cred%an,%cn,%Cgreen%cd,%Cblue%s,%Creset%P  
-$ git log -9 --graph --pretty=format:%h,%Cred%an,%cn,%Cgreen%cd,%Cblue%s,%Creset%p  
-参考：https://git-scm.com/docs/pretty-formats  
-
-$ git blame [file] //显示指定文件是什么人在什么时间修改过  
-$ git diff //显示暂存区和工作区的差异  
-$ git diff --cached [file] //显示暂存区和上一个commit的差异  
-$ git diff HEAD //显示工作区与当前分支最新commit之间的差异  
-$ git diff [first-branch] …[second-branch] //显示两次提交之间的差异  
-$ git diff --shortstat "@{0 day ago}" //显示今天你写了多少行代码  
-$ git show [commit] //显示某次提交的元数据和内容变化  
-$ git show --name-only [commit] //显示某次提交发生变化的文件  
-$ git show [commit]:[filename] //显示某次提交时，某个文件的内容  
-$ git reflog //查看当前仓库的操作日志。  
 
 Git log用法：  
 https://git-scm.com/book/zh/v2/Git-%E5%9F%BA%E7%A1%80-%E6%9F%A5%E7%9C%8B%E6%8F%90%E4%BA%A4%E5%8E%86%E5%8F%B2  
@@ -278,7 +320,48 @@ $ git stash pop //恢复之前保存的变化
 [返回*git命令*](#git命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
 
-### 十、其他  
+### 十、版本回退  
+```
+$ git log --graph --pretty=format:%h,%Cred%an,%cn,%Cgreen%cd,%Cblue%s
+* 797e4b8,DuKang,DuKang,Mon Dec 16 00:46:27 2019 +0800,new modify
+* 335243f,DuKang,DuKang,Mon Dec 16 00:45:06 2019 +0800,new modify
+*   c0a51f4,DuKang,DuKang,Mon Dec 16 00:35:06 2019 +0800,Merge branch 'master' of …
+|\
+| * a1d6075,zhanglong, zhanglong,Mon Dec 16 00:28:53 2019 +0800,omnipeek modify
+* | f59da50,DuKang,DuKang,Mon Dec 16 00:33:36 2019 +0800,omnipeek modify
+|/
+*   cfb5b35,DuKang,DuKang,Sat Dec 14 00:58:06 2019 +0800,Merge branch 'master' of …
+|\
+| *   29b1ad9,zhanglong,zhanglong,Sat Dec 14 00:55:10 2019 +0800,Merge branch 'master' of …
+| |\
+* | \   8a39d54,DuKang,DuKang,Sat Dec 14 00:57:33 2019 +0800,Merge branch 'master' of …
+|\ \ \
+| |/ /
+|/| /
+| |/
+| *   b7bfc68,wanggang,wanggang,Sat Dec 14 00:50:35 2019 +0800,Merge branch 'master' of …
+| |\
+* | \   21d867c,DuKang,DuKang,Sat Dec 14 00:54:50 2019 +0800,Merge branch 'master' of …
+|\ \ \
+| |/ /
+|/| /
+| |/
+| * bf6f330,liming,liming,Sat Dec 14 00:43:00 2019 +0800,--no-edit
+* | d72fb25,DuKang,DuKang,Sat Dec 14 00:49:00 2019 +0800,--no-edit
+|/
+* 608e1c4,DuKang,DuKang,Sat Dec 14 00:36:12 2019 +0800,add wireshark usage
+*   4d22b06,DuKang,DuKang,Fri Dec 13 00:32:01 2019 +0800,Merge branch 'master' of …
+```
+多人开发，各自本地建立不同的分支，多个分支合并到服务器库上分支。
+在版本回退时，应该回退到服务器库上分支的结点(包括merge到库上分支的结点)，才是服务器库上代码的状态。例如上述797e4b8、cfb5b35、8a39d54等结点。
+如果回退到非服务器库上分支的结点，如上述29b1ad9、b7bfc68等，就会处于其他人本地电脑中分支代码的状态，而不是服务器库上代码的状态。例如回退到29b1ad9就会处于zhanglong本地电脑中代码的状态，回退到b7bfc68就会处于wanggang本地电脑中代码的状态，都不是服务器库上代码的状态。
+git log看到的节点，包括个人本地电脑上分支的节点，和服务器上分支的节点。要用git log --graph点线图才能区分哪些节点是服务器上分支的节点、哪些是个人本地电脑上分支的节点。  
+注：版本回退使用git reset --hard SHA命令。  
+[返回*git命令*](#git命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
+
+
+
+### 十一、其他  
 $ git clean -fd，删除**未被追踪的**文件和文件夹  
 $ git archive //生成一个可供发布的压缩包  
 [返回*git命令*](#git命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
@@ -800,26 +883,6 @@ git log --author=DuKang //仅显示指定作者相关的提交
 --committer 仅显示指定提交者相关的提交。  
 --grep 仅显示含指定关键字的提交  
 -S 仅显示添加或移除了某个关键字的提交  
-
-**指定输出格式**  
-git log --pretty=oneline     //按一行输出，完整SHA  
-git log --oneline           //按一行输出，简短SHA  
-
-git log --pretty=format:%H  //commit hash  
-git log --pretty=format:%h   //abbreviated commit hash  
-git log --pretty=format:%s   //subject  
-git log --pretty=format:%an  //author name  
-git log --pretty=format:%ae  //author email  
-git log --pretty=format:%ad  //author date (format respects --date= option)  
-git log --pretty=format:%ai  //author date, ISO 8601-like format  
-git log --pretty=format:%cn  //committer name  
-git log --pretty=format:%ce  // committer email  
-git log --pretty=format:%cd  // committer date (format respects --date= option)  
-git log --pretty=format:%ci  // committer date, ISO 8601-like format  
-
-几个格式一起输出：  
-git log –pretty=format:%H,%s,%an,%ae        //中间不能有空格  
-git log –pretty=format:"%H,   %s,%an,%ae"    //中间有空格则必须外加双引号  
 [返回*专题*](#专题)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 
