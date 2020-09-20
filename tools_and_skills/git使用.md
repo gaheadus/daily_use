@@ -173,6 +173,10 @@ $ git log -2 -p//查看最近2次修改的具体内容。注意这里参数顺�
 $ git log --author="username"  //显示某个用户的所有提交  
 $ git log --author="John\|Mary"
 
+[--] <path>…  
+Consider only commits that are enough to explain how the files that match the specified paths came to be.  
+Paths may need to be prefixed with -- to separate them from options or the revision range, when confusion arises.  
+
 过滤合并提交  
 git log输出时默认包括合并提交。但是，如果你的团队采用强制合并策略（意思是merge你修改的上游分支而不是将你的分支rebase到上游分支），你的项目历史中会有很多外来的提交。  
 你可以通过--no-merges标记来排除这些提交：  
@@ -199,6 +203,12 @@ $ git log --follow [file] //显示某个文件的版本历史，包括文件改�
 $ git whatchanged [file] //显示某个文件的版本历史，包括文件改名、文件模式、其他  
 $ git log --before="1 days" //显示之前1天的版本  
 $ git shortlog -sn //显示所有提交过的用户，按提交次数排序  
+
+git log自定义显示格式  
+对于git log格式需求，可以使用--pretty=format:"<string>"选项。它允许你使用像printf一样的占位符来输出提交。  
+$ git log -9 --graph --pretty=format:%H,%Cred%an,%cn,%Cgreen%cd,%Cblue%s,%Creset%P  
+$ git log -9 --graph --pretty=format:%h,%Cred%an,%cn,%Cgreen%cd,%Cblue%s,%Creset%p  
+参考：https://git-scm.com/docs/pretty-formats  
 
 $ git blame [file] //显示指定文件是什么人在什么时间修改过  
 $ git diff //显示暂存区和工作区的差异  
