@@ -357,6 +357,16 @@ $ git log --graph --pretty=format:%h,%Cred%an,%cn,%Cgreen%cd,%Cblue%s
 如果回退到非服务器库上分支的结点，如上述29b1ad9、b7bfc68等，就会处于其他人本地电脑中分支代码的状态，而不是服务器库上代码的状态。例如回退到29b1ad9就会处于zhanglong本地电脑中代码的状态，回退到b7bfc68就会处于wanggang本地电脑中代码的状态，都不是服务器库上代码的状态。
 git log看到的节点，包括个人本地电脑上分支的节点，和服务器上分支的节点。要用git log --graph点线图才能区分哪些节点是服务器上分支的节点、哪些是个人本地电脑上分支的节点。  
 注：版本回退使用git reset --hard SHA命令。  
+
+可以使用git reset SHA、git checkout SHA在提交记录之间任意移动。  
+```
+      A---B---C  topic
+     /         \
+    D---E---F---G---H  master
+```
+git checkout SHA跳出分支后，可以使用git checkout branch回到分支中。  
+git reset SHA不仅可以向后移动，而且是可以向前移动的，如上，假设当前HEAD在H，可以git reset E回到历史提交，之后可以使用git reset H回到最新提交。这个容易被忽略。
+不论git reset SHA还是git checkout SHA，都是在已经提交的节点之间移动，并不会更改提交历史，已有的提交记录、分支结构，都不会因此而改变。因此，git reset SHA、git checkout SHA后是可以还原到最初状态的，不需要担心破坏提交记录无法还原。最好是使用git log --graph > backup.txt保存一个备份的提交记录，之后就可以使用git reset SHA、git checkout SHA在节点之间任意移动了，想要移动到哪个节点可以从备份的backup.txt中取想要的SHA。  
 [返回*git命令*](#git命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
 
