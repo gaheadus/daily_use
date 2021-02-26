@@ -80,10 +80,12 @@ ctrl+1/2/3...切换标签，对于多标签页的程序适用。
 `小结：ctrl+tab、ctrl+1/2/3，应用程序标签页之前切换。+shift则以相反的方向切换标签页。`
 `win+tab、win+1/2/3、alt+tab、alt+esc，应用程序窗口之间切换。+shift则以相反的方向切换应用程序窗口。`
 
+**截屏**  
+微软截屏软件snipaste很好用， https://zh.snipaste.com/ 。  
 print screen: 截屏，将当前屏幕以图象方式拷贝到剪贴板。新建图片-\>编辑-\>粘贴，将截图粘贴在新建图片中。  
 alt+print screen: 截屏，将当 **前活动程序窗口** 以图象方式拷贝到剪贴板  
 win+print screen: 截屏，并把它 **存放** 在&quot;此电脑-\>图片-\>屏幕截图&quot;目录，如c:\users\lenovo\pictures\screenshots\。 **推荐** 。  
-windows自带截屏软件SnippingTool.exe，win+r输入snippingtool启动。  
+windows自带截屏软件SnippingTool.exe，win+r输入snippingtool启动。-- 旧  
 [返回*win10常用快捷键*](#3win10常用快捷键)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#windows使用和快捷键)  
 
 ### 虚拟桌面
@@ -137,6 +139,9 @@ win+shift+→：使用多个监视器，将活动窗口移动到右边的监视�
 
 
 ## 4.常用功能、工具
+电脑屏幕，保护眼睛，f.lux。  
+文件浏览，Q-Dir。  
+
 **远程桌面连接**  
 mstsc /v:10.38.154.96 /console /w:1680 /h:980  
 mstsc /v 10.38.154.96 /w 1680 /h 980  
@@ -157,14 +162,6 @@ C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Accessories
 3.鼠标拉缩远程桌面上的软件窗口的高度宽度到一定尺寸，以便可以操作软件窗口顶端菜单栏。
 
 **计算器，calc**  
-
-**截屏**  
-1.print screen  
-print screen: 截屏，将当前屏幕以图象方式拷贝到剪贴板。新建图片->编辑->粘贴，将截图粘贴在新建图片中。  
-alt+print screen: 截屏，将当前活动程序窗口以图象方式拷贝到剪贴板。  
-win+print screen: 截屏，并把它存放在“此电脑->图片->屏幕截图”目录，如c:\users\lenovo\pictures\screenshots\。推荐。  
-2.windows自带截屏软件SnippingTool.exe，win+r输入snippingtool启动。  
-大部分情况下，这两个系统自带截图功能就够了。  
 
 **删除win10自带微软拼音输入法**  
 语言栏无法删除win10自带拼音输入法的问题。  
@@ -196,6 +193,19 @@ ctrl+k，ie为重复打开标签页，chrome为使用google搜索。
 
 ctrl+鼠标左击：按住ctrl键的同时鼠标点击链接，在新的后台标签页中打开链接。  
 在查找资料的时候很有用，比如百度搜索一个关键词，出来多个结果，想在后台打开感兴趣的链接。如果直接点击搜索结果，则会打开新的标签页并跳转到对应的链接，将当前搜索结果页面变成了后台，只能再次切换到搜索结果页面，麻烦。当然，可以鼠标右击选择搜索结果、选择在新的标签页打开链接，如果搜索结果很多，每次都这么操作有点烦。” ctrl+鼠标左击”很好的解决了这个问题。和sourceinsight类似，不过sourceinsight是前台打开(变量定义)。  
+
+Chrome浏览器插件  
+谷歌访问助手chrome版2.3  
+Adblock Plus：https://chrome.google.com/webstore/detail/adblock-plus-free-ad-bloc/cfhdojbkjhnklbpkdaibdccddilifddb  
+Google文档、表格及幻灯片的Office编辑扩展程序：https://chrome.google.com/webstore/detail/office-editing-for-docs-s/gbkeegbaiigmenfmjfclcdgdpimamgkj  
+Yet Another Drag and Go：https://chrome.google.com/webstore/detail/yet-another-drag-and-go/hnoonkgmmnklbdehoepdjcidhjbncjmi  
+Octotree-2.4.6：https://chrome.google.com/webstore/detail/octotree-github-code-tree/bkhaagjahfmjljalopjnoealnfndnagc  
+
+
+巧用Chrome地址栏提高浏览效率  
+我们首先打开微软的必应搜索引擎（https://cn.bing.com），点击网页中的“词典”选项后，在搜索框中任意输入一个单词，点击搜索按钮以后进行翻译操作。接下来我们将地址栏中的代码全部进行复制，然后点击Chrome右上角的“自定义及控制Goole Chrome”按钮，再在弹出的菜单里面点击“设置”命令，接着在设置页面拖动网页右侧的滚动条，我们就可以找到名为“搜索引擎”的选项。  
+点击“管理搜索引擎”选项后再点击“添加”按钮，首先我们在弹出的“添加搜索引擎”对话框中，设置一个对应的名称，接下来在“关键字”中输入“byfy”，然后在地址栏中粘贴上我们刚刚复制的代码，即 https://cn.bing.com/dict/search?q=%s ，设置完成以后点击“添加”按钮即可（图1）。  
+当我们以后想进行单词查询的时候，首先在地址栏中输入“byfy”并按下空格键，这时Chrome地址栏就会提示“使用必应词典搜索”，然后我们再输入要查询的单词按下回车键就可以了（图2）。  
 [*返回目录*](#windows使用和快捷键)  
 
 ### 浏览器使用技巧
