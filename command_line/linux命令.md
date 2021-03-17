@@ -9,6 +9,12 @@
 [网址收藏](#网址收藏)  
 
 
+**参考：**  
+https://www.runoob.com/linux/linux-command-manual.html  
+https://linux265.com/course/linux-commands.html  
+https://ipcmen.com/  
+
+
 
 ## 基础  
 ### 命令格式  
