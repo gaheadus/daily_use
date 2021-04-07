@@ -83,3 +83,10 @@ service smbd restart     //重启
 方法2：MobaXterm，Sessions -> New session -> VNC，同上。这种方式会自动适配本地显示的宽高度。  
        MobaXterm有多种远程桌面连接的方式：rdp、xdmcp、VNC。  
 备注：是不是可以同时多人远程登录？-- 可以  
+
+
+4.**vi/vim**  
+Ubuntu下vim默认显示行号  
+$ vim /etc/vim/vimrc  //在末尾添加set number  
+cygwin默认显示行号  
+vim ~/.vimrc   //在末尾添加set number  
