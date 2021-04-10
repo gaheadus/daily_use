@@ -97,7 +97,8 @@
 | :r[filename] | 在编辑的数据中，读入另一个文件的数据，即将&quot;filename&quot;这个文件内容加到光标所在行的后面 |  
 | :n1,n2 w[filename] | 将n1到n2的内容保存成filename这个文件 |  
 | :! command | 暂时离开vi到命令行模式下执行command的显示结果。例如&quot;:! ls /home&quot;即可在vi当中查看/home下面以ls输出的文件信息 |  
-| :set nu、:set number | 显示行号，设置之后，会在每一行的前缀显示该行的行号 |  
+| :set nu、:set number | 显示行号，设置之后，会在每一行的前缀显示该行的行号。<br>Ubuntu下vim默认显示行号，$ vim /etc/vim/vimrc //在末尾添加set number<br>
+cygwin默认显示行号，$ vim ~/.vimrc //在末尾添加set number |  
 | :set nonu、:set nonumber | 与set nu相反，为取消行号 |  
 | :n | n为数字，跳到第n行。如，:39 [Enter]就会跳到文章的第39行。 |  
 | :.= | 显示当前行的行号 |  

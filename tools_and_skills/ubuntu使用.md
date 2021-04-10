@@ -85,8 +85,4 @@ service smbd restart     //重启
 备注：是不是可以同时多人远程登录？-- 可以  
 
 
-4.**vi/vim**  
-Ubuntu下vim默认显示行号  
-$ vim /etc/vim/vimrc  //在末尾添加set number  
-cygwin默认显示行号  
-vim ~/.vimrc   //在末尾添加set number  
+4.**todo**  
