@@ -1,8 +1,3 @@
-# 目录
-- [cygwin](#cygwin)  
-- [tmux](#tmux)  
-
-
 # cygwin
 - [安装cygwin](#安装cygwin)  
 - [安装gcc/g++/gdb](#安装gccggdb)  
