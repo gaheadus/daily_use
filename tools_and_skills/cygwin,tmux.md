@@ -8,7 +8,7 @@
 - [安装gcc/g++/gdb](#安装gccggdb)  
 
 ## 安装cygwin
-**1.1 基本概念：工作区、暂存区、本地仓库、远程仓库**  
+http://www.cygwin.com/
 
 ## 安装gcc/g++/gdb
 方法一 图像界面安装  
