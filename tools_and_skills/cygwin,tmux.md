@@ -55,6 +55,7 @@ $ tmux //启动tmux，按ctrl+d或输exit退出tmux返回原来shell
 查看已有会话：tmux ls  
 新建会话：tmux new -s <session-name>  
 接入会话：tmux attach -t <session-name> 或 tmux a -t 0  
+离开会话：tmux detach  
 重命名会话：tmux rename-session -t 0 <new-name>  
 切换会话：tmux switch -t <session-name> 或 tmux s -t 0  
 杀死会话：tmux kill-session -t <session-name> 或 tmux kill-session -t 0  
