@@ -13,7 +13,7 @@
 https://www.runoob.com/linux/linux-command-manual.html  
 https://linux265.com/course/linux-commands.html  
 https://ipcmen.com/  
-
+http://www.51gjie.com/linux  
 
 
 ## 基础  
@@ -98,6 +98,9 @@ $ ls -l | grep ^l   //只连接文件
 $ ls -l | wc -l //统计当前目录下的文件数  
 $ ls -l | grep ^d | wc -l //统计目录个数  
 $ find -name Android.mk | wc -l //查找当前目录下Android.mk文件的个数  
+
+![ls -l 命令详解](https://github.com/gaheadus/daily_use/blob/master/Resources/ls%20-l%20%E5%91%BD%E4%BB%A4%E8%AF%A6%E8%A7%A3.jpg)  
+
 [*返回:常用Linux命令*](#常用Linux命令)          &emsp;&emsp;              [*返回:页首*](#Linux命令)
 
 ### cd  
