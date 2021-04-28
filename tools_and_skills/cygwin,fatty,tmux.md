@@ -22,39 +22,36 @@ setup-x86_64.exe -q -P wget -P gcc-g++ -P make -P diffutils -P libmpfr-devel -P 
 其中，"setup-x86_64.exe"对应安装文件的名称。  
 接着就会出来安装的界面，等待下载完成即可。  
 
-## cygwin多标签,fatty
-cygwin安装 fatty配置多标签页  
-1.安装依赖  
-gcc-g++  
-make  
-w32api-headers  
-git  
-运行cygwin安装文件setup-x86_64.exe，选择需要安装的包，将 View 选为 Full，然后在右侧 搜索 对应包，安装最新版本即可。由于我已安装，所以下图默认为保持当前版本(keep)，此时也可以选择卸载、更新或者更换到其它版本(如降低 gcc 版本)。
-同理安装 make、w32api-headers 和 git，同时建议可以安装一些常用包如：ssh(openssh)、tmux、vim、cmake、make。
 
-2.安装 fatty  
-fatty 的 github 地址为：https://github.com/juho-p/fatty  
-安装步骤：  
-git clone https://github.com/juho-p/fatty.git  
-cd fatty  
-make  
-cp src/fatty.exe /bin  
-之后便可以直接在cygwin 内输入 fatty 打开新终端并支持多标签页(tabs)，效果如下。  
-![fatty](https://github.com/gaheadus/daily_use/blob/master/Resources/cygwin-fatty.png)  
-为了避免每次需要打开 Cygwin 后再输入 fatty 才能进入多标签终端，可以在桌面新建一快捷方式。鼠标点击 -> 新建 -> 快捷方式 后输入 ${Cygwin安装路径}\bin\fatty.exe -，如C:\cygwin64\bin\fatty.exe - ，注意上面命令最后的横杠 - 不能少，否则启动的命令行将不是之前安装的 Cygwin 环境，无法使用之前安装的各种包及 ls 等命令。  
 
-3.Fatty 使用  
-在cygwin 内输入 fatty 打开新终端并支持多标签页(tabs)。  
-ctrl + shift + T：新建终端(标签页)。  
-ctrl + shift + W：关闭当前终端(标签页)。  
+# fatty,多标签
+fatty + tmux 搭配使用，实现cygwin多标签、多窗口和分屏 。  
+
+## fatty编译
+安装依赖：gcc-g++ 、 make 、 w32api-headers 、 git  
+
+使用cygwin编译  
+$ git clone https://github.com/juho-p/fatty.git  
+$ cd fatty  
+$ make  //编译报错：windres: preprocessing failed。解决：使用windres 2.25替换cygwin自带的windres。  
+将fatty.exe复制到cygwin安装目录的bin目录下。  
+打开cygwin，输入fatty即可打开fatty，会另外开启一个mintty窗口，在mintty窗口里可以使用tab标签。  
+或者直接双击fatty.exe打开mintty，或者创建fatty.exe的快捷方式、双击快捷方式打开mintty，可以使用fatty。  
+
+附：
+https://github.com/juho-p/fatty ， **推荐**，基本功能，轻量。继承原始cygwin的参数配置。支持shift+↑↓←→ 。  
+https://github.com/paolo-sz/fatty ，源代码大，更多功能。没有继承原始cygwin的参数配置。不支持shift+↑↓←→  。  
+
+
+## fatty使用
+在cygwin内输入fatty打开新终端并支持多标签页(tabs)  
+ctrl + shift + t：新建终端(标签页)。  
+ctrl + shift + w：关闭当前终端(标签页) ，或者ctrl+d。  
 shift + ←, shift + →：左右切换终端(标签页)。也可以直接通过鼠标点击标签页进行切换。  
 ctrl + shift + ←, ctrl + shift + →：左右移动标签页。  
 
 
-[返回*目录*](#目录)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#目录)    
-
-
-# tmux
+# tmux,多窗口和分屏
 - [安装tmux](#安装tmux)  
 - [配置鼠标支持](#配置鼠标支持)  
 - [tmux命令](#tmux命令)  
