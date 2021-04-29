@@ -14,7 +14,6 @@ http://www.cygwin.com/ ，下载setup-x86_64.exe。
 ![再选择这四项](https://github.com/gaheadus/daily_use/blob/master/Resources/%E5%8F%8Agdb.png)  
 
   
-
 方法二 命令行安装gcc/g++  
 安装cygwin如果按照默认的方式一直点下去的话，安装完了会发现没有安装gcc/g++。  
 这个时候可以在安装文件的目录打开命令行，并输入：  
@@ -31,24 +30,40 @@ fatty + tmux 搭配使用，实现cygwin多标签、多窗口和分屏 。
 安装依赖：gcc-g++ 、 make 、 w32api-headers 、 git  
 
 使用cygwin编译  
+fatty 的 github 地址为：https://github.com/juho-p/fatty 。  
+安装步骤：  
 $ git clone https://github.com/juho-p/fatty.git  
 $ cd fatty  
-$ make  //编译报错：windres: preprocessing failed。解决：使用windres 2.25替换cygwin自带的windres。  
-将fatty.exe复制到cygwin安装目录的bin目录下。  
-打开cygwin，输入fatty即可打开fatty，会另外开启一个mintty窗口，在mintty窗口里可以使用tab标签。  
-或者直接双击fatty.exe打开mintty，或者创建fatty.exe的快捷方式、双击快捷方式打开mintty，可以使用fatty。  
-
-附：
-https://github.com/juho-p/fatty ， **推荐**，基本功能，轻量。继承原始cygwin的参数配置。支持shift+↑↓←→ 。  
-https://github.com/paolo-sz/fatty ，源代码大，更多功能。没有继承原始cygwin的参数配置。不支持shift+↑↓←→  。  
-
+$ make  //使用cygwin编译。编译报错：windres: preprocessing failed。
+原因：windres预处理失败。cygwin自带的windres版本为windres2.36.1，不兼容，可以使用windres2.25替换cygwin自带的windres。  
+解决：  
+方法1：使用windres2.25替换cygwin自带的windres。  
+方法2：不需要使用windres2.25替换cygwin自带的windres，编译时指定windres版本：make RC=windres2.25  
+--**更新：mingw64\bin有一个windres2.3，使用这个替换cygwin自带windres，推荐。**  
+方法3：删除fatty/src/Makefile里面的预处理，使用cygwin自带windres编译。如下：  
+修改fatty/src/Makfile，  
+$(RC) --preprocessor '$(CC) -E -xc -DRC_INVOKED -MMD -MT $@ $(CPPFLAGS)' $< $*.o  
+删除windres预编译，改为：  
+$(RC) $< $*.o  
+编译成功，fatty.exe能正常使用。  
 
 ## fatty使用
-在cygwin内输入fatty打开新终端并支持多标签页(tabs)  
-ctrl + shift + t：新建终端(标签页)。  
-ctrl + shift + w：关闭当前终端(标签页) ，或者ctrl+d。  
+将fatty.exe复制到cygwin安装目录的bin目录下。  
+打开cygwin，输入fatty即可打开fatty，会另外开启一个mintty窗口，在mintty窗口里可以使用tab标签。
+或者直接双击fatty.exe打开mintty，或者创建fatty.exe的快捷方式、双击快捷方式打开mintty，可以使用fatty。  
+创建快捷方式：鼠标点击 -> 新建 -> 快捷方式 后输入Cygwin安装路径\bin\fatty.exe -，如D:\cygwin64\bin\fatty.exe - ，注意最后的横杠 - 不能少，否则启动的命令行将不是之前安装的 Cygwin 环境，无法使用之前安装的各种包及 ls 等命令。  
+或者，cmd窗口执行：D:\cygwin64\bin\fatty.exe -i /Cygwin-Terminal.ico - 也可以创建快捷方式；  
+或者，新建fatty.bat批处理，放到windows PATH可执行路径，后续win+r输fatty快捷启动。  
+fatty.bat内容：start D:\cygwin64\bin\fatty.exe - 。注意windows PATH的设置：fatty.bat路径要放在cygwin64/bin路径的前面，要不然会先执行cygwin64/bin/fatty.exe，而不是这里新建的fatty.bat。  
+注：直接打开fatty.exe没有继承cygwin的环境，例如不能显示中文。  
+
+**快捷键**  
+ctrl + shift + t：新建终端(标签页)。-- ubuntu打开终端ctrl+alt+t,打开标签ctrl+shift+t,和这里是一样的  
+ctrl + shift + w：关闭当前终端(标签页)，或者ctrl+d，或者输exit。和ubuntu一样  
 shift + ←, shift + →：左右切换终端(标签页)。也可以直接通过鼠标点击标签页进行切换。  
 ctrl + shift + ←, ctrl + shift + →：左右移动标签页。  
+
+
 
 
 # tmux,多窗口和分屏
