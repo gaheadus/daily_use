@@ -19,3 +19,9 @@ function agrepi()
 {
     find . -name .repo -prune -o -name .git -prune -o -name out -prune -o -type f -exec grep --color -n -i "$@" {} +
 }
+
+function nocgrep()
+{
+    find . -name .repo -prune -o -name .git -prune -o -name out -prune -o -name '*.c' -prune -o -name '*.cc' -prune -o -name '*.cpp' -prune -o -name '*.h' -prune -o -name '*.hpp' -prune -o -type f \
+        -exec grep --color -n "$@" {} +
+}
