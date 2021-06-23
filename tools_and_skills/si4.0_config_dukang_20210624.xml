@@ -431,6 +431,7 @@
 	</Menus>
 	<Keymaps>
 		<Main>
+			<item Command="Clear Highlights" Keycode="(S)F1" />
 			<item Command="Show File in Explorer..." Keycode="(C)D" />
 			<item Command="Go To Previous Link" Keycode="F9" />
 			<item Command="Go To Next Link" Keycode="F10" />
@@ -613,7 +614,6 @@
 			<item Command="Search Forward for Selection" Keycode="(S)F4" />
 			<item Command="Search Backward for Selection" Keycode="(S)F3" />
 			<item Command="Select Next Window" Keycode="(S)F2" />
-			<item Command="Select Previous Window" Keycode="(S)F1" />
 			<item Command="Zoom Window" Keycode="(A)F10" />
 			<item Command="Symbol Window" Keycode="(A)F8" />
 			<item Command="Sort Symbol Window" Keycode="(A)F7" />
@@ -7579,7 +7579,7 @@
 				RegexType="Source Insight"
 				IgnoreCase="1"
 				UseRegexp="0"
-				WrapAround="1"
+				WrapAround="0"
 				SelectMatch="1"
 				FindNonMatch="0"
 				FindOnePerLine="0"
@@ -7606,9 +7606,9 @@
 				RegexType="Source Insight"
 				IgnoreCase="0"
 				FindWholeWords="1"
-				SkipComments="0"
+				SkipComments="1"
 				OnlyComments="0"
-				SkipDeadCode="0"
+				SkipDeadCode="1"
 				FindExactReference="1"
 				TouchFiles="0"
 				LinesOfContext="1"
