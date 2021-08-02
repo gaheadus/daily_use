@@ -34,7 +34,7 @@ fatty 的 github 地址为：https://github.com/juho-p/fatty 。
 安装步骤：  
 $ git clone https://github.com/juho-p/fatty.git  
 $ cd fatty  
-$ make  //使用cygwin编译。编译报错：windres: preprocessing failed。
+$ make  //使用cygwin编译。编译报错：windres: preprocessing failed
 原因：windres预处理失败。cygwin自带的windres版本为windres2.36.1，不兼容，可以使用windres2.25替换cygwin自带的windres。  
 解决：  
 方法1：使用windres2.25替换cygwin自带的windres。  
@@ -63,6 +63,9 @@ ctrl + shift + t：新建终端(标签页)。-- ubuntu打开终端ctrl+alt+t,打
 ctrl + shift + w：关闭当前终端(标签页)，或者ctrl+d，或者输exit。和ubuntu一样  
 shift + ←, shift + →：左右切换终端(标签页)。也可以直接通过鼠标点击标签页进行切换。  
 ctrl + shift + ←, ctrl + shift + →：左右移动标签页。  
+↑↓：命令历史记录  
+shift+↑↓：滑动窗口，相当于鼠标滚轮  
+
 
 **打开菜单选项**  
 在cygwin中使用fatty，按住shift键、同时鼠标右击，打开菜单选项。事实上，cygwin不使用fatty，也是这样打开菜单选项的。附：cygwin中使用tmux进行复制粘贴也需要按住shift键+鼠标左击/右击。  
@@ -146,7 +149,4 @@ Alt+o：下移当前窗格
 space：切换窗格布局  
 
 [返回*目录*](#目录)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#目录)    
-
-
-
 
