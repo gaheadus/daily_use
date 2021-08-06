@@ -23,3 +23,8 @@ function nocgrep()
         -exec grep --color -n "$@" {} +
 }
 
+function mgrep()
+{
+    find . -name .repo -prune -o -name .git -prune -o -name .svn -prune -o -name out -prune -o -name '*.o' -prune -o \( -regextype posix-egrep -iregex '(.*\/Makefile|.*\/Makefile\..*|.*\.make|.*\.mak|.*\.mk|.*\.bp)' -o -regextype posix-extended -regex '(.*/)?soong/[^/]*.go' \) -type f \
+        -exec grep --color -n "$@" {} +
+}
