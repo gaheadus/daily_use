@@ -166,6 +166,10 @@ $ git blame [file] //显示指定文件是什么人在什么时间修改过
 
 
 git log:  
+git log**万能公式**  
+**$ git log SHA -cnt -p --graph --author=name --name-only --oneline branch path**  
+这个格式包含了大部分git log的用法，常用的都在这了，可以把这个作为一个**万能公式**，实际使用时**从这个格式里面减掉不需要的选项或path参数**。**path可以是文件名也可以是目录名,可以是相对路径也可以是绝对路径。**  
+
 $ git log //显示当前分支的版本历史  
 $ **git log --graph**  //显示ASCII图形表示的提交历史和分支合并历史。推荐。  
 &emsp;&emsp;&emsp;&emsp;\*表示一个commit， 注意不要管*在哪一条主线上  
