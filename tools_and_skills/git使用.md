@@ -164,11 +164,11 @@ $ git show [commit]:[filename] //显示某次提交时，某个文件的内容
 $ git reflog //查看当前仓库的操作日志。  
 $ git blame [file] //显示指定文件是什么人在什么时间修改过  
 
-指定diff比较工具
-①从https://github.com/jeffkaufman/icdiff下载，将git-icdiff拷贝到\~/bin/目录。Cygwin放到cygwin64\usr\local\bin目录，或PATH中的目录。  
+指定diff比较工具  
+①从https://github.com/jeffkaufman/icdiff下载，将icdiff和git-icdiff拷贝到\~/bin/目录。Cygwin放到cygwin64\usr\local\bin目录，或PATH中的目录。  
 ②直接就可以使用了：git icdiff或git-icdiff。按q退出比较。  
-③显示行号、高亮：git config --global icdiff.options \'--highlight --line-numbers\'  
-④只想显示两行上下文：git config --global icdiff.options \'--highlight --line-numbers -U 2\'  
+③配置显示行号、高亮：git config --global icdiff.options \'--highlight --line-numbers\'  
+④配置只想显示两行上下文：git config --global icdiff.options \'--highlight --line-numbers -U 2\'  
 *icdiff* : improved colored diff, side-by-side highlighted command line diffs.  
 
 
