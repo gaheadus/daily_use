@@ -1,7 +1,6 @@
 /* 英语单词--微软必应词典
 http://www.jukuu.com/index.php -- 一个很好的英语学习网址，输入单词，查找例句。
 https://www.tingclass.net/kouyu/  -- 听力课堂
-
 author: dukang, gaheadus@126.com                                                                 */
 
 
@@ -11,7 +10,7 @@ lebal:
 极大的方便单词查找和学习。还可以查找相近单词、重复单词。比word文档、记事本好用多了。
 注意：读音重音符号用ˈ，不用'，否则sourceinsight语法混乱，不能识别函数'。
 或者读音、单词释义、例句都放到单引号或双引号里面，例'example'、"example 2"。都放双引号里吧，看起来舒服些。
-
+对于不需要从符号窗口搜索的文字，外面加双引号放在任何地方都可以，"example 3"，整体就是一个字符串。
 
 
 easymesh_related:
@@ -41,6 +40,16 @@ fluctuation(){ " 美 [ˌflʌktʃuˈeɪʃ(ə)n] 英 [.flʌktʃuˈeɪʃ(ə)n]
 One of the reasons why the price did not fluctuate so much is that big corn buyers have learned to avoid loss by hedge trade.
 价格波动不那么大的一个原因是，谷物的大买家已学会了进行套期保值交易以避免损失。 " }
 
+hedge(){ " US [hedʒ] UK [hedʒ]
+n.树篱；防止损失（尤指金钱）的手段
+v.避免正面回答；不直接许诺；拐弯抹角；在（田地等周围）植树篱
+adj.树篱的；名声不好的；低劣的
+Web.对冲；套期保值；篱笆                                        "               }
+perversely(){ " UK [pə'vɜːsli] adv.事与愿违；恶狠狠地；倔强的 Web倔强地；顽固地；任性地             
+The world of hedge funds might be very close to a big shake-up and, perversely, New York could be one of the winners.
+世界对冲基金可能面临一次大规模的重组，然而，事与愿违，纽约可能会是其中的一个优胜者。"}
+
+
 hysteresis(){ " 英 [ˌhɪstəˈriːsɪs]
 n.【物】磁滞；【物】滞后现象[作用]；迟滞性；平衡阻碍；磁滞现象；滞回；滞后作用
 A process called hysteresis causes some of the heat energy to be lost, but this new alloy has a low hysteresis, the researchers say.
@@ -50,8 +59,8 @@ bulk(){ " 美 [bʌlk] 英 [bʌlk]
 n.大部分；主体；（大）体积；大（量）；散装；大批；大量
 v.扩展；增大；堆积起来；形成大块  " }
 
-allude(){ " 美 [əˈlud] 英 [əˈluːd]
-v.暗示；(婉转)提到；指…说   " }
+allude(){"美 [əˈlud] 英 [əˈluːd]
+v.暗示；(婉转)提到；指…说   "}
 
 outage(){ " 美 [ˈaʊtɪdʒ] 英 [ˈaʊtɪdʒ]
 n.停电（等）期间；断电；中断；电力中断
@@ -59,9 +68,13 @@ n.停电（等）期间；断电；中断；电力中断
 But one of the biggest fears around the Olympics is not a crashed server or power outage, but a deliberate attack by cyber criminals.
 但是，奥运会最大的担心不是崩溃的服务器或停电，而是网络犯罪分子的蓄意攻击。 "   }
 
-outlet(){ " US [ˈaʊtˌlet] UK [ˈaʊt.let]
-n.出口；（感情、思想、精力发泄的）出路；表现机会；专营店
-Web插座；出线；出水口 "                              }
+outlet(){ "  US [ˈaʊtˌlet] UK [ˈaʊt.let]
+n.出口；（感情、思想、精力发泄的）出路；表现机会；专营店；插座；出线；出水口
+1.~ (for sth) （感情、思想、精力发泄的）出路；表现机会a way of expressing or making good use of strong feelings, ideas or energy
+2.专营店；经销店a shop/store or an organization that sells goods made by a particular company or of a particular type
+3.（某品牌的）折扣店a shop/store that sells goods of a particular make at reduced prices
+4.出口；排放管a pipe or hole through which liquid or gas can flow out
+5.（电源）插座a device in a wall that you put a plug into in order to connect electrical equipment to the power supply of a building " }
 
 usurp(){ " 美 [juˈzɜrp] 英 [juːˈzɜː(r)p]
 v.篡夺；侵权；篡位；侵占；霸占
@@ -424,17 +437,10 @@ n.一致的意见；共识；一致同意；舆论；合意
 一致的意见；共识an opinion that all members of a group agree with
 ˈIndia would like to be part of a consensus, ˈ he said. 他说，印度希望成为共识的一部分。"  }
 
-ubiquity(){ " 英 [juːˈbɪkwəti]  美 [juːˈbɪkwəti]  n.遍在(性)；无所不在；随处可见；普遍性
+ubiquity(){ " 英 [juːˈbɪkwəti]  美 [juːˈbɪkwəti]
+n.遍在(性)；无所不在；随处可见；普遍性
 The very ubiquity of the Windows operating system makes it a favorite with hackers.
 由于Windows操作系统的普及使得它成为黑客们的最爱。               "   }
-
-outlet(){ "  US [ˈaʊtˌlet] UK [ˈaʊt.let]
-n.出口；（感情、思想、精力发泄的）出路；表现机会；专营店；插座；出线；出水口
-1.~ (for sth) （感情、思想、精力发泄的）出路；表现机会a way of expressing or making good use of strong feelings, ideas or energy
-2.专营店；经销店a shop/store or an organization that sells goods made by a particular company or of a particular type
-3.（某品牌的）折扣店a shop/store that sells goods of a particular make at reduced prices
-4.出口；排放管a pipe or hole through which liquid or gas can flow out
-5.（电源）插座a device in a wall that you put a plug into in order to connect electrical equipment to the power supply of a building " }
 
 distro(){ " 发行版本；发行套件；仓库
 1.发行版本
@@ -519,9 +525,14 @@ adj.混杂的；各种各样的；杂项；其他；其它
 hysteresis(){ " 英 [ˌhɪstəˈriːsɪs]
 n.【物】迟滞；【物】滞后现象[作用]；迟滞性；平衡阻碍  "  }
 
-dissemination(){ " 英 [dɪˌsemɪˈneɪʃ(ə)n]
-n.传播；散布；播种；散播；播散；分发
-同义词 n.distribution,broadcasting,diffusion,propagation,spreading                "  }
+disseminate(){"英 [dɪˈsemɪneɪt]   美 [dɪˈsemɪneɪt]  
+vt.传播;散布(信息、知识等)
+Their findings have been widely disseminated. 他们的研究成果已经广为传播。 "}
+
+dissemination(){"英 [dɪˌsemɪˈneɪʃn]   美 [dɪˌsemɪˈneɪʃn]  
+n.传播;宣传；散播；传染（病毒）  同义词 n.distribution,broadcasting,diffusion,propagation,spreading
+VERB 散布;传播 To disseminate information or knowledge means to distribute it so that it reaches many people or organizations.
+The dissemination of error does people great harm.谬种流传，误人不浅。                                                      "}
 
 decline(){ " 美 [dɪˈklaɪn] 英 [dɪˈklaɪn]
 v.下降；衰退；减少；谢绝
@@ -531,7 +542,7 @@ n.~ (in sth).~ (of sth)
 v.
 1.[i]减少；下降；衰弱；衰退to become smaller, fewer, weaker, etc.
 2.[i][t]谢绝；婉言拒绝to refuse politely to accept or to do sth
-3.[i][t] ~ (sth) （根据名词、形容词或代词在句中的作用）变格，使发生词形变化if a noun, an adjective or a pronoundeclines , it has different forms according to whether it is the subject or the object of a verb, whether it is in the singular or plural, etc. When youdecline a noun, etc., you list these forms. "}
+3.[i][t] ~ (sth) （根据名词、形容词或代词在句中的作用）变格，使发生词形变化          "}
 
 convergence(){ " 美 [kənˈvɜrdʒəns] 英 [kənˈvɜː(r)dʒ(ə)ns]
 n.会聚；集合点；【数,物】收敛；【生】趋同(现象)；融合；聚合；集中
@@ -601,10 +612,6 @@ n. 1.（说话时语调的）抑扬顿挫，起落the rise and fall of the voice
 
 govern(){ " 美 [ˈɡʌvərn] 英 [ˈɡʌvə(r)n]
 v.治理；控制；管理；统治；支配；决定，支配；运转               "   }
-
-outage(){ " 美 [ˈaʊtɪdʒ] 英 [ˈaʊtɪdʒ]
-n.停电（等）期间；断电；中断；电力中断
-停电（等）期间a period of time when the supply of electricity, etc. is not working  " }
 
 mandate(){ " 美: [ˈmænˌdeɪt] 英: [mænˈdeɪt] 
 v.授权；强制执行；委托办理
