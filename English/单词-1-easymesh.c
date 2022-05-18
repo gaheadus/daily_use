@@ -1,26 +1,32 @@
-/* 英语单词--微软必应词典
-http://www.jukuu.com/index.php -- 一个很好的英语学习网址，输入单词，查找例句。
-https://www.tingclass.net/kouyu/  -- 听力课堂
-author: dukang, gaheadus@126.com                                                                 */
+/* 英语单词，来源于微软必应词典、百度翻译。
+author: dukang, gaheadus@126.com, 20220516  */
 
 
 lebal:
-推荐：非常好用。
-单词名写成C语言'标签'或'函数'，这样sourceinsight的Symbol Window输入单词就可以查找到单词所在位置。写成'函数'好看一些。
-极大的方便单词查找和学习。还可以查找相近单词、重复单词。比word文档、记事本好用多了。
-注意：读音重音符号用ˈ，不用'，否则sourceinsight语法混乱，不能识别函数'。
-或者读音、单词释义、例句都放到单引号或双引号里面，例'example'、"example 2"。都放双引号里吧，看起来舒服些。
-对于不需要从符号窗口搜索的文字，外面加双引号放在任何地方都可以，"example 3"，整体就是一个字符串。
+约定：
+单词写成C语言'函数'或'标签'的形式。写成'函数'好看一些。
+单词名写成函数名，读音、释义、例句等都放到单引号或双引号里面，例'example'、"example 2"。放双引号里看起来舒服些。
+文字外面加双引号放在任何地方都可以，"this is an example 3"，整体就是一个字符串。
+注意：读音重音符号用ˈ，不用单引号'，否则sourceinsight不能正确解析函数定义'。
+优点：
+1)极大的方便单词查找，方便学习。通过sourceinsight的符号窗口快速定位到单词所在位置。word文档、记事本等不能搜索目录文字，不能快速定位。
+2)sourceinsight将函数名加粗突出显示，方便阅读。
+3)通过符号窗口搜索，可以找出相近单词、重复单词。
+4)例句里面的生词，可以在附近位置写成函数调用，这样可以快速跳转到单词释义所在位置，结合sourceinsight快捷键前进后退用起来非常舒服，例如:uplift();
+非常好用，这个方法值得推广。
+如果朗文词典/牛津词典能按照这个方式编写也不错，比一页一页翻着查找速度快多了，哈哈哈。这样能在词典里做笔记，并不影响词典原有内容，不错。
+
+
 
 
 easymesh_related:
-如下是easymesh相关单词，主要来自协议标准文档。20220516
+如下是easymesh相关单词，主要来自协议标准文档。
 
 
 gauge(){ " 英[ɡeɪdʒ] 美[ɡeɪdʒ]
 vt.(用仪器)测量; 判定，判断(尤指人的感情或态度); 估计; 估算;
 n.厚度; 测量仪器(或仪表); 计量器; 宽度; (枪管的)口径; （铁道的）轨距; 事实，依据，尺度，标准;
-[例句]He picked up the calipers and gauged carefully. 他拿起卡钳仔细测量。"  }
+[例句]He picked up the calipers and gauged carefully. 他拿起卡钳仔细测量。"                     }
 
 caliper(){ " US [ˈkæləpər] UK [ˈkælɪpə]
 n.卡尺；游标卡尺；测径器；外卡钳；测径尺；测径仪；测径计" }
@@ -30,7 +36,7 @@ commence(){ " [kəˈmens] v.开始；开始发生；着手 " }
 commensurate(){ " US [kəˈmenʃərət] UK [kəˈmenʃərət]
 adj. ~ (with sth) （在大小、重要性、质量等方面）相称的，相当的 matching sth in size, importance, quality, etc.
 Web同量的；相当的；同样大小的
-He was given a job commensurate with his abilities. 他得到一份与他的能力相称的工作。" }
+He was given a job commensurate with his abilities. 他得到一份与他的能力相称的工作。"                          }
 
 fluctuate(){ " 美 [ˈflʌktʃuˌeɪt] 英 [ˈflʌktʃueɪt]
 v.（大小、数量、质量等）波动；（在…之间）起伏不定；涨落；变动；浮动
@@ -45,6 +51,7 @@ n.树篱；防止损失（尤指金钱）的手段
 v.避免正面回答；不直接许诺；拐弯抹角；在（田地等周围）植树篱
 adj.树篱的；名声不好的；低劣的
 Web.对冲；套期保值；篱笆                                        "               }
+
 perversely(){ " UK [pə'vɜːsli] adv.事与愿违；恶狠狠地；倔强的 Web倔强地；顽固地；任性地             
 The world of hedge funds might be very close to a big shake-up and, perversely, New York could be one of the winners.
 世界对冲基金可能面临一次大规模的重组，然而，事与愿违，纽约可能会是其中的一个优胜者。"}
@@ -165,7 +172,7 @@ cornerstone(){ " 美 [ˈkɔrnərˌstoʊn]英 [ˈkɔː(r)nə(r)ˌstəʊn]
 n.基石；基础；奠基石；最重要部分；墙角石；房角石；柱石
 1.基石；奠基石a stone at the corner of the base of a building, often laid in a special ceremony
 2.最重要部分；基础；柱石the most important part of sth that the rest depends on
-The openness of the U. S. market to the world has been a cornerstone of this nationˈs strength and prosperity.
+The openness of the US market to the world has been a cornerstone of this nationˈs strength and prosperity.
 美国市场保持对世界开放，这是美国力量与繁荣的基石。               "      }
 
 defer(){ " 美 [dɪˈfɜr] 英 [dɪˈfɜː(r)] v.推迟；延缓；展期；延期；拖延；延迟
