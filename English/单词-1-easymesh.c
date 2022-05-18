@@ -627,11 +627,28 @@ v.“mandate”的过去分词和过去式，[网络]委托管理的；委托统
 
 pertain(){ " 美: [pərˈteɪn] 英: [pə(r)ˈteɪn]
 v.存在；适用；属于；关于；附属 to exist or to apply in a particular situation or at a particular time
-The Multi-AP Agent shall configure the backhaul STA with credentials (i.e. SSID and passphrase) pertaining to the backhaul SSID. //属于  " }
+The Multi-AP Agent shall configure the backhaul STA with credentials (i.e. SSID and passphrase) pertaining to the backhaul SSID.  " }
 
-provision(){ " 美[prəˈvɪʒ(ə)n] 英[prəˈvɪʒ(ə)n]
+provision(){" 美[prəˈvɪʒ(ə)n] 英[prəˈvɪʒ(ə)n]
 n.提供；条款；供给；供应品
-v.为…提供所需物品（尤指食物）网络规定；预备；准备  " }
+v.为…提供所需物品（尤指食物）；规定；预备；准备
+The government is responsible for the provision of health care. 政府负责提供医疗服务。
+There is no provision for anyone to sit down here. 这里没有可坐的地方。
+
+[U, C] ~ for sb/sth（为将来做的）准备  preparations that you make for sth that might or will happen in the future
+He had already made provisions for (= planned for the financial future of) his wife and children before the accident.
+意外事故发生之前，他已为妻子、儿女做好了经济安排。
+You should make provision for things going wrong. 你要采取措施，以防不测。         "}
+
+provide(){ " US [prəˈvaɪd] UK [prə'vaɪd]
+v.提供；供应；给予；规定
+Web供给；准备；为某人提供某物                 "}
+
+
+infeasible(){" US [ɪn'fizəbəl] UK [ɪn'fi:zəbl]
+adj.不能实行的  Web不可行；不可行的；不可实行的
+It is infeasible to use linear adaptive filter to create nonlinear model. 用线性自适应滤波器对非线性对象建模是不可行的。"}
+
 
 heterogeneous(){ " 美 [ˌhetəroʊˈdʒiniəs] 英 [ˌhetərəʊˈdʒiːniəs]
 adj.由很多种类组成的；各种各样的 consisting of many different kinds of people or things
@@ -680,11 +697,6 @@ adj.离群的；行为失常的；暴戾的
 
 eavesdrop(){ " 美 [ˈivzˌdrɑp] 英 [ˈiːvzˌdrɒp]
 v.偷听 n.檐水 [网络]窃听；听墙根；在暗处偷听别人谈话               "   }
-
-provision(){ "  US [prəˈvɪʒ(ə)n] UK [prəˈvɪʒ(ə)n]
-n.供应；准备；【法】规定；生活物质
-v.向…供应粮食[必需品]
-Web配置；供给；提取准备金                "    }
 
 vouch(){ " [vaʊtʃ]
 v.保证；担保；确定；断言；证明；核对；作证                 " }
