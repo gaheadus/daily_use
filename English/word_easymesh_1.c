@@ -26,7 +26,20 @@ easymesh_related:
 gauge(){ " 英[ɡeɪdʒ] 美[ɡeɪdʒ]
 vt.(用仪器)测量; 判定，判断(尤指人的感情或态度); 估计; 估算;
 n.厚度; 测量仪器(或仪表); 计量器; 宽度; (枪管的)口径; （铁道的）轨距; 事实，依据，尺度，标准;
-[例句]He picked up the calipers and gauged carefully. 他拿起卡钳仔细测量。"                     }
+n.
+1.测量仪器（或仪表）；计量器an instrument for measuring the amount or level of sth
+2.宽度；厚度a measurement of the width or thickness of sth
+3.（枪管的）口径a measurement of the width of the barrel of a gun
+4.（铁道的）轨距；（火车的）轮距the distance between the rails of a railway/railroad track or the wheels of a train
+5.[ususing] ~ (of sth) （用于估计或判断的）事实，依据，尺度，标准a fact or an event that can be used to estimate or judge sth
+v.
+1.判定，判断（尤指人的感情或态度）to make a judgement about sth, especially people's feelings or attitudes
+2.~ sth （用仪器）测量to measure sth accurately using a special instrument
+3.~ sth.~ how, what, etc.… 估计；估算to calculate sth approximately
+[例句]He picked up the calipers and gauged carefully. 他拿起卡钳仔细测量。
+I try to gauge the width of the door to see if my sofa can pass through it.我试着估算这个门的宽度，看我的沙发可不可以过得去。
+The car, out of plain deviltry, began to run one, too. The red fluid in the engine gauge on the dashboard started to rise alarmingly.
+那辆车，出于纯粹的暴行，也发起烧来，仪表盘上发动机表中的红色液体开始急剧升高。//gauge:仪表" }
 
 caliper(){ " US [ˈkæləpər] UK [ˈkælɪpə]
 n.卡尺；游标卡尺；测径器；外卡钳；测径尺；测径仪；测径计" }

@@ -23,8 +23,7 @@ easymesh_related:
 如下是easymesh相关单词，主要来自协议标准文档。
 
 
-verdict(){ " 美 [ˈvɜrdɪkt]
-英 [ˈvɜː(r)dɪkt]
+verdict(){ " 美 [ˈvɜrdɪkt] 英 [ˈvɜː(r)dɪkt]
 n.裁决；结论；判决；判断；裁定；(经过检验或认真考虑后的)决定，结论，意见
 1.（陪审团的）裁定，裁决，裁断
    a decision that is made by a jury in court, stating if sb is considered guilty of a crime or not
