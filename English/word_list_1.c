@@ -31,3 +31,12 @@ n.裁决；结论；判决；判断；裁定；(经过检验或认真考虑后�
    a decision that you make or an opinion that you give about sth, after you have tested it or considered it carefully
 The judge will delay his verdict until he receives medical reports on the offender.法官将推迟判决，直到收到有关违法者的医疗报告。 "}
 
+forge(){"美 [fɔrdʒ]英 [fɔː(r)dʒ]
+v.锻造；制定；锻炼；(坚定地)勉力前进
+n.锻压；锻造厂；(思想等的)锻炼；铁工厂
+[网络]伪造；铸造；锻炉
+1.[t] ~ sth 艰苦干成；努力加强 to put a lot of effort into making sth successful or strong so that it will last
+2.[t] ~ sth 伪造；假冒 to make an illegal copy of sth in order to cheat people
+3.[t] ~ sth (from sth) 锻造；制作 to shape metal by heating it in a fire and hitting it with a hammer; to make an object in this way
+4.[i] + adv./prep. 稳步前进 to move forward in a steady but powerful way
+Strategic alliances are being forged with major European companies.正与欧洲主要公司设法结成战略同盟。//艰苦干成 "}

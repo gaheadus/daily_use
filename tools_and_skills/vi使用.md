@@ -4,6 +4,12 @@
 **三种模式之间切换**  
 ![vi三种模式之间切换](https://github.com/gaheadus/daily_use/blob/master/Resources/vi.png)
 
+
+**常用功能**  
+:%s/old/new/g，%表示替换全部域，不加%表示只替换光标那一行的。  
+
+
+
 ## 第一部分：命令模式下的操作  
 任何时候，不管用户处于何种模式，只要 **按一下ESC键** ，即可进入vi **命令行模式** 。
 
