@@ -1,5 +1,5 @@
 #!/bin/bash
-#说明：这里的函数定义只在原有命令的基础上增加了一些过滤条件，保持原有grep、find的语法，使用方法和原有grep、find一样。
+#说明：这里的函数定义只在原有命令的基础上增加了一些过滤条件，保持原有grep、find的语法，使用方法和原有grep、find一样。Copy right@dukang
 #例：
 # cgrep thename
 # cgrep -i thename
@@ -92,10 +92,22 @@ function m2sync(){
 
 function repo2()
 {
-    if [ "$1" != "sync" ] && [ "$1" != "status" ] && [ "$1" != "branch" ] && [ "$1" != "checkout" ] && [ "$1" != "start" ] && [ "$1" != "pull" ] && [ "$1" != "log" ] && [ "$1" != "rebase" ]; then
-        echo "command NOT support!!!"
+    cmds=("status" "log" "branch" "sync" "checkout" "start" "pull" "rebase")
+    i=1
+
+    for cmd in ${cmds[@]}; do
+        if [ "$1" == $cmd ]; then
+            #echo "current command is $cmd, total cmd num=${#cmds[@]}"
+            break
+        fi
+        let i++
+    done
+
+    if [ $i -gt ${#cmds[@]} ]; then
+        echo "command $1 NOT support!!!"
         return 1
-	fi
+    fi
+
 
     curdir=`pwd`
     oldpwd=$OLDPWD
@@ -110,21 +122,15 @@ function repo2()
                 echo "NOT in a UGW_main project repository !!!"
                 cd $curdir
                 OLDPWD=$oldpwd
-				unset PROJ_TOP
+                unset PROJ_TOP
                 return 2
             fi
         fi
     done
 
 
-    auto_chan_bw_select="cbb/wifi/auto_chan_bw_select"
-    mesh3="cbb/mesh3.0"
-    Tenda_Easymesh="cbb/mesh/Tenda_Easymesh"
-    Tenda_Xmesh="cbb/mesh/Tenda_Xmesh"
-    vendor="vendor"
     subcmd=$*
     only_cur_dir=0
-    cmd_not_support=0
 
     if [ "$1" == "sync" ]; then
         subcmd="pull --rebase"
@@ -167,35 +173,26 @@ function repo2()
     fi
 
 
+    auto_chan_bw_select="cbb/wifi/auto_chan_bw_select"
+    mesh3="cbb/mesh3.0"
+    Tenda_Easymesh="cbb/mesh/Tenda_Easymesh"
+    Tenda_Xmesh="cbb/mesh/Tenda_Xmesh"
+    vendor="vendor"
+    #dirs=($auto_chan_bw_select $mesh3 $Tenda_Easymesh $Tenda_Xmesh $vendor "/") #注：使用"/"或"."，如果写成""，空字符串在for循环中会被优化掉
+    dirs=($auto_chan_bw_select $mesh3 $Tenda_Easymesh $Tenda_Xmesh $vendor)
+
     if [ $only_cur_dir == 1 ]; then
         git $subcmd
         echo
     else
-        echo $PROJ_TOP/$auto_chan_bw_select
-        cd $PROJ_TOP/$auto_chan_bw_select
-        git $subcmd
-        echo
+        for dir in ${dirs[@]}; do
+            echo $PROJ_TOP/$dir
+            cd $PROJ_TOP/$dir
+            git $subcmd
+            echo
+        done
 
-        echo $PROJ_TOP/$mesh3
-        cd $PROJ_TOP/$mesh3
-        git $subcmd
-        echo
-
-        echo $PROJ_TOP/$Tenda_Easymesh
-        cd $PROJ_TOP/$Tenda_Easymesh
-        git $subcmd
-        echo
-
-        echo $PROJ_TOP/$Tenda_Xmesh
-        cd $PROJ_TOP/$Tenda_Xmesh
-        git $subcmd
-        echo
-
-        echo $PROJ_TOP/$vendor
-        cd $PROJ_TOP/$vendor
-        git $subcmd
-        echo
-
+        #空字符串""在for循环中会被优化掉，PROJ_TOP只能单独写。写成"/"或"."也可以，但是风格不统一，显示效果不好。
         echo $PROJ_TOP
         cd $PROJ_TOP
         git $subcmd
