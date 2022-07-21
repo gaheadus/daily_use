@@ -92,7 +92,7 @@ function m2sync(){
 
 function repo2()
 {
-    cmds=("status" "log" "branch" "sync" "checkout" "start" "pull" "rebase")
+    cmds=("status" "log" "branch" "sync" "checkout" "start" "pull" "forall")
     i=1
 
     for cmd in ${cmds[@]}; do
@@ -172,6 +172,15 @@ function repo2()
         fi
     fi
 
+    real_cmd="git $subcmd"
+    if [ "$1" == "forall" ]; then
+        if [ "$2" != "-c" ]; then
+            echo "Usage: repo forall -c command"
+            return 6
+        fi
+        shift 2
+        real_cmd=$*
+    fi
 
     auto_chan_bw_select="cbb/wifi/auto_chan_bw_select"
     mesh3="cbb/mesh3.0"
@@ -182,26 +191,27 @@ function repo2()
     dirs=($auto_chan_bw_select $mesh3 $Tenda_Easymesh $Tenda_Xmesh $vendor)
 
     if [ $only_cur_dir == 1 ]; then
-        git $subcmd
+        $real_cmd
         echo
     else
         for dir in ${dirs[@]}; do
             echo $PROJ_TOP/$dir
             cd $PROJ_TOP/$dir
-            git $subcmd
+            $real_cmd
             echo
         done
 
         #空字符串""在for循环中会被优化掉，PROJ_TOP只能单独写。写成"/"或"."也可以，但是风格不统一，显示效果不好。
         echo $PROJ_TOP
         cd $PROJ_TOP
-        git $subcmd
+        $real_cmd
         echo
 
         cd $curdir
         OLDPWD=$oldpwd
     fi
 
+    unset real_cmd
     unset subcmd
     unset remote_br
     unset PROJ_TOP
