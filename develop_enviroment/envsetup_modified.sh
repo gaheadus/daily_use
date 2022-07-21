@@ -74,13 +74,13 @@ function wffind()
     find . -name .repo -prune -o -name .git -prune -o -name .svn -prune -o -name out -prune -o "$@" -print
 }
 
+# for easymesh
 function m3sync(){
     echo "cp ../UGW_main/work_dir.bcm6756_11ax_nor_mesh3.0/vendor/release/bcm6756_11ax_nor_mesh3.0_release.bz2 platform"
           cp ../UGW_main/work_dir.bcm6756_11ax_nor_mesh3.0/vendor/release/bcm6756_11ax_nor_mesh3.0_release.bz2 platform
     echo "cp ../UGW_main/work_dir.bcm6756_11ax_nor_mesh3.0/cbb/wifi/bcm6756_11ax_nor_mesh3.0_wifi_release.bz2 platform"
           cp ../UGW_main/work_dir.bcm6756_11ax_nor_mesh3.0/cbb/wifi/bcm6756_11ax_nor_mesh3.0_wifi_release.bz2 platform
 }
-
 
 function m2sync(){
     echo "cp ../UGW_main/work_dir.bcm6756_11ax_nor/vendor/release/bcm6756_11ax_nor_release.bz2 platform"
@@ -89,10 +89,16 @@ function m2sync(){
     cp ../UGW_main/work_dir.bcm6756_11ax_nor/cbb/wifi/bcm6756_11ax_nor_wifi_release.bz2 platform
 }
 
+function m3sync_easymesh(){
+    echo "cp ../UGW_main/work_dir.bcm6756_11ax_nor_mesh3.0/cbb/mesh3.0/Tenda_Easymesh/output/easymeshv2 targets/mx12_nor/romfs/bin"
+    cp ../UGW_main/work_dir.bcm6756_11ax_nor_mesh3.0/cbb/mesh3.0/Tenda_Easymesh/output/easymeshv2 targets/mx12_nor/romfs/bin
+    echo "cp ../UGW_main/work_dir.bcm6756_11ax_nor_mesh3.0/cbb/mesh3.0/Tenda_Easymesh/output/xmesh targets/mx12_nor/romfs/bin"
+    cp ../UGW_main/work_dir.bcm6756_11ax_nor_mesh3.0/cbb/mesh3.0/Tenda_Xmesh/output/xmesh targets/mx12_nor/romfs/bin
+}
 
 function repo2()
 {
-    cmds=("status" "log" "branch" "sync" "checkout" "start" "pull" "rebase")
+    cmds=("status" "log" "branch" "checkout" "pull" "start" "sync" "upload" "forall")
     i=1
 
     for cmd in ${cmds[@]}; do
@@ -132,14 +138,30 @@ function repo2()
     subcmd=$*
     only_cur_dir=0
 
-    if [ "$1" == "sync" ]; then
-        subcmd="pull --rebase"
+    if [ "$1" == "sync" ] || [ "$1" == "upload" ]; then
+        if [ "$1" == "sync" ]; then
+            subcmd="pull --rebase"
+        else
+            subcmd="push origin HEAD:refs/for/dev_ugw6.0_main"
+        fi
+        if [ "$#" -eq 2 ]; then
+            if [ "$2" == "." ]; then
+                only_cur_dir=1
+            else
+                echo "repo $* is not support !!!"
+                return 3
+            fi
+        fi
+        if [ "$#" -gt 2 ]; then
+            echo "too many parameters error !!!"
+            return 4
+        fi
     fi
 
     if [ "$1" == "start" ]; then
         if [ "$#" -ne 2 ] && [ "$#" -ne 3 ]; then
             echo "syntax error !!! input param num=$#"
-            return 3
+            return 5
         else
             remote_br=`git branch -r | grep HEAD | awk '{print $3}'`
             subcmd="checkout -b $2 $remote_br"
@@ -150,7 +172,7 @@ function repo2()
 
             if [ "$#" -eq 3 ] && [ "$3" != "--all" ]; then
                 echo "syntax error !!! input param 3 error"
-                return 4
+                return 6
             fi
 
         fi
@@ -161,17 +183,26 @@ function repo2()
             if [ "$#" -eq 2 ]; then
                 if [ "$2" != "-1" ] && [ "$2" != "-2" ]; then
                     echo "only 1 or 2 commit log support !!!"
-                    return 5
+                    return 7
                 fi
             else
                 subcmd="log -1"
             fi
         else
             echo "too many input paramters !!!"
-            return 6
+            return 8
         fi
     fi
 
+    real_cmd="git $subcmd"
+    if [ "$1" == "forall" ]; then
+        if [ "$2" != "-c" ]; then
+            echo "Usage: repo forall -c command"
+            return 9
+        fi
+        shift 2
+        real_cmd=$*
+    fi
 
     auto_chan_bw_select="cbb/wifi/auto_chan_bw_select"
     mesh3="cbb/mesh3.0"
@@ -182,28 +213,30 @@ function repo2()
     dirs=($auto_chan_bw_select $mesh3 $Tenda_Easymesh $Tenda_Xmesh $vendor)
 
     if [ $only_cur_dir == 1 ]; then
-        git $subcmd
+        $real_cmd
         echo
     else
         for dir in ${dirs[@]}; do
             echo $PROJ_TOP/$dir
             cd $PROJ_TOP/$dir
-            git $subcmd
+            $real_cmd
             echo
         done
 
         #空字符串""在for循环中会被优化掉，PROJ_TOP只能单独写。写成"/"或"."也可以，但是风格不统一，显示效果不好。
         echo $PROJ_TOP
         cd $PROJ_TOP
-        git $subcmd
+        $real_cmd
         echo
 
         cd $curdir
         OLDPWD=$oldpwd
     fi
 
+    unset real_cmd
     unset subcmd
     unset remote_br
     unset PROJ_TOP
     unset curdir
 }
+
