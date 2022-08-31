@@ -173,18 +173,12 @@ $ git blame [file] //显示指定文件是什么人在什么时间修改过
 
 
 git log:  
-git log**万能公式**  
-**$ git log SHA -cnt -p --graph --author=name --name-only --oneline branch path**  
-这个格式包含了大部分git log的用法，常用的都在这了，可以把这个作为一个**万能公式**，实际使用时**从这个格式里面减掉不需要的选项或path参数**。**path可以是文件名也可以是目录名,可以是相对路径也可以是绝对路径。**  
-
 $ git log //显示当前分支的版本历史  
-$ **git log --graph**  //显示ASCII图形表示的提交历史和分支合并历史。推荐。  
-&emsp;&emsp;&emsp;&emsp;\*表示一个commit， 注意不要管*在哪一条主线上  
-&emsp;&emsp;&emsp;&emsp;|表示分支前进  
-&emsp;&emsp;&emsp;&emsp;/表示分叉  
-&emsp;&emsp;&emsp;&emsp;\\表示合入  
-$ git log --graph --decorate  
-$ git log --graph --decorate --pretty=format:"%H - %cn, %an : %s" --all  
+$ **git log --pretty=oneline**  //按一行输出，显示完整SHA。或者：git log --oneline //按一行输出，显示简短SHA
+$ **git log -4 --pretty=format:"%H, %s, %ae, %cd"**  //经常关注的内容，哈希值, 提交注释, 作者邮箱, 提交日期
+$ **git log --graph**  //显示ASCII图形表示的提交历史和分支合并历史。\*表示一个提交，&emsp;&emsp;|表示分支前进，&emsp;&emsp;/表示分叉，&emsp;&emsp;\\表示合入  
+$ **git log --decorate**  //--decorate标记让git log显示指向这个提交的所有引用，比如说HEAD指针、分支、标签等。
+$ git log --graph --decorate --pretty=format:"%H, %s, %ae, %cd" --all  
 $ git log --graph --decorate --oneline --all  
 &emsp;&emsp;&emsp;&emsp;--decorate： 标记会让git log显示每个commit的引用  
 &emsp;&emsp;&emsp;&emsp;--simplify-by-decoration：只显示被branch或tag引用的commit  
@@ -203,7 +197,7 @@ Consider only commits that are enough to explain how the files that match the sp
 Paths may need to be prefixed with -- to separate them from options or the revision range, when confusion arises.  
 
 $ git log --pretty=oneline     //按一行输出，完整SHA  
-$ git log --oneline           //按一行输出，简短SHA  
+$ git log --oneline            //按一行输出，简短SHA  
 $ git log --stat //显示commit历史，以及每次commit发生变更的文件  
 $ git log -S [keyword] //搜索提交历史，根据关键词  
 $ git log [tag] HEAD --pretty=format:%s //显示某个commit之后的所有变动，每个commit占据一行  
