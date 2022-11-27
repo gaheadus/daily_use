@@ -18,11 +18,6 @@ lebal:
 
 
 
-
-todo:
-如下是easymesh相关单词，主要来自协议标准文档。
-
-
 prise(){ " 美 [praɪz] 英 [praɪz]
            v.强行使分开；撬开 to use force to separate sth from sth else
            [网络]杠杆；奖赏；按价格  "}
@@ -31,8 +26,8 @@ reprise(){ "美 [rɪˈpriz] 英 [rɪˈpriːz]
               n.重复部分；（尤指乐曲的）反复 a repeated part of sth, especially a piece of music
               [网络]重奏；年金；巴黎塔尖 "}
 
-avionics(){ "美 [ˌeɪviˈɑnɪks] 英 [ˌeɪviˈɒnɪks] //只有复数，没有单数
-              n.航空电子学；航空（或航天）电子设备
+avionics(){ "美 [ˌeɪviˈɑnɪks] 英 [ˌeɪviˈɒnɪks]
+              n.航空电子学；航空（或航天）电子设备 //avionic单数是形容词
               [网络]航电；航空电子设备；航电设备
               1.[u]航空电子学the science of electronics when used in designing and making aircraft
               2.[pl]航空（或航天）电子设备the electronic devices in an aircraft or a spacecraft " }
