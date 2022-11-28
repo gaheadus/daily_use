@@ -13,7 +13,7 @@ lebal:
     1)极大的方便单词查找，方便学习。通过sourceinsight的符号窗口快速定位到单词所在位置。word文档、记事本等不能搜索目录文字，不能快速定位。
     2)sourceinsight将函数名加粗突出显示，方便阅读。
     3)通过符号窗口搜索，可以找出相近单词、重复单词。
-    4)例句里面的生词，可以在附近位置写成函数调用，这样可以快速跳转到单词释义所在位置，结合sourceinsight快捷键前进后退用起来非常舒服，例如:avionics();
+    4)例句里面的生词，可以在附近位置写成函数调用，这样可以快速跳转到单词释义所在位置，结合sourceinsight快捷键前进后退用起来非常舒服，例如:prise();
 非常好用，这个方法值得推广。
 如果朗文词典/牛津词典能按照这个方式编写也不错，比一页一页翻着查找速度快多了，哈哈哈。这样能在词典里做笔记，并不影响词典原有内容，不错。
 
@@ -24,8 +24,8 @@ fc_related:
 
 
 prise(){"美 [praɪz] 英 [praɪz]
-          v.强行使分开；撬开 to use force to separate sth from sth else
-          [网络]杠杆；奖赏；按价格  "}
+         v.强行使分开；撬开 to use force to separate sth from sth else
+          [网络]杠杆；奖赏；按价格  " }
 
 reprise(){"美 [rɪˈpriz] 英 [rɪˈpriːz]
             v.重演；〈古〉夺回；〈古〉赔偿
@@ -35,8 +35,8 @@ reprise(){"美 [rɪˈpriz] 英 [rɪˈpriːz]
 avionics(){"美 [ˌeɪviˈɑnɪks] 英 [ˌeɪviˈɒnɪks]
              n.航空电子学；航空（或航天）电子设备 //avionic单数是形容词
              [网络]航电；航空电子设备；航电设备
-             1.[u]航空电子学the science of electronics when used in designing and making aircraft
-             2.[pl]航空（或航天）电子设备the electronic devices in an aircraft or a spacecraft " }
+             1.[u]航空电子学 the science of electronics when used in designing and making aircraft
+             2.[pl]航空（或航天）电子设备 the electronic devices in an aircraft or a spacecraft " }
 
 cavium(){"凯为，半导体公司名字。
            Cavium Networks公司是全球领先的MIPS多内核处理器提供商，处理器广泛应用于网络、无线、存储和控制应用等领域的安全产品。

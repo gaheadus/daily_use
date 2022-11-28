@@ -44,18 +44,18 @@ gauge(){"英[ɡeɪdʒ] 美[ɡeɪdʒ]
 caliper(){"US [ˈkæləpər] UK [ˈkælɪpə]
              n.卡尺；游标卡尺；测径器；外卡钳；测径尺；测径仪；测径计" }
 
-commence()"[kəˈmens] v.开始；开始发生；着手 " }
+commence(){"[kəˈmens] v.开始；开始发生；着手 " }
 
 commensurate(){"US [kəˈmenʃərət] UK [kəˈmenʃərət]
                     adj. ~ (with sth) （在大小、重要性、质量等方面）相称的，相当的 matching sth in size, importance, quality, etc.
                     Web同量的；相当的；同样大小的
                     He was given a job commensurate with his abilities. 他得到一份与他的能力相称的工作。"                          }
 
-fluctuate(){" 美 [ˈflʌktʃuˌeɪt] 英 [ˈflʌktʃueɪt]
+fluctuate(){"美 [ˈflʌktʃuˌeɪt] 英 [ˈflʌktʃueɪt]
                v.（大小、数量、质量等）波动；（在…之间）起伏不定；涨落；变动；浮动
                to change frequently in size, amount, quality, etc., especially from one extreme to another " }
 
-fluctuation(){" 美 [ˌflʌktʃuˈeɪʃ(ə)n] 英 [.flʌktʃuˈeɪʃ(ə)n]
+fluctuation(){"美 [ˌflʌktʃuˈeɪʃ(ə)n] 英 [.flʌktʃuˈeɪʃ(ə)n]
                   One of the reasons why the price did not fluctuate so much is that big corn buyers have learned to avoid loss by hedge trade.
                   价格波动不那么大的一个原因是，谷物的大买家已学会了进行套期保值交易以避免损失。 " }
 
@@ -126,7 +126,7 @@ qualm(){"美 [kwɑ:m]英 [kwɑ:m]
           He had been working very hard so he had no qualms about taking a few days off. 他一直辛勤工作，所以休息几天他觉得心安理得。 "  }
 
 terminology(){" 美 [ˌtɜrmɪˈnɑlədʒi] 英 [ˌtɜː(r)mɪˈnɒlədʒi]
-n.（某学科的）术语；有特别含义的用语；专门用语；术语学；专业术语；词汇           "        }
+                 n.（某学科的）术语；有特别含义的用语；专门用语；术语学；专业术语；词汇"}
 
 isotropic(){"美 [ˌaɪsəˈtrɒpɪk] 英 [ˌaɪsəˈtrɒpɪk]
                adj.各向同性的；等向性；等方性；等方性的
@@ -352,33 +352,33 @@ dummy(){"美 [ˈdʌmi] 英 [ˈdʌmi]
          n.（尤指缝制或陈列服装用的）人体模型；仿制品；仿造物；笨蛋；(橱窗中的)模型人；(拍电影用的)假人；人形靶；模型发式
          v.把(书,报等)做成大样；把(书,报等)以大样印出；保守秘密；做假动作
          adj.假的；摆样子的；傀儡的；摆样子的；挂名的，[网络]傻瓜系列；傻瓜化；傻瓜书
-            1.[c]（尤指缝制或陈列服装用的）人体模型a model of a person, used especially when making clothes or for showing them in a shop window
-            2.[c]仿制品；仿造物a thing that seems to be real but is only a copy of the real thing
-            3.[c](informal)笨蛋；蠢货a stupid person
-            4.[c]假动作an occasion when you pretend to make a particular move and then do not do so
-            5.[c]安抚奶嘴a specially shaped rubber or plastic object for a baby to suck
-            6.[u]明手牌the cards which are placed facing upwards on the table and which can be seen by all the players           "          }
+           1.[c]（尤指缝制或陈列服装用的）人体模型a model of a person, used especially when making clothes or for showing them in a shop window
+           2.[c]仿制品；仿造物a thing that seems to be real but is only a copy of the real thing
+           3.[c](informal)笨蛋；蠢货a stupid person
+           4.[c]假动作an occasion when you pretend to make a particular move and then do not do so
+           5.[c]安抚奶嘴a specially shaped rubber or plastic object for a baby to suck
+           6.[u]明手牌the cards which are placed facing upwards on the table and which can be seen by all the players           "          }
 
 leverage(){"美 [ˈlev(ə)rɪdʒ] 英 [ˈliːvərɪdʒ]
              n.杠杆，杠杆作用，影响力；都市侠盗；杠杆比率；杠杆率
              v.发挥杠杆作用，施加影响
-                1.影响力the ability to influence what people do
-                2.杠杆作用；杠杆效力the act of using a lever to open or lift sth; the force used to do this
-                3.资本与负债比率；联动比率the relationship between the amount of money that a company owes and the value of its shares   "    }
+              1.影响力the ability to influence what people do
+              2.杠杆作用；杠杆效力the act of using a lever to open or lift sth; the force used to do this
+              3.资本与负债比率；联动比率the relationship between the amount of money that a company owes and the value of its shares   "    }
 
 lever(){"美 [ˈlevər] 英 [ˈliːvə(r)]
          n.杆；手段；利弗〔姓氏〕；矫平机；控制杆；手柄；工具
          v.（用杠杆）撬动
-            1.（车辆或机器的）操纵杆，控制杆 a handle used to operate a vehicle or piece of machinery
-            2.杠杆 a long piece of wood, metal, etc. used for lifting or opening sth by sb placing one end of it under an object and pushing down on the other end
-            3.~ (for/against sth) 施压的行为 an action that is used to put pressure on sb to do sth they do not want to do     "    }
+           1.（车辆或机器的）操纵杆，控制杆 a handle used to operate a vehicle or piece of machinery
+           2.杠杆 a long piece of wood, metal, etc. used for lifting or opening sth by sb placing one end of it under an object and pushing down on the other end
+           3.~ (for/against sth) 施压的行为 an action that is used to put pressure on sb to do sth they do not want to do     "    }
 
 aggregate(){"US [ˈæɡrɪˌɡeɪt] UK [ˈæɡrɪɡeɪt]
               n.骨料；合计；总数；集合；聚集；聚合
               v.合计；总计
               adj.总数的；总计的
-                 1.[c]总数；合计a total number or amount made up of smaller amounts that are collected together
-                 2.[u][c]（可制成混凝土或修路等用的）集料，骨料sand or broken stone that is used to make concrete or for building roads, etc.  "  }
+                1.[c]总数；合计a total number or amount made up of smaller amounts that are collected together
+                2.[u][c]（可制成混凝土或修路等用的）集料，骨料sand or broken stone that is used to make concrete or for building roads, etc.  "  }
 
 concrete(){"US [ˈkɑŋˌkrit] UK [ˈkɒŋkriːt]
              n.混凝土；水泥；具体物；凝结物；浸膏
@@ -388,16 +388,16 @@ concrete(){"US [ˈkɑŋˌkrit] UK [ˈkɒŋkriːt]
 compromise(){"US [ˈkɑmprəˌmaɪz] UK [ˈkɒmprəmaɪz]
                n.妥协；和解；折中；互让；折衷；折中办法；折衷案
                v.让步；违背（原则）；达不到（标准）
-                 1.[c]妥协；折中；互让；和解an agreement made between two people or groups in which each side gives up some of the things they want so that both sides are happy at the end
-                 2.[c]~ (between A and B) 妥协（或折中）方案a solution to a problem in which two or more things cannot exist together as they are, in which each thing is reduced or changed slightly so that they can exist together
-                 3.[u]达成妥协（或和解）the act of reaching a compromise               "      }
+                1.[c]妥协；折中；互让；和解an agreement made between two people or groups in which each side gives up some of the things they want so that both sides are happy at the end
+                2.[c]~ (between A and B) 妥协（或折中）方案a solution to a problem in which two or more things cannot exist together as they are, in which each thing is reduced or changed slightly so that they can exist together
+                3.[u]达成妥协（或和解）the act of reaching a compromise               "      }
 
 imperative(){"US [ɪmˈperətɪv] UK [ɪmˈperətɪv]
                adj.重要紧急的；迫切的；急需处理的；表示权威的
                n.重要紧急的事；必要的事；祈使语气；祈使语气动词；命令式；强制的；祈使句
-                 1.[nubn] 重要紧急的；迫切的；急需处理的very important and needing immediate attention or action
-                 2.表示权威的expressing authority
-                 3.[obn]表示命令的；祈使的expressing an order                "     }
+                1.[nubn] 重要紧急的；迫切的；急需处理的very important and needing immediate attention or action
+                2.表示权威的expressing authority
+                3.[obn]表示命令的；祈使的expressing an order                "     }
 
 originate(){"US [əˈrɪdʒəˌneɪt] UK [əˈrɪdʒəneɪt]
               v.发起；引起；创办；创作；起源于；首创；发源
@@ -411,9 +411,9 @@ dilemma(){"US [daɪˈlemə] UK [dɪˈlemə]
 uplift(){"US [ˈʌpˌlɪft] UK [ˈʌplɪft]
           n.抬升；提高；上升；抬高
           v.鼓励；激励；使振奋；隆起；抬起；举起
-            1.提高；抬高；增长；增加the fact of sth being raised or of sth increasing
-            2.振奋；鼓舞a feeling of hope and happiness
-            3.（地壳的）隆起，上升；抬升the process or result of land being moved to a higher level by movements inside the earth " }
+           1.提高；抬高；增长；增加the fact of sth being raised or of sth increasing
+           2.振奋；鼓舞a feeling of hope and happiness
+           3.（地壳的）隆起，上升；抬升the process or result of land being moved to a higher level by movements inside the earth " }
 
 indispensable(){"US [ˌɪndɪˈspensəb(ə)l] UK [.ɪndɪˈspensəb(ə)l]
                    adj.必不可少的；必需的；不可或缺的  n.不可缺少的人或物
@@ -436,10 +436,10 @@ sceptic(){"US [ˈskeptɪk] UK [ˈskeptɪk]
 
 compilation(){"US [ˌkɑmpɪˈleɪʃ(ə)n] UK [ˌkɒmpəˈleɪʃ(ə)n]
                  n.编写；编纂；选编；选辑；编译；编辑；汇编
-                   1.[c]收集；选编；选辑a collection of items, especially pieces of music or writing, taken from different places and put together
-                   2.[u]编纂；编著；编写the process of compiling sth
-                   This compilation seems a never-ending task; I sometimes wonder if Iˈll live to see the fruits of my labours.
-                   这项编写工作看来遥遥无期，我有时会想我不知道能否少着看到我的劳动成果。            "      }
+                  1.[c]收集；选编；选辑a collection of items, especially pieces of music or writing, taken from different places and put together
+                  2.[u]编纂；编著；编写the process of compiling sth
+                  This compilation seems a never-ending task; I sometimes wonder if Iˈll live to see the fruits of my labours.
+                  这项编写工作看来遥遥无期，我有时会想我不知道能否少着看到我的劳动成果。            "      }
 
 comply(){"[kəmˈplaɪ] UK [kəmˈplaɪ]
           v.遵从；服从；顺从；遵守；答应；遵照
@@ -462,16 +462,15 @@ ubiquity(){"英 [juːˈbɪkwəti]  美 [juːˈbɪkwəti]
 
 distro(){"发行版本；发行套件；仓库
           1.发行版本
-          进行了一些咨询后，我得到的建议是使用一个名为 Slackware 的小的、轻量级的发行版本（distro）。
+            进行了一些咨询后，我得到的建议是使用一个名为 Slackware 的小的、轻量级的发行版本（distro）。
           2.发行套件
-          与可靠的进行布署，使用即用光碟 (LiveCD)和发行套件(distro)是一个很有效率的方法；您可以先直接在CD上进行软体的执行…
-          3.仓库
-          行尸走肉第三季单词表                 " }
+            与可靠的进行布署，使用即用光碟 (LiveCD)和发行套件(distro)是一个很有效率的方法；您可以先直接在CD上进行软体的执行…
+          3.仓库，行尸走肉第三季单词表                 " }
 
 duly(){"美 [ˈduli] 英 [ˈdjuːli]
        adv.适时地；适当地；恰当地；按时地；及时地；按期地；充分地
-       1.适当地；恰当地in the correct or expected manner
-       2.按时地；准时地；适时地at the expected and correct time         "         }
+          1.适当地；恰当地in the correct or expected manner
+          2.按时地；准时地；适时地at the expected and correct time         "         }
 
 unduly(){"美 [ʌnˈduli] 英 [ʌnˈdjuːli]
           adv.过分；过度；不适当地；过度地；过分地；过度的
@@ -488,8 +487,8 @@ abide(){"美 [əˈbaɪd] 英 [əˈbaɪd]
 
 decay(){"美 [dɪˈkeɪ] 英 [dɪˈkeɪ]
          v.衰减；腐朽；衰败  n.腐烂；衰退；腐朽
-         1.腐烂；腐朽the process or result of being destroyed by natural causes or by not being cared for (= of decaying)
-         2.（社会、机构、制度等的）衰败，衰退，衰落the gradual destruction of a society, an institution, a system, etc. " }
+          1.腐烂；腐朽the process or result of being destroyed by natural causes or by not being cared for (= of decaying)
+          2.（社会、机构、制度等的）衰败，衰退，衰落the gradual destruction of a society, an institution, a system, etc. " }
 
 fusion(){"美 [ˈfjuʒ(ə)n] 英 [ˈfjuːʒ(ə)n] n.融合；核聚变；熔接；结合；熔合；熔化；熔融
           1.[u][sing] 融合；熔接；结合the process or result of joining two or more things together to form one
@@ -525,9 +524,9 @@ mucus(){"美 [ˈmjukəs]英 [ˈmjuːkəs]
 imperative(){"美 [ɪmˈperətɪv] 英 [ɪmˈperətɪv]
                adj.重要紧急的；迫切的；急需处理的；表示权威的
                n.重要紧急的事；必要的事；祈使语气；祈使语气动词；命令式；强制的；祈使句
-                 1.[nubn]重要紧急的；迫切的；急需处理的very important and needing immediate attention or action
-                 2.表示权威的expressing authority
-                 3.[obn]表示命令的；祈使的expressing an order                  " }
+                1.[nubn]重要紧急的；迫切的；急需处理的very important and needing immediate attention or action
+                2.表示权威的expressing authority
+                3.[obn]表示命令的；祈使的expressing an order                  " }
 
 fabric(){"美 [ˈfæbrɪk]英 [ˈfæbrɪk]
           n.织物；布料；（社会、机构等的）结构；面料；织品；构造
@@ -569,15 +568,14 @@ convergent(){"美 [kənˈvɜrdʒənt] 英 [kənˈvɜ:dʒənt]
                n.【数】收敛子；渐近分数；会聚的；趋同；聚敛性
                adj.1.【数】收敛的
                    2.渐集一点的,会聚性的;包围集中的
-               n.1.【数】收敛子;渐近分数
-                  convergent algorithm 收敛算法 " }
+               n.【数】收敛子;渐近分数，convergent algorithm 收敛算法 " }
 
 metric(){"美 [ˈmetrɪk] 英 [ˈmetrɪk]
           adj.米制的；公制的；按公制制作的；用公制测量的；度量；度量值；公制牙
-          1.米制的；公制的based on the metric system
-          2.按公制制作的；用公制测量的made or measured using the metric system
-          The volume of Chinese ore imports has rapidly expanded and the price per metric ton is now about double the level of a year ago.
-          中国的铁矿石进口量迅速增长，目前每吨铁矿石的价格大约是一年前水平的两倍。                 " }
+             1.米制的；公制的based on the metric system
+             2.按公制制作的；用公制测量的made or measured using the metric system
+             The volume of Chinese ore imports has rapidly expanded and the price per metric ton is now about double the level of a year ago.
+             中国的铁矿石进口量迅速增长，目前每吨铁矿石的价格大约是一年前水平的两倍。                 " }
 
 metrics(){"美 [ˈmetrɪks] 英 [ˈmetrɪks]
            n.韵律学；度量；指标；量度
@@ -599,8 +597,8 @@ ore(){"美 [ɔr] 英 [ɔː(r)]
 opaque(){"美 [oʊˈpeɪk] 英 [əʊˈpeɪk]
           n.不透明；【建】遮檐；【摄】遮光涂料
           adj.模糊；不透明的；不透光的；浑浊的  不传导的；不透明物
-            1.不透明的；不透光的；浑浊的not clear enough to see through or allow light through
-            2.难懂；模糊；隐晦；不清楚difficult to understand; not clear               "   }
+             1.不透明的；不透光的；浑浊的not clear enough to see through or allow light through
+             2.难懂；模糊；隐晦；不清楚difficult to understand; not clear               "   }
 
 agile(){"美 [ˈæˌdʒəl] 英 [ˈædʒaɪl]
          adj.敏捷的；灵活的；(思维)敏捷的；机智的  轻快的；敏捷开发；敏捷式
@@ -667,7 +665,7 @@ conceal(){"美 [kənˈsil] 英 [kənˈsiːl] v.隐藏；隐瞒；掩盖 隐蔽�
 
 dedicated(){"美 [ˈdedɪˌkeɪtəd] 英 [ˈdedɪˌkeɪtɪd]
               adj.专注的；专用的；有奉献精神的；献身的；专用型
-              v.dedicate的过去式和过去分词形式                "  }
+              v. dedicate的过去式和过去分词形式                "  }
 
 repeater(){"美 [rɪˈpi:tə(r)] 英 [rɪˈpi:tə(r)]
              n.连发枪；转轮手枪  中继器；转发器；无线中继              "    }
@@ -740,7 +738,6 @@ flight(){"[flaɪt]
           Web 航班；迫降航班；航程                              " }
 
 verdict(){"美 [ˈvɜrdɪkt] 英 [ˈvɜː(r)dɪkt]
-n.裁决；结论；[网络]判决；判断；裁定
-n.
- 1.（陪审团的）裁定，裁决，裁断 a decision that is made by a jury in court, stating if sb is considered guilty of a crime or not
- 2.~ (on sth/sb) （经过检验或认真考虑后的）决定，结论，意见 a decision that you make or an opinion that you give about sth, after you have tested it or considered it carefully"}
+           n.裁决；结论；[网络]判决；判断；裁定
+            1.（陪审团的）裁定，裁决，裁断 a decision that is made by a jury in court, stating if sb is considered guilty of a crime or not
+            2.~ (on sth/sb) （经过检验或认真考虑后的）决定，结论，意见 a decision that you make or an opinion that you give about sth, after you have tested it or considered it carefully"}
