@@ -27,15 +27,15 @@ gauge(){"英[ɡeɪdʒ] 美[ɡeɪdʒ]
           vt.(用仪器)测量; 判定，判断(尤指人的感情或态度); 估计; 估算;
           n.厚度; 测量仪器(或仪表); 计量器; 宽度; (枪管的)口径; （铁道的）轨距; 事实，依据，尺度，标准;
           n.
-           1.测量仪器（或仪表）；计量器an instrument for measuring the amount or level of sth
-           2.宽度；厚度a measurement of the width or thickness of sth
-           3.（枪管的）口径a measurement of the width of the barrel of a gun
-           4.（铁道的）轨距；（火车的）轮距the distance between the rails of a railway/railroad track or the wheels of a train
-           5.[ususing] ~ (of sth) （用于估计或判断的）事实，依据，尺度，标准a fact or an event that can be used to estimate or judge sth
+           1.测量仪器（或仪表）；计量器 an instrument for measuring the amount or level of sth
+           2.宽度；厚度 a measurement of the width or thickness of sth
+           3.（枪管的）口径 a measurement of the width of the barrel of a gun
+           4.（铁道的）轨距；（火车的）轮距 the distance between the rails of a railway/railroad track or the wheels of a train
+           5.[ususing] ~ (of sth) （用于估计或判断的）事实，依据，尺度，标准 a fact or an event that can be used to estimate or judge sth
           v.
            1.判定，判断（尤指人的感情或态度）to make a judgement about sth, especially people's feelings or attitudes
-           2.~ sth （用仪器）测量to measure sth accurately using a special instrument
-           3.~ sth.~ how, what, etc.… 估计；估算to calculate sth approximately
+           2.~ sth （用仪器）测量 to measure sth accurately using a special instrument
+           3.~ sth.~ how, what, etc.… 估计；估算 to calculate sth approximately
            [例句]He picked up the calipers and gauged carefully. 他拿起卡钳仔细测量。
            I try to gauge the width of the door to see if my sofa can pass through it.我试着估算这个门的宽度，看我的沙发可不可以过得去。
            The car, out of plain deviltry, began to run one, too. The red fluid in the engine gauge on the dashboard started to rise alarmingly.
@@ -44,37 +44,90 @@ gauge(){"英[ɡeɪdʒ] 美[ɡeɪdʒ]
 caliper(){"US [ˈkæləpər] UK [ˈkælɪpə]
              n.卡尺；游标卡尺；测径器；外卡钳；测径尺；测径仪；测径计" }
 
-commence(){"[kəˈmens] v.开始；开始发生；着手 " }
+commence(){"[kəˈmens] v.开始；开始发生；着手
+              ~ (with sth) (formal) 开始发生；开始；着手 to begin to happen; to begin sth
+              The meeting is scheduled to commence at noon. 会议定于午间召开。
+              The day commenced with a welcome from the principal. 那天由校长致欢迎词开始。 " }
+
+comment(){"英 [ˈkɒment]   美 [ˈkɑːment]  
+             n.议论;评论;解释;批评;指责
+             v.表达意见
+             noun [C, U] ~ (about/on sth)
+             议论；评论；解释 something that you say or write which gives an opinion on or explains sb/sth
+             Have you any comment to make about the cause of the disaster? 你对发生灾难的原因有何评论？
+             She made helpful comments on my work. 她对我的工作提出了有益的意见。                    "}
 
 commensurate(){"US [kəˈmenʃərət] UK [kəˈmenʃərət]
                     adj. ~ (with sth) （在大小、重要性、质量等方面）相称的，相当的 matching sth in size, importance, quality, etc.
-                    Web同量的；相当的；同样大小的
-                    He was given a job commensurate with his abilities. 他得到一份与他的能力相称的工作。"                          }
+                    Web 同量的；相当的；同样大小的
+                    He was given a job commensurate with his abilities. 他得到一份与他的能力相称的工作。"}
 
 fluctuate(){"美 [ˈflʌktʃuˌeɪt] 英 [ˈflʌktʃueɪt]
                v.（大小、数量、质量等）波动；（在…之间）起伏不定；涨落；变动；浮动
-               to change frequently in size, amount, quality, etc., especially from one extreme to another " }
+                  to change frequently in size, amount, quality, etc., especially from one extreme to another
+               During the crisis, oil prices fluctuated between $20 and $40 a barrel.
+               在危机时期，每桶石油价格在20元至40元之间波动。"}
 
 fluctuation(){"美 [ˌflʌktʃuˈeɪʃ(ə)n] 英 [.flʌktʃuˈeɪʃ(ə)n]
                   One of the reasons why the price did not fluctuate so much is that big corn buyers have learned to avoid loss by hedge trade.
                   价格波动不那么大的一个原因是，谷物的大买家已学会了进行套期保值交易以避免损失。 " }
 
-hedge(){"US [hedʒ] UK [hedʒ]
-          n.树篱；防止损失（尤指金钱）的手段
-          v.避免正面回答；不直接许诺；拐弯抹角；在（田地等周围）植树篱
-          adj.树篱的；名声不好的；低劣的
-          Web.对冲；套期保值；篱笆                                        " }
+hedge(){"英 [hedʒ] 美 [hedʒ]
+         n.树篱，灌木（或小树）树篱;
+           防止损失（尤指金钱）的手段，（避免或减轻经济损失的）保值措施;
+           围栏，障碍（物），界限，限制;保护（或防御）手段;模棱两可的话, 不明确的话
+         v.避免正面回答，不直接许诺，拐弯抹角;
+           在（田地等周围）植树篱;用树篱围住;包围，限制;以套期保值避免（或减轻）（机、投资等）的损失
+         adj.树篱的，树篱下的，树篱旁的;
+           偷偷摸摸的，名声不好的;低档的，次的，差的;套期保值的，两面下注的
+         Gold is traditionally a hedge against inflation. 购买黄金是防范通货膨胀的一种传统手段。
+         They hedged in answering various questions about the operation.他们闪烁其词，不愿回答有关此次行动的各种问题。" }
 
-perversely(){"UK [pə'vɜːsli] adv.事与愿违；恶狠狠地；倔强的 Web倔强地；顽固地；任性地             
+inflate(){"英 [ɪnˈfleɪt] 美 [ɪnˈfleɪt]
+            v.使充气;膨胀;鼓吹;吹捧;(使)涨价
+            The life jacket failed to inflate.救生衣未能充气"}
+
+inflation(){"英 [ɪnˈfleɪʃn]   美 [ɪnˈfleɪʃn]  
+               n.通货膨胀;通胀率;充气 to control/curb inflation 
+               We have made great progress in controlling inflation. 
+               我们在抑制通货膨胀方面取得了巨大进展。"}
+
+curb(){"英 [kɜːb]   美 [kɜːrb]  
+         vt.遏制;控制，抑制，限定，约束(不好的事物)
+         n.起控制(或限制)作用的事物
+         He needs to learn to curb his temper.他得学着控制自己的脾气。
+         A range of policies have been introduced aimed at curbing inflation.为了抑制通货膨胀实施了一系列的政策。"}
+
+perverse(){"英 [pəˈvɜːs] 美 [pərˈvɜːrs]
+              adj.执拗的，任性的，不通情理的; 有悖常情的，不合人意的; 故意作对的，犟的;
+                  <律>（判决等）不合法的， 不正当的;歪曲的，曲解的;
+                  <非规范>性欲倒错的，性欲反常的，性变态的
+              adj.执拗的；任性的；不通情理的 showing deliberate determination to behave in a way
+                  that most people think is wrong, unacceptable or unreasonable.
+                  a perverse decision (= one that most people do not expect and think is wrong) 悖谬的决定
+                  She finds a perverse pleasure in upsetting her parents. 她让父母担惊受怕，从中取得任性的快乐。
+                  Do you really mean that or are you just being deliberately perverse ? 你是真要那样，还是故意作对？"}
+
+perversely(){"UK [pə'vɜːsli]
+                 adv.事与愿违；恶狠狠地；倔强的 [Web]倔强地；顽固地；任性地
                  The world of hedge funds might be very close to a big shake-up and, perversely, New York could be one of the winners.
                  世界对冲基金可能面临一次大规模的重组，然而，事与愿违，纽约可能会是其中的一个优胜者。"}
 
-
 hysteresis(){"英 [ˌhɪstəˈriːsɪs]
                  n.【物】磁滞；【物】滞后现象[作用]；迟滞性；平衡阻碍；磁滞现象；滞回；滞后作用
-                 A process called hysteresis causes some of the heat energy to be lost, but this new alloy has a low hysteresis, the researchers say.
-                 研究人员说，一种叫做磁滞的过程会引起热能损失，但这种新合金具有低磁滞特性。 "  }
+                 A process called hysteresis causes some of the heat energy to be lost,
+                 but this new alloy has a low hysteresis, the researchers say.
+                 研究人员说，一种叫做磁滞的过程会引起热能损失，但这种新合金具有低磁滞特性。"}
 
+hysteric(){"美[hɪs'terɪk] 英[hɪs'terɪk]
+             adj.癔病的；歇斯底里的；病态感情[兴奋]式的；过度狂烈的
+             n.歇斯底里患者；发歇斯底里；发狂
+             He went into hysterics when he heard the news. 他听到这个消息时变得歇斯底里。
+             My mum'll have hysterics when she sees the colour of my hair. 我妈妈看到我的头发的颜色会火冒三丈的。"}
+hysterics(){"英[hɪˈsterɪks] 美[hɪˈsterɪks]
+              n.歇斯底里的表现;狂笑 -- hysteric的复数"}
+
+todo(){ 20221204 }
 bulk(){"美 [bʌlk] 英 [bʌlk]
          n.大部分；主体；（大）体积；大（量）；散装；大批；大量
          v.扩展；增大；堆积起来；形成大块  " }
@@ -705,7 +758,13 @@ eavesdrop(){"美 [ˈivzˌdrɑp] 英 [ˈiːvzˌdrɒp]
               v.偷听 n.檐水 [网络]窃听；听墙根；在暗处偷听别人谈话               "   }
 
 vouch(){"[vaʊtʃ]
-         v.保证；担保；确定；断言；证明；核对；作证                 " }
+         v.保证；担保；确定；断言；证明；核对；作证
+           vouch for sb/sth 替…担保（或保证） to say that you believe that sb will behave well and that you will be responsible for their actions
+           Are you willing to vouch for him? 你愿意为他担保吗？
+           I can vouch for her ability to work hard. 我保证她能够努力工作。
+           vouch for sth （因有证据而）为…作证 to say that you believe that sth is true or good because you have evidence for it
+           I was in bed with the flu. My wife can vouch for that. 我患流感卧床休息了。我的妻子可为此作证。
+           同义词： confirm" }
 
 pirate(){"美 [ˈpaɪrət] 英 [ˈpaɪrət]
           n.海盗；海盗船；侵害版权者；盗印者
