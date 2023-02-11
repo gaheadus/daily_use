@@ -121,9 +121,51 @@ signal(){"英 [ˈsɪɡnəl] 美 [ˈsɪɡnəl]
           v.发信号;发暗号;示意;标志;表明;预示;表达;表示;显示                 //可以做动词
           adj.重大的;显要的"}
 
+simplex(){"英[ˈsɪmpleks] 美[ˈsɪmpleks]
+            adj.单纯的
+            n.简单词"}
 
+complex(){"英[ˈkɒmpleks] 美[kəmˈpleks , ˈkɑːmpleks]
+           adj.复杂的;难懂的;费解的;复合的(指词根加有词缀或主句含有从句)
+           n.(类型相似的)建筑群;相关联的一组事物;不正常的精神状态;情结;（对某事）不正常的忧虑"}
 
+symmetrical(){"英[sɪˈmetrɪkl] 美[sɪˈmetrɪkl]
+                 adj.对称的
+                     1.having two parts that match exactly, either when one half is like an image of the other half in a mirror,
+                       or when one part can take the place of another if it is turned 90° or 180°
+                     2.involving actions or parts that are similar or balanced in some way
+                 The two wings of the building are exactly symmetrical.大楼的两翼完全对称."}
+symmetric(){"英[sɪ'metrɪk] 美[sɪ'metrɪk]
+               adj.对称的
+    词语辨析：
+            symetric常用指相对来说是“虚”的东西的对称性，比如对称加密算法等等
+            symetrical则指相对来说是“实”的东西的对称性，比如说轴对称，左右对称等。"}
+asymmetric(){"英[ˌeɪsɪˈmetrɪk] 美[ˌeɪsɪˈmetrɪk]
+               adj.不对称;不对等的
+    解析：
+        这是一个以a作为词缀的反义词，对应于symmetric（对称的）。词意非常直接，只是拼写比较难记。
+        在作为形容词时，asymetric和asymmetrical可以互用。这种tric和trical的形容词差别非常小，
+        英语词法从来没有解释，只是在习惯中，以形容词结尾的时候更加习惯用trical。比如：
+        The shape of these leaves are definitely asymmetrical.这些叶片的形状绝对是不对称的。
+        而当形容词用来说明名词的时候，则没有这个讲究。
+        Asymmetric(al)  shapes are everywhere, from human face to any flowers. 不对称形状是无处不在的，从人的面孔到任何花朵。
+        Asymmetric常常用在科学领域，在数学、物理和化学中均很多见。在计算机和通讯领域中，Asymmetric Encryption（非对称加密）对通信安全影响深远，
+        它允许加密和解密过程中使用不同的秘钥（私钥和公钥），从而让我们可以在公开网络上安全交换信息。
+        我们熟知的ADSL就是 Asymmetric Digital Subscriber Line的意思，它的上行带宽和下行带宽不对称。
+        人脸的对称性（symmetry）是永远也扯不清的谜题，一方面人体的基本美学依赖对称性。但真正的魅力动人又来自非对称性。
+        大多数人都觉得自己的左侧脸好看，尤其是女生。而在观看者的主管评分中，也的确证明了左侧脸部更令人愉悦，没人说得清为什么。"}
 
+facility(){"英[fəˈsɪləti] 美[fəˈsɪləti]
+             n.设施;设备;(机器等的)特别装置;(服务等的)特色;(供特定用途的)场所;（学习、做事的）天资，才能，天赋
+             The house is within easy reach of schools and sports facilities.这房子距离学校和体育设施都很近。"}
+
+utility(){"英[juːˈtɪləti] 美[juːˈtɪləti]
+           n.公用事业;实用;效用;有用;实用程序;公用程序
+           adj.多用途的;多效用的;多功能的
+           Water supplies and other public utilities were badly affected.供水以及其他公用事业受到了严重影响。
+    辨析：facility指厂务设施如地面、墙面、空调，办公室的桌椅、门、灯具等。
+          utility指公共设施如水、电、蒸汽、压缩空气等动力等设施。
+          facility一般和生产没有直接关系，utility则是直接支持生产的。"}
 
 
 

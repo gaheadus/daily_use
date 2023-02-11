@@ -80,7 +80,7 @@ n. 原始人；早期的艺术家（作品）；单纯的人：不世故的人�
 throughput [ˈθru:pʊt] 
 n. 生产量，生产能力，吞吐量；流率
  
-cumbersome [ˈkʌmbəsəm] 
+cumbersome [ˈkʌmbəsəm]
 adj. 笨重的；累赘的，难以携带的；缓慢复杂的，冗长的；麻烦的
  
 implement [ˈɪmplɪment] 
