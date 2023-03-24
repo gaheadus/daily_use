@@ -279,8 +279,8 @@ $ git remote -v //显示所有远程仓库
 $ git remote -vv  
 $ git remote show [remote] //显示某个远程仓库的信息  
 $ git remote add [shortname] [url] //增加一个新的远程仓库，并命名。这里只是为远程仓库建立一个别名，以后就可以使用这个别名代替远程仓库了。由于别名简短，使用起来更方便。例如git add my_branch https://github.com/gaheadus/test.git之后，所有使用远程仓库https://github.com/gaheadus/test.git的地方都可以用my_branch来代替，例如git push my_branch master:remote_new_branch与git push https://github.com/gaheadus/test.git master:remote_new_branch等价。  
-$ git add my_branch https://github.com/gaheadus/test.git  
-$ git add origin https://github.com/gaheadus/test.git  
+$ git remote add origin https://github.com/gaheadus/test.git  
+$ git remote add dev    https://github.com/gaheadus/test.git  
 
 $ git remote rm [name] //删除远程仓库  
 $ git fetch [remote] //下载远程仓库的所有变动  
