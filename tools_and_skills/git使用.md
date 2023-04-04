@@ -17,6 +17,13 @@
 
 ![git的四个区域](https://github.com/gaheadus/daily_use/blob/master/Resources/git%E7%9A%84%E5%9B%9B%E4%B8%AA%E5%8C%BA%E5%9F%9F.png)
 
+![git版本库](https://github.com/gaheadus/daily_use/blob/master/Resources/git%E7%89%88%E6%9C%AC%E5%BA%93.png)
+
+
+**git仓库结构**  
+git分布式的一个重要体现是git在本地是有一个完整的git仓库，也就是.git目录，通过这个仓库，git就可以完全离线化操作。在这个本地化的仓库中存储了git所有的模型对象。下面是git仓库的tree和相关说明：  
+![git仓库的结构](https://github.com/gaheadus/daily_use/blob/master/Resources/git%E4%BB%93%E5%BA%93%E7%9A%84%E7%BB%93%E6%9E%84.png)
+
 repository /rɪˈpɒzɪtərɪ/ n.  
 ①贮存处;存放处;仓库，A repository is a place where something is kept safely.  
 A church in Moscow became a repository for police files. 莫斯科的一座教堂成为警方存放档案的地点。  
@@ -57,6 +64,8 @@ git diff --stat ORIG_HEAD
 
 1.4 分支  
 一个git仓库，包含多个分支，默认包含master分支。参考《Pro Git》-- 3.Git分支  
+![git仓库与分支模型](https://github.com/gaheadus/daily_use/blob/master/Resources/git%E4%BB%93%E5%BA%93%E4%B8%8E%E5%88%86%E6%94%AF%E6%A8%A1%E5%9E%8B.jpg)
+
 [返回*概念*](#概念)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
 
