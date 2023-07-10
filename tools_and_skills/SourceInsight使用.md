@@ -94,7 +94,7 @@ si4的ctrl+,键改不了，不知道怎么改。
 
 
 # 常用功能  
-## 我的使用习惯  
+## 我的使用习惯
 ctrl+d，打开文件所在目录，si4对应的是“File: Show File in Explorer...”  
 alt+, / alt+z，后退, Go Back  
 alt+. / alt+x，前进, Go Forward  
@@ -105,9 +105,29 @@ f9/f10，配置为跳到搜索结果的上/下一个链接(Go To Previous Link/G
 Contex window，动态刷新。  
 Relation window，锁定，不让动态刷新。需要查看不同的relation时可以建立多个relation window，或者手动刷新。  
 
-同一份源代码，建立多个sourceinsight工程，便于对比阅读和分析，大型项目这样做很有必要。例如Android4.2源码，我一般会建两个工程Android4.2、Android4.2_cmp。  
-也有必要将一份源码复制为多份，一份用于修改，一份不修改、保持原始不变，便于对比和分析，例如建立Android4.2_bak源码文件夹，同样的，建立多个对应的sourceinsight工程，如Android4.2_bak、Android4.2_bak_cmp。  
-一般情况下，有了这样四个sourceinsight工程就很方便了，多个sourceinsight工程之间切换阅读，便于对比和分析。  
+
+**习惯和约定**：  
+**同一份源代码，建立两个sourceinsight工程，切换着看，便于对比，大型项目这样做很有必要**。  
+例如Android4.2源码，可以建两个sourceinsight工程：Android4.2、Android4.2_cmp。或者复制已有工程：Project -> Copy Project…。  
+
+也有必要**将一份源码复制为两份**，**便于对比**。  
+例如同一套代码，一份保存到~/work/Android4.2/，一份保存到\~/work/Android4.2_cp/。  
+
+\~/work/Android4.2/目录下的代码建两个sourceinsight工程：Android4.2、Android4.2_cmp，  
+\~/work/Android4.2_cp/目录下的代码也建两个sourceinsight工程：Android4.2_cp、Android4.2_cp_cmp，  
+同一套代码，建两个目录，做成两份代码，每个目录建两个siourceinsight工程，共建四个sourceinsight工程，基本上够用了。  
+
+约定：  
+同一套代码，建两个目录：\~/work/Android4.2、\~/work/Android4.2_cp，做成两份代码，两个代码目录使用_cp后缀区分。  
+同一份代码，~/work/Android4.2，建两个si工程，Android4.2、Android4.2_cmp，两个si工程使用_cmp后缀进行区分。  
+
+cp，copy，拷贝，副本，同一套代码，建一个副本，保存在不同的目录。  
+cmp，compare，比较，建两个不同si工程，方便比较。仅用于比较，不建新的代码目录，两个si工程对应到同一份代码，同一个代码目录。  
+小结：不同代码目录以_cp后缀区分，不同si工程以_cmp后缀区分。  
+
+如果要建更多代码目录，用_2等数字区分，如\~/work/Android_cp_2。  
+如果要建更多si工程，用_2等数字区分，如Android4.2_cmp_2。
+
 
 
 ## 有用功能  
