@@ -15,14 +15,14 @@
 工作区、暂存区、本地仓库都在本地机器上，远程仓库在远程服务器的另一台电脑上。  
 有些资料上也称：工作目录、暂存目录、本地目录、远程目录。  
 
-![git的四个区域](https://github.com/gaheadus/daily_use/blob/master/Resources/git%E7%9A%84%E5%9B%9B%E4%B8%AA%E5%8C%BA%E5%9F%9F.png)
+![git的四个区域](../Resources/git的四个区域.png)
 
-![git版本库](https://github.com/gaheadus/daily_use/blob/master/Resources/git%E7%89%88%E6%9C%AC%E5%BA%93.png)
+![git版本库](../Resources/git版本库.png)
 
 
 **git仓库结构**  
 git分布式的一个重要体现是git在本地是有一个完整的git仓库，也就是.git目录，通过这个仓库，git就可以完全离线化操作。在这个本地化的仓库中存储了git所有的模型对象。下面是git仓库的tree和相关说明：  
-![git仓库的结构](https://github.com/gaheadus/daily_use/blob/master/Resources/git%E4%BB%93%E5%BA%93%E7%9A%84%E7%BB%93%E6%9E%84.png)
+![git仓库的结构](../Resources/git仓库的结构.png)
 
 repository /rɪˈpɒzɪtərɪ/ n.  
 ①贮存处;存放处;仓库，A repository is a place where something is kept safely.  
@@ -64,7 +64,7 @@ git diff --stat ORIG_HEAD
 
 1.4 分支  
 一个git仓库，包含多个分支，默认包含master分支。参考《Pro Git》-- 3.Git分支  
-![git仓库与分支模型](https://github.com/gaheadus/daily_use/blob/master/Resources/git%E4%BB%93%E5%BA%93%E4%B8%8E%E5%88%86%E6%94%AF%E6%A8%A1%E5%9E%8B.jpg)
+![git仓库与分支模型](../Resources/git仓库与分支模型.jpg)
 
 [返回*概念*](#概念)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
@@ -448,7 +448,7 @@ chmod a+x \~/bin/repo
 
 ### 清单库文件介绍  
 一个清单库可以包含多个清单文件和多个分支，每个清单文件和分支都有对应的版本。清单文件以xml格式组织的。举个例子：  
-![](https://github.com/gaheadus/daily_use/blob/master/Resources/repo%E6%B8%85%E5%8D%95%E5%BA%93.jpg)  
+![repo清单库](../Resources/repo清单库.jpg)  
 remote元素，定义了名为korg的远程版本库，其库的基址为git://172.16.1.31/  
 default元素，设置各个项目默认远程版本库为korg，默认的的分支为gingerbread-exdroid-stable。当然各个项目(project元素)还可以定义自己的remote和revision覆盖默认的配置project元素，用于定义一个项目，path属性表示在工作区克隆的位置，name属性表示该项目的远程版本库的相对路径 project元素的子元素copyfile，定义了项目克隆后的一个附件动作，从src拷贝文件到dest。  
 
@@ -484,13 +484,13 @@ $repo start <branchname> 就是逐一为各个版本库创建工作分支，以�
 解决办法是：删除\~目录中的.repo/文件夹中的全部内容(rm -rf .repo/)，然后在sgk目录下重新进行第4、5步操作；  
 **附：**  
 .repo文件夹中内容如下，是由repo init -u…操作所产生的；  
-![](https://github.com/gaheadus/daily_use/blob/master/Resources/repo%20init%20-u%2C1.png)  
+![repo init](../Resources/repo init -u,1.png)  
 在没有进行repo init -u…的时候进行repo sync 会报如下错误；  
-![](https://github.com/gaheadus/daily_use/blob/master/Resources/repo%20init%20-u%2C2.png)  
+![repo init 2](../Resources/repo init -u,2.png)  
   
 
 ### git和repo流程表  
-![](https://github.com/gaheadus/daily_use/blob/master/Resources/git%E5%92%8Crepo%E6%B5%81%E7%A8%8B%E8%A1%A8.png)  
+![git和repo流程表](../Resources/git和repo流程表.png)  
 [*返回repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 
