@@ -75,103 +75,103 @@ git diff --stat ORIG_HEAD
 [*返回目录*](#git)    
 
 ### 一、新建代码库  
-$ git init  //在当前目录下新建一个git代码库  
-$ git init [project-name]  //新建一个目录，将其初始化为git代码库  
-$ git clone [url]  //下载一个项目和它的整个代码历史  
+\$ git init  //在当前目录下新建一个git代码库  
+\$ git init [project-name]  //新建一个目录，将其初始化为git代码库  
+\$ git clone [url]  //下载一个项目和它的整个代码历史  
 [返回*git命令*](#git命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
 ### 二、配置  
 Git的设置文件为.gitconfig，它可以在用户主目录下(全局配置)，也可以在项目目录下(项目配置)。  
-$ git config --list  //显示当前的git配置  
-$ git config -e [--global]  //编辑git配置文件  
-$ git config [--global] user.name "name"  //设置提交代码时的用户信息，用户名  
-$ git config [--global] user.email "email address"  //设置提交代码时的用户信息，邮箱  
+\$ git config --list  //显示当前的git配置  
+\$ git config -e [--global]  //编辑git配置文件  
+\$ git config [--global] user.name "name"  //设置提交代码时的用户信息，用户名  
+\$ git config [--global] user.email "email address"  //设置提交代码时的用户信息，邮箱  
 [返回*git命令*](#git命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
 ### 三、增加/删除/修改文件  
-$ git diff  //查看变更内容  
-$ git add [file1] [file2] … //添加指定文件到暂存区  
-$ git add [dir]  //添加指定目录到暂存区，包括子目录  
-$ git add .  //添加当前目录下的所有文件到暂存区  
-$ git add -p  //添加每个变化前，都会要求确认。对于同一个文件的多处变化，可以实现分次提交  
-$ git rm [file1] [file2] …  //删除工作区文件，并且将这次删除放入暂存区  
-$ git rm --cached [file]  //停止追踪指定文件，但该文件会保留在工作区  
-$ git mv [file-original] [file-destination]  //移动文件/文件改名，并且将这个改名放入暂存区  
+\$ git diff  //查看变更内容  
+\$ git add [file1] [file2] … //添加指定文件到暂存区  
+\$ git add [dir]  //添加指定目录到暂存区，包括子目录  
+\$ git add .  //添加当前目录下的所有文件到暂存区  
+\$ git add -p  //添加每个变化前，都会要求确认。对于同一个文件的多处变化，可以实现分次提交  
+\$ git rm [file1] [file2] …  //删除工作区文件，并且将这次删除放入暂存区  
+\$ git rm --cached [file]  //停止追踪指定文件，但该文件会保留在工作区  
+\$ git mv [file-original] [file-destination]  //移动文件/文件改名，并且将这个改名放入暂存区  
 [返回*git命令*](#git命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
 ### 四、代码提交  
-$ git commit [file1] [file2] … -m [message]  //提交暂存区的指定文件到仓库区  
-$ git commit -m [message]  //提交暂存区到仓库区  
-$ git commit -a  //提交工作区自上次commit之后的变化，直接到仓库区  
-$ git commit -am "message" //相当于git add和git commit -m "message"。  
-$ git commit -v  //提交时显示所有diff信息  
-$ git commit --amend -m [message]  //使用一次新的commit，替代上一次提交。如果代码没有任何新变化，则用来改写上一次commit的提交信息。  
-$ git commit --amend --no-edit //--no-edit表示不想编辑提交信息，直接用以前的就行。  
-$ git commit --amend [file1] [file2]  //重做上一次commit，并包括指定文件的新变化  
+\$ git commit [file1] [file2] … -m [message]  //提交暂存区的指定文件到仓库区  
+\$ git commit -m [message]  //提交暂存区到仓库区  
+\$ git commit -a  //提交工作区自上次commit之后的变化，直接到仓库区  
+\$ git commit -am "message" //相当于git add和git commit -m "message"。  
+\$ git commit -v  //提交时显示所有diff信息  
+\$ git commit --amend -m [message]  //使用一次新的commit，替代上一次提交。如果代码没有任何新变化，则用来改写上一次commit的提交信息。  
+\$ git commit --amend --no-edit //--no-edit表示不想编辑提交信息，直接用以前的就行。  
+\$ git commit --amend [file1] [file2]  //重做上一次commit，并包括指定文件的新变化  
 
-$ git commit -m "提交信息" --author "Authorname <authoremail@mydomain.com>" //指定提交的作者。单独为某个提交指定提交作者，不使用git config配置的默认值。  
+\$ git commit -m "提交信息" --author "Authorname <authoremail@mydomain.com>" //指定提交的作者。单独为某个提交指定提交作者，不使用git config配置的默认值。  
 提交的作者，和真实的提交者，可以不是同一个人。例如，执行git commit/ git push操作的是A，但是使用git commit时指定--author为B，这样在git log里看到的是作者B，而不是提交者A。  
 
 我提交(commit)里的用户名和邮箱不对，如果这只是单个提交(commit)，修改它：  
-$ git commit --amend --author "New Authorname <authoremail@mydomain.com>"  
+\$ git commit --amend --author "New Authorname <authoremail@mydomain.com>"  
 [返回*git命令*](#git命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
 ### 五、分支  
-$ git branch  //显示所有本地分支  
-$ git branch -r //列出所有远程分支  
-$ git branch -a //列出所有本地分支和远程分支  
-$ git branch [branch-name] //新建一个分支，但依然停留在当前分支  
-$ git branch --track [branch] [remote-branch] //新建一个分支，与指定的远程分支建立追踪关系  
-$ git branch -d [branch-name] //删除分支。-d选项只能删除已经参与了合并的分支，对于未有合并的分支是无法删除的。如果想强制删除一个分支，可以使用-D选项。  
-$ git checkout -b [branch-name] //新建一个分支，并切换到该分支  
-$ git checkout [branch-name] //切换到指定分支，并更新工作区  
-$ git checkout - //切换到上一个分支。"-"连字符代替分支名  
-$ git merge [branch] //合并指定分支到当前分支  
-$ git rebase <branch> //衍合指定分支到当前分支  
-$ git cherry-pick [commit] //选择一个commit，合并进当前分支  
+\$ git branch  //显示所有本地分支  
+\$ git branch -r //列出所有远程分支  
+\$ git branch -a //列出所有本地分支和远程分支  
+\$ git branch [branch-name] //新建一个分支，但依然停留在当前分支  
+\$ git branch --track [branch] [remote-branch] //新建一个分支，与指定的远程分支建立追踪关系  
+\$ git branch -d [branch-name] //删除分支。-d选项只能删除已经参与了合并的分支，对于未有合并的分支是无法删除的。如果想强制删除一个分支，可以使用-D选项。  
+\$ git checkout -b [branch-name] //新建一个分支，并切换到该分支  
+\$ git checkout [branch-name] //切换到指定分支，并更新工作区  
+\$ git checkout - //切换到上一个分支。"-"连字符代替分支名  
+\$ git merge [branch] //合并指定分支到当前分支  
+\$ git rebase <branch> //衍合指定分支到当前分支  
+\$ git cherry-pick [commit] //选择一个commit，合并进当前分支  
 
 *创建空的分支：(执行命令之前记得先提交你当前分支的修改，否则会被强制删干净没得后悔)  
-$git symbolic-ref HEAD refs/heads/[name]  
-$rm .git/index  
-$git clean -fdx  
+\$git symbolic-ref HEAD refs/heads/[name]  
+\$rm .git/index  
+\$git clean -fdx  
 [返回*git命令*](#git命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
 ### 六、标签  
 git标签分为两种类型：轻量标签和附注标签。轻量标签是指向提交对象的引用，附注标签则是仓库中的一个独立对象。建议使用附注标签。  
 创建轻量标签不需要传递参数，直接指定标签名称即可。  
 创建附注标签时，参数a即annotated的缩写，指定标签类型，后附标签名。参数m指定标签说明，说明信息会保存在标签对象中。  
-$ git tag [tag-name] //创建轻量标签。基于最新提交创建标签。  
-$ git tag [tag-name] SHA //基于某个提交创建标签。如果不指定commit，默认在当前最新提交HEAD上打tag。  
-$ git tag [tag-name] SHA -m "注释"  //给tag加注释  
-$ git tag -a [tag-name] //创建附注标签  
-$ git tag -a [tag-name] -m 'yourMessage'  
-$ git tag -d [tag-name] //删除标签  
-$ git tag //列出所有本地标签  
-$ git tag -l "v0.1.\*"  //搜索符合模式的标签  
-$ git show [tag] //查看tag信息  
-$ git checkout -b [branch] [tag] //新建一个分支，指向某个tag  
-$ git push [remote] [tag] //提交指定tag  
-$ git push [remote] --tags //提交所有tag   
-$ git push origin --tags //上传本地tag到远程仓库  
-$ git push origin:refs/tags/[tag-name] //删除远程tag  
-$ git pull origin --tags //合并远程仓库的tag到本地  
+\$ git tag [tag-name] //创建轻量标签。基于最新提交创建标签。  
+\$ git tag [tag-name] SHA //基于某个提交创建标签。如果不指定commit，默认在当前最新提交HEAD上打tag。  
+\$ git tag [tag-name] SHA -m "注释"  //给tag加注释  
+\$ git tag -a [tag-name] //创建附注标签  
+\$ git tag -a [tag-name] -m 'yourMessage'  
+\$ git tag -d [tag-name] //删除标签  
+\$ git tag //列出所有本地标签  
+\$ git tag -l "v0.1.\*"  //搜索符合模式的标签  
+\$ git show [tag] //查看tag信息  
+\$ git checkout -b [branch] [tag] //新建一个分支，指向某个tag  
+\$ git push [remote] [tag] //提交指定tag  
+\$ git push [remote] --tags //提交所有tag   
+\$ git push origin --tags //上传本地tag到远程仓库  
+\$ git push origin:refs/tags/[tag-name] //删除远程tag  
+\$ git pull origin --tags //合并远程仓库的tag到本地  
 参考：https://git-scm.com/book/zh/v2/Git-%E5%9F%BA%E7%A1%80-%E6%89%93%E6%A0%87%E7%AD%BE  
 [返回*git命令*](#git命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
 
 ### 七、查看信息  
-$ git status //显示有变更的文件  
-$ git whatchanged [file] //显示某个文件的版本历史，包括文件改名、文件模式、其他  
-$ git diff //显示暂存区和工作区的差异  
-$ git diff --cached [file] //显示暂存区和上一个commit的差异  
-$ git diff HEAD //显示工作区与当前分支最新commit之间的差异  
-$ git diff [first-branch] …[second-branch] //显示两次提交之间的差异  
-$ git diff --shortstat "@{0 day ago}" //显示今天你写了多少行代码  
-$ git show [commit] //显示某次提交的元数据和内容变化  
-$ git show --name-only [commit] //显示某次提交发生变化的文件  
-$ git show [commit]:[filename] //显示某次提交时，某个文件的内容  
-$ git reflog //查看当前仓库的操作日志。  
-$ git blame [file] //显示指定文件是什么人在什么时间修改过  
+\$ git status //显示有变更的文件  
+\$ git whatchanged [file] //显示某个文件的版本历史，包括文件改名、文件模式、其他  
+\$ git diff //显示暂存区和工作区的差异  
+\$ git diff --cached [file] //显示暂存区和上一个commit的差异  
+\$ git diff HEAD //显示工作区与当前分支最新commit之间的差异  
+\$ git diff [first-branch] …[second-branch] //显示两次提交之间的差异  
+\$ git diff --shortstat "@{0 day ago}" //显示今天你写了多少行代码  
+\$ git show [commit] //显示某次提交的元数据和内容变化  
+\$ git show --name-only [commit] //显示某次提交发生变化的文件  
+\$ git show [commit]:[filename] //显示某次提交时，某个文件的内容  
+\$ git reflog //查看当前仓库的操作日志。  
+\$ git blame [file] //显示指定文件是什么人在什么时间修改过  
 
 指定diff比较工具  
 ①从https://github.com/jeffkaufman/icdiff下载，将icdiff和git-icdiff拷贝到\~/bin/目录。Cygwin放到cygwin64\usr\local\bin目录，或PATH中的目录。  
@@ -182,44 +182,44 @@ $ git blame [file] //显示指定文件是什么人在什么时间修改过
 
 
 git log:  
-$ git log //显示当前分支的版本历史  
-$ **git log --pretty=oneline**  //按一行输出，显示完整SHA。或者：git log --oneline //按一行输出，显示简短SHA
-$ **git log -4 --pretty=format:"%H, %s, %ae, %cd"**  //经常关注的内容，哈希值, 提交注释, 作者邮箱, 提交日期
-$ **git log --graph**  //显示ASCII图形表示的提交历史和分支合并历史。\*表示一个提交，&emsp;&emsp;|表示分支前进，&emsp;&emsp;/表示分叉，&emsp;&emsp;\\表示合入  
-$ **git log --decorate**  //--decorate标记让git log显示指向这个提交的所有引用，比如说HEAD指针、分支、标签等。
-$ git log --graph --decorate --pretty=format:"%H, %s, %ae, %cd" --all  
-$ git log --graph --decorate --oneline --all  
+\$ git log //显示当前分支的版本历史  
+\$ **git log --pretty=oneline**  //按一行输出，显示完整SHA。或者：git log --oneline //按一行输出，显示简短SHA
+\$ **git log -4 --pretty=format:"%H, %s, %ae, %cd"**  //经常关注的内容，哈希值, 提交注释, 作者邮箱, 提交日期
+\$ **git log --graph**  //显示ASCII图形表示的提交历史和分支合并历史。\*表示一个提交，&emsp;&emsp;|表示分支前进，&emsp;&emsp;/表示分叉，&emsp;&emsp;\\表示合入  
+\$ **git log --decorate**  //--decorate标记让git log显示指向这个提交的所有引用，比如说HEAD指针、分支、标签等。
+\$ git log --graph --decorate --pretty=format:"%H, %s, %ae, %cd" --all  
+\$ git log --graph --decorate --oneline --all  
 &emsp;&emsp;&emsp;&emsp;--decorate： 标记会让git log显示每个commit的引用  
 &emsp;&emsp;&emsp;&emsp;--simplify-by-decoration：只显示被branch或tag引用的commit  
 &emsp;&emsp;&emsp;&emsp;--oneline： 一行显示  
 &emsp;&emsp;&emsp;&emsp;--all: 所有分支  
 
-$ git log -p//查看修改的具体内容，不仅显示commit日志，而且同时显示每次commit的代码改变。  
-$ git log -p filename //显示指定文件相关的每一次diff，查看某个文件filename修改的具体内容  
-$ git log -4//查看分支最近4次修改记录  
-$ git log -2 -p//查看最近2次修改的具体内容。注意这里参数顺序-2 -p，不能把-p放到-2之前。  
-$ git log --author="username"  //显示某个用户的所有提交  
-$ git log --author="John\|Mary"
+\$ git log -p//查看修改的具体内容，不仅显示commit日志，而且同时显示每次commit的代码改变。  
+\$ git log -p filename //显示指定文件相关的每一次diff，查看某个文件filename修改的具体内容  
+\$ git log -4//查看分支最近4次修改记录  
+\$ git log -2 -p//查看最近2次修改的具体内容。注意这里参数顺序-2 -p，不能把-p放到-2之前。  
+\$ git log --author="username"  //显示某个用户的所有提交  
+\$ git log --author="John\|Mary"
 
 [--] <path>…  
 Consider only commits that are enough to explain how the files that match the specified paths came to be.  
 Paths may need to be prefixed with -- to separate them from options or the revision range, when confusion arises.  
 
-$ git log --pretty=oneline     //按一行输出，完整SHA  
-$ git log --oneline            //按一行输出，简短SHA  
-$ git log --stat //显示commit历史，以及每次commit发生变更的文件  
-$ git log -S [keyword] //搜索提交历史，根据关键词  
-$ git log [tag] HEAD --pretty=format:%s //显示某个commit之后的所有变动，每个commit占据一行  
-$ git log [tag] HEAD --grep feature //显示某个commit之后的所有变动，其”提交说明”必须符合搜索条件  
-$ git log --follow [file] //显示某个文件的版本历史，包括文件改名  
-$ git log --before="1 days" //显示之前1天的版本  
-$ git shortlog -sn //显示所有提交过的用户，按提交次数排序  
+\$ git log --pretty=oneline     //按一行输出，完整SHA  
+\$ git log --oneline            //按一行输出，简短SHA  
+\$ git log --stat //显示commit历史，以及每次commit发生变更的文件  
+\$ git log -S [keyword] //搜索提交历史，根据关键词  
+\$ git log [tag] HEAD --pretty=format:%s //显示某个commit之后的所有变动，每个commit占据一行  
+\$ git log [tag] HEAD --grep feature //显示某个commit之后的所有变动，其”提交说明”必须符合搜索条件  
+\$ git log --follow [file] //显示某个文件的版本历史，包括文件改名  
+\$ git log --before="1 days" //显示之前1天的版本  
+\$ git shortlog -sn //显示所有提交过的用户，按提交次数排序  
 
 git log指定显示格式  
 对于git log格式需求，可以使用--pretty=format:"<string>"选项。它允许你使用像printf一样的占位符来输出提交。  
 
 ```
-$ git log --pretty=format:"%H, commiter:%cn, data:%cd"
+\$ git log --pretty=format:"%H, commiter:%cn, data:%cd"
 3317cf8b5f8a55cdb34cb43f1c781c635b1dc98f, commiter:gaheadus, data:Wed Sep 23 00:39:35 2020 +0800
 692e13965edaeb9dead6df8c5cd451543f422b32, commiter:gaheadus, data:Sun Sep 20 22:10:30 2020 +0800
 62ac6cb94c8275746fc21fd9bc99e01a2964dcce, commiter:gaheadus, data:Sun Sep 20 21:09:15 2020 +0800
@@ -257,8 +257,8 @@ git log –pretty=format:%H,%s,%an,%ae        //中间不能有空格
 git log –pretty=format:"%H, &emsp;&emsp; %s,%an,%ae"    //中间有空格则必须外加双引号  
 
 指定显示颜色：  
-$ git log -9 --graph --pretty=format:%H,%Cred%an,%cn,%Cgreen%cd,%Cblue%s,%Creset%P  
-$ git log -9 --graph --pretty=format:%h,%Cred%an,%cn,%Cgreen%cd,%Cblue%s,%Creset%p  
+\$ git log -9 --graph --pretty=format:%H,%Cred%an,%cn,%Cgreen%cd,%Cblue%s,%Creset%P  
+\$ git log -9 --graph --pretty=format:%h,%Cred%an,%cn,%Cgreen%cd,%Cblue%s,%Creset%p  
 参考：https://git-scm.com/docs/pretty-formats  
 
 
@@ -274,8 +274,8 @@ git log --merges
 比如说，你的团队规范要求在提交信息中包括相关的issue编号，你可以用下面这个命令来显示这个issue相关的所有提交：  
 git log --grep="JRA-224:"  //你也可以传入-i参数来忽略大小写匹配。  
 区分：  
-$ git grep "Hello" //从当前目录的所有文件中查找文本内容  
-$ git grep "Hello" v2.5 //在某一版本中搜索文本  
+\$ git grep "Hello" //从当前目录的所有文件中查找文本内容  
+\$ git grep "Hello" v2.5 //在某一版本中搜索文本  
 
 Git log用法：  
 https://git-scm.com/book/zh/v2/Git-%E5%9F%BA%E7%A1%80-%E6%9F%A5%E7%9C%8B%E6%8F%90%E4%BA%A4%E5%8E%86%E5%8F%B2  
@@ -284,60 +284,60 @@ https://www.cnblogs.com/biglucky/p/5076885.html
 
 
 ### 八、远程操作  
-$ git remote -v //显示所有远程仓库  
-$ git remote -vv  
-$ git remote show [remote] //显示某个远程仓库的信息  
-$ git remote add [shortname] [url] //增加一个新的远程仓库，并命名。这里只是为远程仓库建立一个别名，以后就可以使用这个别名代替远程仓库了。由于别名简短，使用起来更方便。例如git add my_branch https://github.com/gaheadus/test.git之后，所有使用远程仓库https://github.com/gaheadus/test.git的地方都可以用my_branch来代替，例如git push my_branch master:remote_new_branch与git push https://github.com/gaheadus/test.git master:remote_new_branch等价。  
-$ git remote add origin https://github.com/gaheadus/test.git  
-$ git remote add dev    https://github.com/gaheadus/test.git  
+\$ git remote -v //显示所有远程仓库  
+\$ git remote -vv  
+\$ git remote show [remote] //显示某个远程仓库的信息  
+\$ git remote add [shortname] [url] //增加一个新的远程仓库，并命名。这里只是为远程仓库建立一个别名，以后就可以使用这个别名代替远程仓库了。由于别名简短，使用起来更方便。例如git add my_branch https://github.com/gaheadus/test.git之后，所有使用远程仓库https://github.com/gaheadus/test.git的地方都可以用my_branch来代替，例如git push my_branch master:remote_new_branch与git push https://github.com/gaheadus/test.git master:remote_new_branch等价。  
+\$ git remote add origin https://github.com/gaheadus/test.git  
+\$ git remote add dev    https://github.com/gaheadus/test.git  
 
-$ git remote rm [name] //删除远程仓库  
-$ git fetch [remote] //下载远程仓库的所有变动  
-$ git pull [remote] [branch] //取回远程仓库的变化，并与本地分支合并  
-$ git push [remote] [branch] //上传本地指定分支到远程仓库  
-$ git push [remote] --force //强行推送当前分支到远程仓库，即使有冲突  
-$ git push [remote] --all //推送所有分支到远程仓库  
-$ git push <remote> :<branch/tag-name> //删除远程分支或标签，或者  
-$ git push origin --delete my-branch   //删除远程分支或标签  
-$ git push --tags //？  
+\$ git remote rm [name] //删除远程仓库  
+\$ git fetch [remote] //下载远程仓库的所有变动  
+\$ git pull [remote] [branch] //取回远程仓库的变化，并与本地分支合并  
+\$ git push [remote] [branch] //上传本地指定分支到远程仓库  
+\$ git push [remote] --force //强行推送当前分支到远程仓库，即使有冲突  
+\$ git push [remote] --all //推送所有分支到远程仓库  
+\$ git push <remote> :<branch/tag-name> //删除远程分支或标签，或者  
+\$ git push origin --delete my-branch   //删除远程分支或标签  
+\$ git push --tags //？  
 
 如果想把本地的某个分支test提交到远程仓库，并作为远程仓库的master分支，或者作为另外一个名叫test的分支，如下：  
-$git push origin test:master  //提交本地test分支作为远程的master分支  
-$git push origin test:test     //提交本地test分支作为远程的test分支  
+\$git push origin test:master  //提交本地test分支作为远程的master分支  
+\$git push origin test:test     //提交本地test分支作为远程的test分支  
 格式: git push 远程仓库 本地分支:远程分支。如果本地分支留空如git push origin :branch则是删除远程分支。  
 
-$ git push origin :[name] //删除远程分支。注意":"前面有空格  
-$ git push origin --delete [name] //删除远程分支  
-$ git push origin :heads/[name] //删除远程分支。注意":"前面有空格  
+\$ git push origin :[name] //删除远程分支。注意":"前面有空格  
+\$ git push origin --delete [name] //删除远程分支  
+\$ git push origin :heads/[name] //删除远程分支。注意":"前面有空格  
 
-$ git remote set-url --push [name] [newUrl] //修改远程仓库  
-$ git branch --set-upstream [branch] [remote-branch] //建立追踪关系，在现有分支与指定的远程分支之间  
+\$ git remote set-url --push [name] [newUrl] //修改远程仓库  
+\$ git branch --set-upstream [branch] [remote-branch] //建立追踪关系，在现有分支与指定的远程分支之间  
 [返回*git命令*](#git命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
 
 ### 九、撤销  
-$ git reset --hard HEAD //撤销工作目录中所有未提交文件的修改内容  
-$ git checkout HEAD <file> //撤销指定的未提交文件的修改内容  
-$ git revert <commit> //撤销指定的提交  
-$ git checkout [file] //恢复暂存区的指定文件到工作区  
-$ git checkout [commit] [file] //恢复某个commit的指定文件到暂存区和工作区  
-$ git checkout . //恢复暂存区的所有文件到工作区  
-$ git reset [file] //重置暂存区的指定文件，与上一次commit保持一致，但工作区不变  
-$ git reset --hard //重置暂存区与工作区，与上一次commit保持一致  
-$ git reset [commit] //重置当前分支的指针为指定commit，同时重置暂存区，但工作区不变  
-$ git reset --hard [commit] //重置当前分支的HEAD为指定commit，同时重置暂存区和工作区，与指定commit一致  
-$ git reset --keep [commit] //重置当前HEAD为指定commit，但保持暂存区和工作区不变--保留未提交的本地修改。  
-$ git revert [commit] //新建一个commit，用来撤销指定commit。后者的所有变化都将被前者抵消，并且应用到当前分支  
-$ git stash //暂时将未提交的变化保存，稍后再恢复  
-$ git stash -u //暂时将未提交的变化、和新增的文件保存，稍后再恢复
-$ git stash push / git stash push -u / git stash push -m "comments" / git stash push -u -m "comments" //暂时将修改保存 
-$ git stash pop //恢复之前保存的变化  
+\$ git reset --hard HEAD //撤销工作目录中所有未提交文件的修改内容  
+\$ git checkout HEAD <file> //撤销指定的未提交文件的修改内容  
+\$ git revert <commit> //撤销指定的提交  
+\$ git checkout [file] //恢复暂存区的指定文件到工作区  
+\$ git checkout [commit] [file] //恢复某个commit的指定文件到暂存区和工作区  
+\$ git checkout . //恢复暂存区的所有文件到工作区  
+\$ git reset [file] //重置暂存区的指定文件，与上一次commit保持一致，但工作区不变  
+\$ git reset --hard //重置暂存区与工作区，与上一次commit保持一致  
+\$ git reset [commit] //重置当前分支的指针为指定commit，同时重置暂存区，但工作区不变  
+\$ git reset --hard [commit] //重置当前分支的HEAD为指定commit，同时重置暂存区和工作区，与指定commit一致  
+\$ git reset --keep [commit] //重置当前HEAD为指定commit，但保持暂存区和工作区不变--保留未提交的本地修改。  
+\$ git revert [commit] //新建一个commit，用来撤销指定commit。后者的所有变化都将被前者抵消，并且应用到当前分支  
+\$ git stash //暂时将未提交的变化保存，稍后再恢复  
+\$ git stash -u //暂时将未提交的变化、和新增的文件保存，稍后再恢复
+\$ git stash push / git stash push -u / git stash push -m "comments" / git stash push -u -m "comments" //暂时将修改保存 
+\$ git stash pop //恢复之前保存的变化  
 [返回*git命令*](#git命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
 
 ### 十、版本回退  
 ```
-$ git log --graph --pretty=format:%h,%Cred%an,%cn,%Cgreen%cd,%Cblue%s
+\$ git log --graph --pretty=format:%h,%Cred%an,%cn,%Cgreen%cd,%Cblue%s
 * 797e4b8,DuKang,DuKang,Mon Dec 16 00:46:27 2019 +0800,new modify
 * 335243f,DuKang,DuKang,Mon Dec 16 00:45:06 2019 +0800,new modify
 *   c0a51f4,DuKang,DuKang,Mon Dec 16 00:35:06 2019 +0800,Merge branch 'master' of …
@@ -387,8 +387,8 @@ git reset SHA不仅可以向后移动，而且是可以向前移动的，如上�
 
 
 ### 十一、其他  
-$ git clean -fd，删除**未被追踪的**文件和文件夹  
-$ git archive //生成一个可供发布的压缩包  
+\$ git clean -fd，删除**未被追踪的**文件和文件夹  
+\$ git archive //生成一个可供发布的压缩包  
 [返回*git命令*](#git命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)  
 
 
@@ -398,11 +398,11 @@ $ git archive //生成一个可供发布的压缩包
 #### git动画演示
 https://learngitbranching.js.org/ ，可视化，直接看到每一条git命令操作的结果。是git练习的好帮手，推荐。  
 **Learngitbranching网站使用方法**，常用命令如下：  
-$ show commands，显示支持的命令  
-$ show solution，查看答案  
-$ show goal / hide goal，显示/关闭目标提示  
-$ levels，选择不同级别的关卡进行练习，达到设定的目标可以通关。限定只能使用某些git命令。  
-$ sandbox，进入沙盒中，不在设定的关卡里，可以使用任何git命令，自由发挥。  
+\$ show commands，显示支持的命令  
+\$ show solution，查看答案  
+\$ show goal / hide goal，显示/关闭目标提示  
+\$ levels，选择不同级别的关卡进行练习，达到设定的目标可以通关。限定只能使用某些git命令。  
+\$ sandbox，进入沙盒中，不在设定的关卡里，可以使用任何git命令，自由发挥。  
 如果想通关练习，那就输levels命令选择关卡；如果想自由发挥，那就输sandbox命令，进入沙盒中。  
 通关过程中，如果想查看答案，输show solution命令。  
 
@@ -440,7 +440,7 @@ repo命令使用了和git命令**相同的名字**，如repo diff和git diff、r
 ### 下载repo工具  
 首先，确认主目录下存在 bin/ 目录并已包含在路径中：  
 mkdir \~/bin  
-PATH=\~/bin:$PATH  
+PATH=\~/bin:\$PATH  
 下载Repo工具并设置可执行的权限：  
 curl https://storage.googleapis.com/git-repo-downloads/repo > \~/bin/repo  
 chmod a+x \~/bin/repo  
@@ -463,7 +463,7 @@ repo start <branch_name> 就是逐一为各个工程创建工作分支,git branc
 开发时，一般以进行repo start的分支作为主分支，然后在此基础上建立其他分支-从分支；)  
 \#repo sync  
 **repo start**  
-$repo start <branchname> 就是逐一为各个版本库创建工作分支，以便在此分支下进行工作。  
+\$repo start <branchname> 就是逐一为各个版本库创建工作分支，以便在此分支下进行工作。  
 建立本地分支branchname，同时跟踪远程分支。跟踪的远程分支是谁？？  
 答案：是repo init的时候指定的。  
 **文件修改、增减，提交**  
@@ -487,7 +487,7 @@ $repo start <branchname> 就是逐一为各个版本库创建工作分支，以�
 ![repo init](../Resources/repo init -u,1.png)  
 在没有进行repo init -u…的时候进行repo sync 会报如下错误；  
 ![repo init 2](../Resources/repo init -u,2.png)  
-  
+
 
 ### git和repo流程表  
 ![git和repo流程表](../Resources/git和repo流程表.png)  
@@ -519,7 +519,7 @@ repo init -u manifest_git_path -m manifest_file_name -b branch_name --repo-url=r
 ·  如果不提供 -m NAME.xml 或者 --manifest-name=NAME.xml 参数，则使用缺省值 default.xml。  
 作用是下载或更新好repo配置和脚本集（相当于对repo配置和repo脚本集进行git pull，但是它还额外做了更多的事情），repo配置和脚本本身又是由git管理的，repo配置指定使用哪些git项目，脚本是repo命令本身的实现。  
 在空目录中执行这个repo init命令后，会生成一个.repo目录，查看.repo目录，会看到有如下内容：  
-$ls .repo  
+\$ls .repo  
 manifests/ manifests.git/ manifest.xml repo/  
 具体解释如下：  
 （*）.repo：此为repo目录，可用于提取相应项目工作目录到外面的repo工作目录。  
@@ -530,11 +530,11 @@ manifests/ manifests.git/ manifest.xml repo/
 [返回*repo命令*](#repo命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 ### repo sync  
-$ repo sync [project-list]  
+\$ repo sync [project-list]  
 下载最新本地工作文件，更新成功，这本地文件和repository中的代码是一样的。  
 可以使用repo sync project_name的形式指定需要更新的project。  
-$repo sync \#如果不指定任何参数，会同步整个所有的项目。  
-$repo sync frameworks/base \#如果指定工程名，会单独下载指定的工程。  
+\$repo sync \#如果不指定任何参数，会同步整个所有的项目。  
+\$repo sync frameworks/base \#如果指定工程名，会单独下载指定的工程。  
 选项：  
 -j：开启多线程同步操作，会加快sync命令的执行速度。默认情况下，使用4个线程并发进行sync。  
 -c, --current-branch：只同步指定的远程分支。默认情况下，sync会同步所有的远程分支，当远程分支比较多的时候，下载的代码量就大。使用该参数，可以缩减下载时间，节省本地磁盘空间。  
@@ -549,7 +549,7 @@ git remote update //对每个remote源进行fetch操作
 git rebase/origin/branch //针对当前分支的跟踪分支进行rebase操作  
 如果在merge的过程中出现冲突，这需要手动运行git rebase --continue。  
 作用是下载当前repo配置的所有项目，并生成对应的repo工作目录。执行之后，会看到.repo目录包含如下内容：  
-$ls .repo  
+\$ls .repo  
 manifests manifests.git manifest.xml projects repo  
 还有.repo外面也多出了许多目录。  
 也就是说，多出了一个projects目录，和.repo外面的许多目录，具体内容如下：  
@@ -561,12 +561,12 @@ repo upload呢？
 
 ### repo start  
 初始化分支  
-$ repo start master --all  
---all意思为对所有项目操作，也可以只对某个项目操作如$ repo start mybranch frameworks/base。  
+\$ repo start master --all  
+--all意思为对所有项目操作，也可以只对某个项目操作如\$ repo start mybranch frameworks/base。  
 repo初如化分支后，可切入各git库进行git的操作。  
-$repo start branchname --all\#在源码根目录下执行，对源码目录下所有工程建立branchname分支。  
-$repo start branchname frameworks/base/\#在源码根目录下执行，对frameworks/base/工程建立branchname分支。  
-$repo start branchname . #在对应工程目录下执行，创建branchname分支。"."代表当前工作的工程目录。  
+\$repo start branchname --all\#在源码根目录下执行，对源码目录下所有工程建立branchname分支。  
+\$repo start branchname frameworks/base/\#在源码根目录下执行，对frameworks/base/工程建立branchname分支。  
+\$repo start branchname . #在对应工程目录下执行，创建branchname分支。"."代表当前工作的工程目录。  
 repo start <newbranchname> [--all|<project>...]  
 创建并切换分支。刚克隆下来的代码是没有分支的，repo start实际是对git checkout -b命令的封装。  
 为指定的项目或所有的项目（若使用-all），以清单文件中为设定的分支，创建特定的分支。  
@@ -580,9 +580,9 @@ repo start stable platform/build platform/bionic
 [返回*repo命令*](#repo命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 ### repo branch  
-$ repo branch [projectname]  
+\$ repo branch [projectname]  
 作用：读取项目分支的情况  
-$ repo branch packages/apps/Contacts //在源码根目录下执行  
+\$ repo branch packages/apps/Contacts //在源码根目录下执行  
 repo branch/repo status/repo diff/repo checkout/repo abandon和单独的git命令是一样的，只不过是把对应的git命令包装了一下，等效于git branch/git status/git diff/git checkout/git branch -D。  
 有一点区别就是：repo branch等命令在源码根目录下执行，git branch命令在对应的工程目录下执行。  
 repo branch等后不加具体工程名，则对源码根目录下所有工程操作，如果加具体工程名，则只对这个工程操作。  
@@ -595,17 +595,17 @@ repo branch等后不加具体工程名，则对源码根目录下所有工程操
 
 ### repo forall -c  
 在源码根目录执行  
-$ repo forall -c ls / repo forall --command ls / repo forall -c git branch / repo forall -c git checkout originbranch  
+\$ repo forall -c ls / repo forall --command ls / repo forall -c git branch / repo forall -c git checkout originbranch  
 这个命令会遍历所有的git仓库，并在每个仓库执行-c/--command所指定的命令(这个被执行的命令就不限于仅仅是git命令了，而是任何被系统支持的命令，比如：ls、pwd、cp等)  
-$ repo forall -c git checkout  45451 //所有库检出45451分支与远程45451分支对应（若无，则跳过）  
-$ repo forall -c git checkout  -b developing //对源码根目录下所有工程新建developing分支并切换到该分支。  
+\$ repo forall -c git checkout  45451 //所有库检出45451分支与远程45451分支对应（若无，则跳过）  
+\$ repo forall -c git checkout  -b developing //对源码根目录下所有工程新建developing分支并切换到该分支。  
 //和repo start developing --all一样？  
 当我想通过这个命令遍历所有的仓库并在每个仓库执行"git checkout . "用以将每个仓库的改动都清除的时候，我这么输入命令：**repo forall -c git checkout .**  
 我发现这样根本不行。看来repo不能遍历执行checkout这个命令。今天我终于想到了另外一个命令"git reset --hard HEAD" 哈哈  
-**$repo forall -c git reset --hard HEAD**  
+**\$repo forall -c git reset --hard HEAD**  
 **再说一个新发现：以前用**repo forall**执行一些命令的时候，可能再遍历到某个仓库的时候出了问题，但是我却苦于不知道这个仓库到底是哪个。一直也没有解决。今天终于找到了**…** **关键时候还是要看命令自己带的帮助手册呀**…**  
-**$repo help forall** **用这个命令查看下针对**forall**的帮助吧。说的很清楚，**repo**执行的时候加上**-p**参数就可以在遍历到每个仓库的时候先打印出当前的**pwd**，然后再继续执行**-c**所指定的命令。举例如下：**  
-**$repo forall -p -c git branch    **  
+**\$repo help forall** **用这个命令查看下针对**forall**的帮助吧。说的很清楚，**repo**执行的时候加上**-p**参数就可以在遍历到每个仓库的时候先打印出当前的**pwd**，然后再继续执行**-c**所指定的命令。举例如下：**  
+**\$repo forall -p -c git branch    **  
 **//**该命令会遍历所有仓库并打印每个仓库的分支情况，由于有了**-p**参数，这样便会打印出每个仓库的路径。**  
 repo forall [<project>...] -c <command>  
 迭代器，可以在所有指定的项目中执行同一个shell指令。  
@@ -623,8 +623,8 @@ REPO_RREV 指定项目在克隆时的指定分支，manifest里的revision属性
 [返回*repo命令*](#repo命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 ### repo status  
-$ repo status [projectname]  //显示分支及修改情况  
-$ repo status //显示project中每个仓库的状态，并打印仓库名称  
+\$ repo status [projectname]  //显示分支及修改情况  
+\$ repo status //显示project中每个仓库的状态，并打印仓库名称  
 \#输出skipper/build项目分支的修改状态  
 repo status skipper/build  
 每个小节的首行显示项目名称，以及所在的分支的名称。  
@@ -647,7 +647,7 @@ d 删除  在暂存区，不在工作区
 [返回*repo命令*](#repo命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 ### repo diff  
-$ repo diff [ project-list ]  
+\$ repo diff [ project-list ]  
 显示提交的代码和当前工作目录代码之间的差异。  
 实际是对git diff 命令的封装,用于分别显示各个项目工作区下的文件差异。  
 repo diff                            ---查看所有项目  
@@ -655,22 +655,22 @@ repo diff platform/build platform/bionic ---只查看其中两个项目
 [返回*repo命令*](#repo命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 ### repo checkout  
-$repo checkout <branchname> [projectname]   
+\$repo checkout <branchname> [projectname]   
 实际上是对git checkout 命令的封装，但不能带-b参数，所以不能用此命令来创建特性分支。  
 [返回*repo命令*](#repo命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 ### repo push  
-repo push <remotename> [--all|<project>...]  
+\$ repo push <remotename> [--all|<project>...]  
 向服务器提交代码。repo会自己查询需要向服务器提交的项目并提示用户。  
 [返回*repo命令*](#repo命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 ### repo update  
-$ repo update[ project-list ]  
+\$ repo update[ project-list ]  
 上传修改的代码  ，如果你本地的代码有所修改，那么在运行 repo sync 的时候，会提示你上传修改的代码，所有修改的代码分支会上传到 Gerrit (基于web 的代码review 系统), Gerrit 受到上传的代码，会转换为一个个变更，从而可以让人们来review 修改的代码。  
 [返回*repo命令*](#repo命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 ### repo download  
-$ repo download  target revision  
+\$ repo download  target revision  
 下载特定的修改版本到本地，例如:repo download pltform/frameworks/base 1241，下载修改版本为1241的代码。  
 repo download {project change[/patchset]}...  
 repo download命令主要用于代码审核者下载和评估贡献者提交的修订。  
@@ -698,7 +698,7 @@ repo selfupdate
 [返回*repo命令*](#repo命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 ### repo prune  
-$ repo prune [project list]  
+\$ repo prune [project list]  
 删除已经合并分支。实际上是对git branch -d 命令的封装，该命令用于扫描项目的各个分支，并删除已经合并的分支。  
 [返回*repo命令*](#repo命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
@@ -707,9 +707,9 @@ repo abandon <branchname> [projectname]
 删除指定分支。实际是对git brance -D命令的封装。   
 怎样删除代码文件夹下所有git库的分支？ repo abandon <分支名>  
 示例，在源码根目录执行，  
-$ repo forall -c git checkout -b bra1 / repo start bra1 --all  
-$ repo forall -c git checkout -b bra2  
-$ repo abandon bra1 / $ repo abandon bra1 packages/apps/Contacts  
+\$ repo forall -c git checkout -b bra1 / repo start bra1 --all  
+\$ repo forall -c git checkout -b bra2  
+\$ repo abandon bra1 / \$ repo abandon bra1 packages/apps/Contacts  
 [返回*repo命令*](#repo命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 ### repo remote  
@@ -742,7 +742,7 @@ manifest检验工具，用于显示manifest文件内容。
 [返回*repo命令*](#repo命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 ### repo version  
-$ repo version  
+\$ repo version  
 作用：显示repo版本  
 [返回*repo命令*](#repo命令)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; [返回*repo*](#repo)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
@@ -788,14 +788,14 @@ Android 使用 Git 作为代码管理工具，开发了 Gerrit 进行代码审�
 ### 创建本地 Android 版本库镜像的思路  
 如果了解了 Repo 的实现，参考 [《Using Repo and Git》](http://source.android.com/source/git-repo.html) , 建立一个本地的 android 版本库镜像还是不难的：  
 下载 repo bootstrap 脚本  
-$ curl http://android.git.kernel.org/repo >\~/bin/repo  
-$ chmod a+x \~/bin/repo  
-$ export PATH=$PATH:\~/bin  
+\$ curl http://android.git.kernel.org/repo >\~/bin/repo  
+\$ chmod a+x \~/bin/repo  
+\$ export PATH=\$PATH:\~/bin  
 提供 --mirror 参数调用 repo init ，建立 git 版本库克隆  
-$ repo init -u git://android.git.kernel.org/platform/manifest.git --mirror  
+\$ repo init -u git://android.git.kernel.org/platform/manifest.git --mirror  
 使用 --morror 则下一步和源同步的时候，本地按照源的版本库组织方式进行组织，否则会按照 manifest.xml 指定的方式重新组织并检出到本地  
 开始和源同步  
-$ repo sync  
+\$ repo sync  
 修改 manifest ，修改 git 库地址，指向本地的 git 服务器  
 修改 platform/manifest.git 库中现有的 xml 文件，或者创建一个新的 xml 文件  
 将 git 的地址改为本地地址，提交并 push  
@@ -814,7 +814,7 @@ REPO_REV='stable'
 Copyright (C) 2008 Google Inc.  
 ...  
 magic='--calling-python-from-/bin/sh--'  
-"""exec" python -E "$0" "$@" """\#$magic"  
+"""exec" python -E "\$0" "\$@" """\#\$magic"  
 if __name__ == '__main__':  
 import sys  
 if sys.argv[-1] == '\#%s' % magic:  
@@ -840,7 +840,7 @@ repo 工具本身的 git 库地址。缺省为：git://android.git.kernel.org/to
 Repo git 库被克隆/检出到执行 repo init 命令当前目录下的 .repo/repo 子目录中，主要的执行脚本为 .repo/repo/main.py。main.py 接着执行 repo init 命令。  
 Repo 的代码组织的非常好，在 .repo/repo/subcmds/ 子目录下，是各个 repo 命令的处理脚本。repo init 的第二阶段脚本正是由 .repo/repo/subcmds/init.py 负责执行的。第二阶段主要完成：  
 克隆由 -u 参数提供的 manifest Git 库，如克隆 android 库时：  
-$ repo init -u git://android.git.kernel.org/platform/manifest.git  
+\$ repo init -u git://android.git.kernel.org/platform/manifest.git  
 如果不提供 -b REVISION 或者 –manifest-branch=REVISION参数，则检出 manifest Git 库的 master 分支  
 如果不提供 -m NAME.xml 或者 –manifest-name=NAME.xml 参数，则使用缺省值 default.xml  
 如果提供 –mirror 参数，则后续同步操作会有相应的体现  
@@ -927,11 +927,11 @@ repo forall -c 'commitID=\`git log --before "2017-03-17 07:00" -1 --pretty=forma
      stash添加注释使用git stash push path -m "comments"，和git commit -m "comments"统一了，点赞。  
      git stash只会保存已经被git tracked的文件，对于新增文件，还没有被git track，如果需要保存，使用git stash push -u。-- 和git stash一样  
 （3）git stash list  ：列出所有保存的进度列表。  
-（4）git stash show ：显示做了哪些改动，默认show第一个存储,如果要显示其他存贮，后面加stash@{$num}，比如第二个 git stash show stash@{1}  
-（5）git stash show -p : 显示第一个存储的改动，如果想显示其他存存储，命令：git stash show  stash@{$num}  -p ，比如第二个：git stash show  stash@{1}  -p  
-（6）git stash apply :应用某个存储,但不会把存储从存储列表中删除，默认使用第一个存储,即stash@{0}，如果要使用其他个，git stash apply stash@{$num} ， 比如第二个：git stash apply stash@{1}   
-（7）git stash pop ：命令恢复之前缓存的工作目录，将缓存堆栈中的对应stash删除，并将对应修改应用到当前的工作目录下,默认为第一个stash,即stash@{0}，如果要应用并删除其他stash，命令：git stash pop stash@{$num} ，比如应用并删除第二个：git stash pop stash@{1}  
-（8）git stash drop stash@{$num} ：删除指定存储  
+（4）git stash show ：显示做了哪些改动，默认show第一个存储,如果要显示其他存贮，后面加 stash@{\$num}，比如第二个 git stash show stash@{1}  
+（5）git stash show -p : 显示第一个存储的改动，如果想显示其他存存储，命令：git stash show  stash@{\$num}  -p ，比如第二个：git stash show  stash@{1}  -p  
+（6）git stash apply :应用某个存储,但不会把存储从存储列表中删除，默认使用第一个存储,即stash@{0}，如果要使用其他个，git stash apply stash@{\$num} ， 比如第二个：git stash apply stash@{1}   
+（7）git stash pop ：命令恢复之前缓存的工作目录，将缓存堆栈中的对应stash删除，并将对应修改应用到当前的工作目录下,默认为第一个stash,即stash@{0}，如果要应用并删除其他stash，命令：git stash pop stash@{\$num} ，比如应用并删除第二个：git stash pop stash@{1}  
+（8）git stash drop stash@{\$num} ：删除指定存储  
 （9）git stash clear ：删除所有存储  
 （10）git stash branch <branchname> <stash> 基于进度创建分支  
 [返回*专题*](#专题)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
@@ -939,21 +939,21 @@ repo forall -c 'commitID=\`git log --before "2017-03-17 07:00" -1 --pretty=forma
 
 ### patch的使用
 **打patch，生成补丁，git format-patch：**  
-$ git format-patch -1 和 git format-patch HEAD^ 等效，生成当前分支最近一次提交的patch  
-$ git format-patch -2 和 git format-patch HEAD^^ 等效，生成当前分支最近两次提交的patch  
-$ git format-patch -1 SHA //生成指定提交的patch  
-$ git format-patch -n SHA //从SHA值开始(含SHA值当次)之前的n次提交的patch  
+\$ git format-patch -1 和 git format-patch HEAD^ 等效，生成当前分支最近一次提交的patch  
+\$ git format-patch -2 和 git format-patch HEAD^^ 等效，生成当前分支最近两次提交的patch  
+\$ git format-patch -1 SHA //生成指定提交的patch  
+\$ git format-patch -n SHA //从SHA值开始(含SHA值当次)之前的n次提交的patch  
 **应用补丁，git am：**  
-$ git am 0001-trival-patch.patch  
+\$ git am 0001-trival-patch.patch  
 git am用了git apply，用它打补丁会生成commit信息。如果出现错误  
 previous rebase directory ../.git/rebase-apply still exists but mbox given  
 可以用  
-$ git am --abort  
+\$ git am --abort  
 
 上述方法用于已经commit的更改，如果是还没有commit的修改，可以用git diff生成的本地修改的patch，则可以用下面方法生成patch、应用patch：  
-$ git diff > diff.patch  
-$ **patch -p1 < diff.patch** //推荐使用patch命令，git apply命令经常出错  
-$ git apply diff.patch  /  $ git apply --ignore-space-change --ignore-whitespace diff.patch  
+\$ git diff > diff.patch  
+\$ **patch -p1 < diff.patch** //推荐使用patch命令，git apply命令经常出错  
+\$ git apply diff.patch  /  \$ git apply --ignore-space-change --ignore-whitespace diff.patch  
 
 patch命令里面的层数-p0 -p1  
 参数-p来指定从第几层开始比较。比如有一个patch文件的补丁头是这样的：  
@@ -966,39 +966,39 @@ patch命令里面的层数-p0 -p1
 当然这更像svn中的习惯，在git里反正是本地提交，提交的成本很低，所以可以先提交再生成patch。  
 
 branch之间应用patch：  
-$ git cherry-pick  
+\$ git cherry-pick  
 
 **git format-patch**  
 使用git format-patch生成的一系列的patch。git format-patch生成的git专用补丁。  
 法一：使用HEAD生成patch  
-$ git format-patch HEAD^ <==最近的1次commit的patch  
-$ git format-patch HEAD^^ <==最近的2次commit的patch  
-$ git format-patch HEAD^^^ <==最近的3次commit的patch  
-$ git format-patch HEAD^^^^ <==最近的4次commit的patch  
-$ git format-patch HEAD^^^^^ <==不支持！！！！error！！！  
+\$ git format-patch HEAD^ <==最近的1次commit的patch  
+\$ git format-patch HEAD^^ <==最近的2次commit的patch  
+\$ git format-patch HEAD^^^ <==最近的3次commit的patch  
+\$ git format-patch HEAD^^^^ <==最近的4次commit的patch  
+\$ git format-patch HEAD^^^^^ <==不支持！！！！error！！！  
 git format-patch -1 和 git format-patch HEAD^ 等效，生成当前分支最近一次提交的patch  
 git format-patch -2 和 git format-patch HEAD^^ 等效，生成当前分支最近两次提交的patch  
 git format-patch -n , n是具体某个数字， 例如 'git format-patch -1' 这时便会根据log生成一个对应的补丁，如果 'git format-patch -2' 那么便会生成2个补丁，当然前提是你的log上有至少有两个记录。  
 
 法二：根据commit SHA生成patch  
-$ git format-patch -1 SHA //生成指定提交的patch  
-$ git format-patch -n SHA //从SHA值开始(含SHA当次)之前的n次提交的patch(比SHA更旧的提交、在SHA之前的提交)  
-$ git format-patch commit1..commit4 //生成从commit2到commit4的patch  
-$ git format-patch -s SHA //此SHA值提交以后的所有patch(不含SHA当次) (比SHA更新的提交、在SHA之后的提交)  
+\$ git format-patch -1 SHA //生成指定提交的patch  
+\$ git format-patch -n SHA //从SHA值开始(含SHA当次)之前的n次提交的patch(比SHA更旧的提交、在SHA之前的提交)  
+\$ git format-patch commit1..commit4 //生成从commit2到commit4的patch  
+\$ git format-patch -s SHA //此SHA值提交以后的所有patch(不含SHA当次) (比SHA更新的提交、在SHA之后的提交)  
 
 法三：指定分支  
-$ git format-patch -M master //当前分支所有超前master的提交  
-$ git format-patch -n master //生成最近n次commit的patch  
-$ git format-patch master~4..master~2  //生成master~4和master~2之间差异的patch  
+\$ git format-patch -M master //当前分支所有超前master的提交  
+\$ git format-patch -n master //生成最近n次commit的patch  
+\$ git format-patch master~4..master~2  //生成master~4和master~2之间差异的patch  
 
 **git am**  
-$git am ~/patch/0001-trival-patch.patch  
+\$git am ~/patch/0001-trival-patch.patch  
 如果贡献者也用 Git，且擅于制作 format-patch 补丁，那你的合并工作将会非常轻松。  
 因为这些补丁中除了文件内容差异外，还包含了作者信息和提交消息。所以请鼓励贡献者用format-patch 生成补丁。对于传统的 diff 命令生成的补丁，则只能用 git apply 处理。  
 对于 format-patch 制作的新式补丁，应当使用 git am命令。  
 
 **使用git-am合并git format-patch生成的一系列的patch**  
-$git am \~/patch/0001-trival-patch.patch  
+\$git am \~/patch/0001-trival-patch.patch  
 在git使用当中，会有很多时候别人(供应商或者其他的开发人员)发过来一系列的patch，这些patch通常的是类似这样的名字：  
 0001--JFFS2-community-fix-with-not-use-OOB.patch  
 0002--Community-patch-for-Fix-mount-error-in.patch  
@@ -1014,7 +1014,7 @@ git-am 就是作这件事情。
 git-am 可以一次合并一个文件，或者一个目录下所有的patch，或者你的邮箱目录下的patch.  
 下面举两个例子：  
 你现在有一个code base：small-src, 你的patch文件放在~/patch/0001-trival-patch.patch  
-$git am \~/patch/0001-trival-patch.patch  
+\$git am \~/patch/0001-trival-patch.patch  
 如果成功patch上去， 你就可以去喝杯茶了。  
 如果失败了，git 会提示错误， 比如：  
 error: patch failed: android/mediascanner.cpp:452  
@@ -1022,12 +1022,12 @@ error: android/mediascanner.cpp: patch does not apply
 这样你就需要先看看patch， 然后改改错误的这个文件，让这个patch能够patch上去。  
 
 **冲突的解决**  
-$git am *.patch  
+\$git am *.patch  
 来merge这些patch， 报错，Patch failed at 0001 add line这样我们看0001这个patch,原来patch需要的是some text, 而file里面是the text, 所以我们用编辑器把这行改成some text,  
-$vi file  
-$git apply 0001-add-line.patch  
-$git add file  
-$git am --resolved  
+\$vi file  
+\$git apply 0001-add-line.patch  
+\$git add file  
+\$git am --resolved  
 在解决完冲突以后， 比如用git add来让git知道你已经解决完冲突了。  
 如果你发现这个冲突是无法解决的，要撤销整个am的东西。 可以运行git am -abort，  
 如果你想只是忽略这一个patch，可以运行git am -skip来跳过这个patch.  
@@ -1041,7 +1041,7 @@ git am --skip           放弃当前git am所引入的patch。
 也可以使用git diff来生成patch文件，如:git diff >new.patch。  
 
 **git apply**  
-$ git apply /tmp/patch-ruby-client.patch  
+\$ git apply /tmp/patch-ruby-client.patch  
 如果收到的补丁文件是用 git diff 或由其它 Unix 的 diff 命令生成，就该用 patch -p或git apply 命令来应用补丁。  
 [返回*专题*](#专题)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
@@ -1077,7 +1077,7 @@ git clean -df
 
 ### git rebase -i  
 将多个提交合并成一个提交。操作如下：  
-$ git log --oneline  
+\$ git log --oneline  
 f185c6e (HEAD -> for_rebase, master, for_reset) C5--Add file5  
 6d4c76e C4--Add file4  
 d8bef46 C3--Add file3  
@@ -1086,7 +1086,7 @@ a63777b C1--Add file1
 
 如果想将C3 C4 C5三个提交合并成一个提交，怎么写？  
 
-$ git rebase -i HEAD\~3  
+\$ git rebase -i HEAD\~3  
 弹出编辑框：  
 pick d8bef46 C3--Add file3        -- *显示的前后次序和git log相反*  
 pick 6d4c76e C4--Add file4  
@@ -1105,7 +1105,7 @@ pick f185c6e C5--Add file5
 根据提示：\# s, squash = use commit, but meld into previous commit，将某个提交融合到(meld into)比自己更早(previous)的提交上，也就是说只能将新的提交合并到旧的提交，但是不能将旧的提交合并到新的提交。上例中只能将C4、C5合并到C3，但反过来不行，不能将C3合并到C4，否则报错。    
 
 git rebase -i进阶  
-$ git rebase -i [start] [end]  
+\$ git rebase -i [start] [end]  
 ① (start, end]前开后闭区间，从start到end为止，包括start、不包括end。  
 ② 默认省略end，表示当前最新提交HEAD，git rebase -i SHA == git rebase -i SHA HEAD。  
 ③ start为旧的提交, end为新的提交，git rebase -i [start] [end] == git rebase -i [old] [new]。从start到end，从旧到新。  
