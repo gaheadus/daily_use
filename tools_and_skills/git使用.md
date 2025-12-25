@@ -284,6 +284,13 @@ https://www.cnblogs.com/biglucky/p/5076885.html
 
 
 ### 八、远程操作  
+git pull origin <source>:<destination>  //git pull <远程仓库名> <远程分支名>:<本地分支名>，source表示远程仓库的分支，destination表示本地分支
+git push origin <source>:<destination> // git push <远程仓库名> <本地分支名>:<远程分支名>，source表示本地分支，destination表示远程仓库的分支
+git fetch origin <source>:<destination> //同pull
+git pull/push/fetch repository <source>:<destination> //从左到右，表示从source到destination，pull/push/fetch在格式上是一样的。
+
+
+
 \$ git remote -v //显示所有远程仓库  
 \$ git remote -vv  
 \$ git remote show [remote] //显示某个远程仓库的信息  
