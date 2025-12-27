@@ -151,3 +151,57 @@
 
 ## 第五部分：技巧
 方向键←/→左右移动一个字符,那么,如何移动一个单词呢？ ctrl+←/→。(word文档中也是这样)  
+
+
+
+## 第六部分：vim配置
+编辑~/.vimrc文件，添加如下内容：
+" ============================================================================
+" 1. 基础设置 (Basic Settings)
+" ============================================================================
+set nocompatible        " 关闭 vi 兼容模式(必须放在第一行)
+filetype on             " 开启文件类型检测
+filetype indent on        " 为特定文件类型启用缩进
+syntax on               " 开启语法高亮
+" set background=dark     " 设置背景色(深色适合夜间)
+set termguicolors         " 开启真彩色支持(如果你的终端支持)
+
+" 显示设置
+set number              " 显示行号
+" set relativenumber      " 显示相对行号(配合数字跳转非常高效)
+
+set cursorline          " 高亮当前行
+" 自定义高亮颜色(可选，默认使用终端配色方案)
+" 终端模式下背景色(235 为深灰，需终端支持 256 色)
+highlight CursorLine ctermbg=235
+" GUI 模式下背景色(十六进制颜色值，适合 gVim)
+highlight CursorLine guibg=#2a2a2a
+
+set showmatch           " 高亮匹配的括号
+set matchtime=2         " 匹配括号高亮时间(十分之一秒为单位)
+
+" 缩进设置 (以 4 个空格为例)
+set tabstop=4           " 一个 tab 显示为 4 个空格
+set shiftwidth=4        " 自动缩进的宽度为 4
+set expandtab           " 将 Tab 转换为空格
+set autoindent          " 自动继承前一行的缩进
+
+" 搜索设置
+set hlsearch            " 搜索结果高亮
+set incsearch           " 输入搜索命令时实时高亮
+set ignorecase          " 搜索忽略大小写
+set smartcase           " 如果搜索词包含大写，则区分大小写
+
+" 备份与撤销 (防止数据丢失)
+set undofile                  " 开启持久化撤销(跨会话撤销)
+set undodir=~/.vim/undo/       " 撤销文件保存目录 (需手动创建)
+set backupdir=~/.vim/backup/   " 备份文件目录
+set directory=~/.vim/swap/     " 交换文件目录
+" 需要手动创建目录：~/.vim/undo ~/.vim/backup ~/.vim/swap
+
+" 其他实用功能
+set mouse=a             " 启用鼠标 (可以在终端中使用鼠标选择)"
+set clipboard=unnamedplus " 与系统剪贴板共享 (需要 vim-gtk 或 neovim)"
+set timeoutlen=500      " 映射键等待时间 (毫秒)"
+set cmdheight=2         " 命令行高度
+
