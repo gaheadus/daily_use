@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS任务管理50问 - 任务挂起所有任务</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #e0f7fa 0%, #f9fbe7 50%, #e8f5e9 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 30px 0;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #1565c0;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #7e57c2;
+            font-size: 1.2rem;
+            font-weight: normal;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h2 {
+            color: #1565c0;
+            border-bottom: 2px solid #4fc3f7;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+        
+        .card h3 {
+            color: #7e57c2;
+            margin: 15px 0 10px;
+        }
+        
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .code-block {
+            background: #f5f5f5;
+            border-left: 4px solid #4fc3f7;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+            overflow-x: auto;
+        }
+        
+        pre {
+            white-space: pre-wrap;
+            font-family: 'Consolas', monospace;
+            font-size: 0.9rem;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #4fc3f7;
+            color: white;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f2f9ff;
+        }
+        
+        ul, ol {
+            padding-left: 20px;
+            margin: 10px 0;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .warning {
+            background-color: #fff8e1;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            color: #1565c0;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>FreeRTOS任务管理50问</h1>
+            <p class="subtitle">第15问：任务挂起所有任务 - vTaskSuspendAll函数的使用</p>
+        </header>
+        
+        <div class="content">
+            <div class="card">
+                <h2>vTaskSuspendAll函数概述</h2>
+                <p><strong>vTaskSuspendAll()</strong> 是FreeRTOS提供的一个系统级函数，用于挂起所有任务（除了调用该函数的任务本身）。</p>
+                
+                <h3>函数原型</h3>
+                <div class="code-block">
+                    <pre>void vTaskSuspendAll( void );</pre>
+                </div>
+                
+                <h3>主要特性</h3>
+                <ul>
+                    <li>挂起调度器，阻止任务切换</li>
+                    <li>不会影响中断服务程序(ISR)</li>
+                    <li>可嵌套调用，需要相应次数的xTaskResumeAll()恢复</li>
+                    <li>常用于保护临界区代码</li>
+                </ul>
+            </div>
+            
+            <div class="card">
+                <h2>使用场景</h2>
+                <h3>适用情况</h3>
+                <ul>
+                    <li>执行需要原子操作的代码段</li>
+                    <li>访问共享资源时的保护</li>
+                    <li>执行时间敏感的操作</li>
+                    <li>系统初始化阶段</li>
+                </ul>
+                
+                <h3>不适用情况</h3>
+                <ul>
+                    <li>需要长时间挂起调度器</li>
+                    <li>需要挂起中断的场景</li>
+                    <li>需要精确控制单个任务状态</li>
+                </ul>
+            </div>
+            
+            <div class="card full-width">
+                <h2>函数使用详解</h2>
+                
+                <h3>基本用法</h3>
+                <div class="code-block">
+                    <pre>// 挂起所有任务
+vTaskSuspendAll();
+
+// 执行临界区代码
+// 这里可以安全地访问共享资源
+critical_section_operation();
+
+// 恢复所有任务
+xTaskResumeAll();</pre>
+                </div>
+                
+                <h3>嵌套使用示例</h3>
+                <div class="code-block">
+                    <pre>void nested_critical_section(void)
+{
+    // 第一次挂起
+    vTaskSuspendAll();
+    
+    // 执行一些操作
+    operation1();
+    
+    // 第二次挂起（嵌套）
+    vTaskSuspendAll();
+    
+    // 执行更深层的操作
+    operation2();
+    
+    // 第一次恢复
+    xTaskResumeAll();
+    
+    // 继续执行
+    operation3();
+    
+    // 第二次恢复
+    xTaskResumeAll();
+}</pre>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>参数与返回值</h2>
+                <table>
+                    <tr>
+                        <th>项目</th>
+                        <th>说明</th>
+                    </tr>
+                    <tr>
+                        <td>参数</td>
+                        <td>无</td>
+                    </tr>
+                    <tr>
+                        <td>返回值</td>
+                        <td>无</td>
+                    </tr>
+                    <tr>
+                        <td>关联函数</td>
+                        <td>xTaskResumeAll()</td>
+                    </tr>
+                </table>
+                
+                <h3>注意事项</h3>
+                <ul>
+                    <li>必须与xTaskResumeAll()配对使用</li>
+                    <li>挂起期间中断仍然可以发生</li>
+                    <li>不能长时间挂起调度器</li>
+                </ul>
+            </div>
+            
+            <div class="card">
+                <h2>与相关函数对比</h2>
+                <table>
+                    <tr>
+                        <th>函数</th>
+                        <th>作用范围</th>
+                        <th>影响中断</th>
+                    </tr>
+                    <tr>
+                        <td>vTaskSuspendAll()</td>
+                        <td>所有任务</td>
+                        <td>不影响</td>
+                    </tr>
+                    <tr>
+                        <td>vTaskSuspend()</td>
+                        <td>单个任务</td>
+                        <td>不影响</td>
+                    </tr>
+                    <tr>
+                        <td>taskENTER_CRITICAL()</td>
+                        <td>调度器和中断</td>
+                        <td>影响</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div class="card full-width">
+                <h2>系统状态变化图</h2>
+                <div class="svg-container">
+                    <svg width="800" height="200" viewBox="0 0 800 200">
+                        <!-- 背景 -->
+                        <rect x="0" y="0" width="800" height="200" fill="#e3f2fd" rx="10"/>
+                        
+                        <!-- 状态框 -->
+                        <rect x="50" y="80" width="120" height="40" fill="#4fc3f7" rx="5"/>
+                        <text x="110" y="105" text-anchor="middle" fill="white" font-weight="bold">任务运行中</text>
+                        
+                        <rect x="220" y="80" width="120" height="40" fill="#ffb74d" rx="5"/>
+                        <text x="280" y="105" text-anchor="middle" fill="white" font-weight="bold">调用vTaskSuspendAll</text>
+                        
+                        <rect x="390" y="80" width="120" height="40" fill="#81c784" rx="5"/>
+                        <text x="450" y="105" text-anchor="middle" fill="white" font-weight="bold">调度器挂起</text>
+                        
+                        <rect x="560" y="80" width="120" height="40" fill="#4fc3f7" rx="5"/>
+                        <text x="620" y="105" text-anchor="middle" fill="white" font-weight="bold">调用xTaskResumeAll</text>
+                        
+                        <!-- 箭头 -->
+                        <path d="M170 100 L210 100" stroke="#1565c0" stroke-width="2" fill="none"/>
+                        <polygon points="210,100 200,95 200,105" fill="#1565c0"/>
+                        
+                        <path d="M340 100 L380 100" stroke="#1565c0" stroke-width="2" fill="none"/>
+                        <polygon points="380,100 370,95 370,105" fill="#1565c0"/>
+                        
+                        <path d="M510 100 L550 100" stroke="#1565c0" stroke-width="2" fill="none"/>
+                        <polygon points="550,100 540,95 540,105" fill="#1565c0"/>
+                        
+                        <!-- 说明文字 -->
+                        <text x="110" y="60" text-anchor="middle" fill="#1565c0" font-size="12">正常状态</text>
+                        <text x="280" y="60" text-anchor="middle" fill="#1565c0" font-size="12">挂起开始</text>
+                        <text x="450" y="60" text-anchor="middle" fill="#1565c0" font-size="12">挂起状态</text>
+                        <text x="620" y="60" text-anchor="middle" fill="#1565c0" font-size="12">恢复运行</text>
+                    </svg>
+                </div>
+            </div>
+            
+            <div class="card full-width">
+                <h2>实际应用案例</h2>
+                
+                <h3>案例1：保护共享资源</h3>
+                <div class="code-block">
+                    <pre>// 共享全局变量
+static int shared_counter = 0;
+
+void increment_counter_safely(void)
+{
+    // 挂起所有任务，防止任务切换
+    vTaskSuspendAll();
+    
+    // 安全地操作共享资源
+    shared_counter++;
+    
+    // 复杂的操作
+    for(int i = 0; i < 100; i++) {
+        // 一些计算...
+    }
+    
+    // 恢复任务调度
+    xTaskResumeAll();
+}</pre>
+                </div>
+                
+                <h3>案例2：系统配置更新</h3>
+                <div class="code-block">
+                    <pre>void update_system_config(void)
+{
+    // 挂起调度器，确保配置更新的原子性
+    vTaskSuspendAll();
+    
+    // 更新多个相关的配置参数
+    config_param1 = new_value1;
+    config_param2 = new_value2;
+    config_param3 = new_value3;
+    
+    // 验证配置一致性
+    if(validate_config()) {
+        apply_new_config();
+    }
+    
+    // 恢复调度
+    xTaskResumeAll();
+}</pre>
+                </div>
+            </div>
+            
+            <div class="card full-width">
+                <h2>最佳实践与注意事项</h2>
+                
+                <div class="warning">
+                    <strong>重要提醒：</strong> 使用vTaskSuspendAll()时要特别小心，不当使用可能导致系统响应性问题。
+                </div>
+                
+                <h3>最佳实践</h3>
+                <ol>
+                    <li><strong>保持临界区简短：</strong> 挂起时间应尽可能短，避免影响系统实时性</li>
+                    <li><strong>正确配对使用：</strong> 确保每次vTaskSuspendAll()都有对应的xTaskResumeAll()</li>
+                    <li><strong>处理嵌套情况：</strong> 注意嵌套调用时的匹配关系</li>
+                    <li><strong>考虑中断影响：</strong> 记住中断仍然可以在挂起期间发生</li>
+                </ol>
+                
+                <h3>常见错误</h3>
+                <ul>
+                    <li>忘记调用xTaskResumeAll()导致系统死锁</li>
+                    <li>在挂起期间调用可能引起阻塞的函数</li>
+                    <li>挂起时间过长影响系统性能</li>
+                    <li>错误估计嵌套调用的次数</li>
+                </ul>
+            </div>
+        </div>
+        
+        <footer>
+            <p>蓝海资料掘金营</p>
+        </footer>
+    </div>
+</body>
+</html>

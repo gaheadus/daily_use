@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS内存管理 - 蓝海资料掘金营</title>
+    <style>
+        :root {
+            --tech-blue: #3498db;
+            --vitality-orange: #f39c12;
+            --fresh-green: #2ecc71;
+            --light-bg: #f8f9fa;
+            --dark-text: #2c3e50;
+            --gray-border: #ddd;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            color: var(--dark-text);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            padding: 30px 20px;
+            background: linear-gradient(90deg, var(--tech-blue), var(--fresh-green));
+            color: white;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        main {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+        section {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border-left: 6px solid var(--tech-blue);
+        }
+        section:nth-child(2) {
+            border-left-color: var(--vitality-orange);
+        }
+        section:nth-child(3) {
+            border-left-color: var(--fresh-green);
+        }
+        h2 {
+            color: var(--tech-blue);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px dashed var(--gray-border);
+        }
+        h3 {
+            color: var(--vitality-orange);
+            margin: 15px 0 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-border);
+        }
+        th {
+            background-color: var(--tech-blue);
+            color: white;
+            font-weight: 600;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        ul, ol {
+            padding-left: 25px;
+            margin: 15px 0;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        pre {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            border-left: 5px solid var(--fresh-green);
+        }
+        code {
+            background: #f1f8ff;
+            color: #d63384;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+        }
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 25px 0;
+        }
+        svg {
+            max-width: 100%;
+            height: auto;
+        }
+        .note {
+            background: #fffde7;
+            border-left: 5px solid var(--vitality-orange);
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 25px;
+            color: white;
+            background: linear-gradient(90deg, var(--tech-blue), #2980b9);
+            border-radius: 15px;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            box-shadow: 0 5px 15px rgba(41, 128, 185, 0.3);
+        }
+        .highlight {
+            color: var(--vitality-orange);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>FreeRTOS内存管理（Heap）</h1>
+        <p class="subtitle">五种内存分配方案原理、使用与内存碎片探讨</p>
+    </header>
+
+    <main>
+        <section>
+            <h2>一、FreeRTOS内存管理概述</h2>
+            <p>FreeRTOS内核在创建任务、队列、信号量等对象时，需要动态分配内存。为了适应不同应用场景（从资源极度受限的8位MCU到性能强大的32位处理器），FreeRTOS提供了<span class="highlight">5种可选的动态内存分配方案（heap1~heap5）</span>，位于<code>heap_1.c</code>到<code>heap_5.c</code>文件中。</p>
+            <p>开发者可以根据项目的<span class="highlight">确定性、碎片风险、复杂度、硬件支持</span>等因素选择合适的方案，甚至可以提供自己的内存管理实现。</p>
+            
+            <div class="svg-container">
+                <svg viewBox="0 0 800 300" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="50" y="50" width="700" height="200" rx="10" fill="#e3f2fd" stroke="#3498db" stroke-width="3"/>
+                    <text x="100" y="100" font-size="20" fill="#2c3e50" font-weight="bold">FreeRTOS内存管理</text>
+                    <circle cx="200" y="180" r="40" fill="#3498db"/>
+                    <text x="190" y="185" fill="white" font-size="16">heap_1</text>
+                    <circle cx="300" y="180" r="40" fill="#f39c12"/>
+                    <text x="290" y="185" fill="white" font-size="16">heap_2</text>
+                    <circle cx="400" y="180" r="40" fill="#2ecc71"/>
+                    <text x="390" y="185" fill="white" font-size="16">heap_3</text>
+                    <circle cx="500" y="180" r="40" fill="#9b59b6"/>
+                    <text x="490" y="185" fill="white" font-size="16">heap_4</text>
+                    <circle cx="600" y="180" r="40" fill="#e74c3c"/>
+                    <text x="590" y="185" fill="white" font-size="16">heap_5</text>
+                    <line x1="240" y1="180" x2="260" y2="180" stroke="#2c3e50" stroke-width="2"/>
+                    <line x1="340" y1="180" x2="360" y2="180" stroke="#2c3e50" stroke-width="2"/>
+                    <line x1="440" y1="180" x2="460" y2="180" stroke="#2c3e50" stroke-width="2"/>
+                    <line x1="540" y1="180" x2="560" y2="180" stroke="#2c3e50" stroke-width="2"/>
+                </svg>
+            </div>
+        </section>
+
+        <section>
+            <h2>二、五种内存分配方案详解</h2>
+            
+            <h3>1. heap_1：静态分配，永不释放</h3>
+            <ul>
+                <li><strong>原理</strong>：仅实现<code>pvPortMalloc()</code>，不实现<code>vPortFree()</code>。内存分配后永不释放。</li>
+                <li><strong>特点</strong>：确定性高，无碎片，实现简单，内存开销最小。</li>
+                <li><strong>适用场景</strong>：仅需在系统启动时一次性创建所有任务、队列，且之后不再删除的嵌入式应用。</li>
+            </ul>
+
+            <h3>2. heap_2：最佳匹配，可释放（已过时）</h3>
+            <ul>
+                <li><strong>原理</strong>：使用最佳匹配算法，支持分配与释放。但相邻空闲块不会合并，容易产生碎片。</li>
+                <li><strong>特点</strong>：不确定性，存在碎片风险。</li>
+                <li><strong>适用场景</strong>：FreeRTOS已不建议使用，被heap_4替代。</li>
+            </ul>
+
+            <h3>3. heap_3：标准库封装</h3>
+            <ul>
+                <li><strong>原理</strong>：简单封装标准C库的<code>malloc()</code>和<code>free()</code>，通过暂时挂起调度器保证线程安全。</li>
+                <li><strong>特点</strong>：依赖编译器提供的堆，可能增大代码体积，不确定性高。</li>
+                <li><strong>适用场景</strong>：在已有成熟内存管理且资源充足的系统上快速移植。</li>
+            </ul>
+
+            <h3>4. heap_4：合并空闲块，防碎片</h3>
+            <ul>
+                <li><strong>原理</strong>：使用首次适应算法，并<span class="highlight">合并相邻的空闲内存块</span>，显著减少碎片。</li>
+                <li><strong>特点</strong>：确定性较好，碎片少，是大多数应用的推荐选择。</li>
+                <li><strong>适用场景</strong>：需要反复创建/删除任务、队列等对象的应用，如通用嵌入式设备。</li>
+            </ul>
+
+            <h3>5. heap_5：支持非连续内存区域</h3>
+            <ul>
+                <li><strong>原理</strong>：在heap_4基础上，允许将<span class="highlight">多个非连续的内存区域</span>组成一个堆。</li>
+                <li><strong>特点</strong>：最灵活，可充分利用分散的物理内存（如内部SRAM+外部SDRAM）。</li>
+                <li><strong>适用场景</strong>：内存布局复杂，拥有多块独立内存的MCU/MPU系统。</li>
+            </ul>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>方案</th>
+                        <th>释放功能</th>
+                        <th>碎片处理</th>
+                        <th>确定性</th>
+                        <th>适用场景</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>heap_1</strong></td>
+                        <td>❌ 不支持</td>
+                        <td>无碎片</td>
+                        <td>高</td>
+                        <td>启动后静态分配，永不删除</td>
+                    </tr>
+                    <tr>
+                        <td><strong>heap_2</strong></td>
+                        <td>✅ 支持</td>
+                        <td>不合并，碎片多</td>
+                        <td>中</td>
+                        <td>（已过时，不推荐）</td>
+                    </tr>
+                    <tr>
+                        <td><strong>heap_3</strong></td>
+                        <td>✅ 支持</td>
+                        <td>依赖标准库</td>
+                        <td>低</td>
+                        <td>快速移植，资源充足</td>
+                    </tr>
+                    <tr>
+                        <td><strong>heap_4</strong></td>
+                        <td>✅ 支持</td>
+                        <td>合并空闲块，碎片少</td>
+                        <td>中高</td>
+                        <td>通用推荐，反复创建/删除</td>
+                    </tr>
+                    <tr>
+                        <td><strong>heap_5</strong></td>
+                        <td>✅ 支持</td>
+                        <td>合并空闲块，碎片少</td>
+                        <td>中高</td>
+                        <td>多块非连续内存区域</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section>
+            <h2>三、pvPortMalloc/vPortFree使用示例</h2>
+            <p>FreeRTOS提供了与标准C库类似的API，但前缀为<code>pvPortMalloc</code>和<code>vPortFree</code>，用于从FreeRTOS管理的堆中分配和释放内存。</p>
+            
+            <pre><code>#include "FreeRTOS.h"
+#include "task.h"
+
+void vDemoMemoryAllocation( void )
+{
+    // 1. 分配内存
+    uint32_t *pArray = (uint32_t *)pvPortMalloc( 1024 * sizeof( uint32_t ) );
+    
+    if( pArray != NULL )
+    {
+        // 内存分配成功
+        for( int i = 0; i < 1024; i++ )
+        {
+            pArray[i] = i;
+        }
+        
+        // ... 使用分配的内存 ...
+        
+        // 2. 释放内存（heap_1除外）
+        vPortFree( pArray );
+        pArray = NULL; // 避免野指针
+    }
+    else
+    {
+        // 内存分配失败处理
+        // 可能是堆空间不足
+    }
+}</code></pre>
+
+            <div class="note">
+                <strong>重要提示：</strong>
+                <ul>
+                    <li>分配的内存大小应以字节为单位，且通常需要<span class="highlight">字节对齐</span>（FreeRTOS会自动处理）。</li>
+                    <li>使用前务必检查返回值是否为<code>NULL</code>。</li>
+                    <li>释放后应将指针置为<code>NULL</code>，防止误用。</li>
+                    <li>在中断服务程序（ISR）中分配内存时，需使用带<code>FromISR</code>后缀的版本（如<code>xQueueSendFromISR</code>内部处理）。</li>
+                </ul>
+            </div>
+        </section>
+
+        <section>
+            <h2>四、内存碎片问题探讨</h2>
+            
+            <h3>什么是内存碎片？</h3>
+            <p>内存碎片分为两种：</p>
+            <ul>
+                <li><strong>外部碎片</strong>：已分配内存块之间存在许多小的空闲块，它们总和足够大，但单独无法满足较大分配请求。</li>
+                <li><strong>内部碎片</strong>：分配的内存块比实际请求的大（由于对齐或分配策略），多余部分被浪费。</li>
+            </ul>
+
+            <div class="svg-container">
+                <svg viewBox="0 0 800 250" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="50" y="50" width="700" height="60" fill="#ecf0f1" stroke="#7f8c8d" stroke-width="2"/>
+                    <rect x="50" y="50" width="100" height="60" fill="#3498db"/>
+                    <text x="75" y="85" fill="white" text-anchor="middle">已分配</text>
+                    <rect x="150" y="50" width="50" height="60" fill="#2ecc71"/>
+                    <text x="175" y="85" fill="white" text-anchor="middle" font-size="12">空闲</text>
+                    <rect x="200" y="50" width="120" height="60" fill="#3498db"/>
+                    <text x="260" y="85" fill="white" text-anchor="middle">已分配</text>
+                    <rect x="320" y="50" width="30" height="60" fill="#2ecc71"/>
+                    <rect x="350" y="50" width="90" height="60" fill="#3498db"/>
+                    <text x="395" y="85" fill="white" text-anchor="middle">已分配</text>
+                    <rect x="440" y="50" width="40" height="60" fill="#2ecc71"/>
+                    <rect x="480" y="50" width="150" height="60" fill="#3498db"/>
+                    <text x="555" y="85" fill="white" text-anchor="middle">已分配</text>
+                    <rect x="630" y="50" width="120" height="60" fill="#2ecc71"/>
+                    <text x="690" y="85" fill="white" text-anchor="middle">空闲</text>
+                    <text x="400" y="140" font-size="18" fill="#2c3e50">外部碎片示意图：多个小空闲块无法满足大请求</text>
+                    <rect x="50" y="170" width="200" height="40" fill="#f39c12" stroke="#d35400" stroke-width="2"/>
+                    <rect x="55" y="175" width="190" height="30" fill="#ecf0f1"/>
+                    <text x="150" y="195" fill="#2c3e50" text-anchor="middle" font-size="14">请求 190 字节</text>
+                    <rect x="260" y="170" width="220" height="40" fill="#f39c12" stroke="#d35400" stroke-width="2"/>
+                    <rect x="265" y="175" width="210" height="30" fill="#3498db"/>
+                    <text x="370" y="195" fill="white" text-anchor="middle" font-size="14">分配 210 字节（内部碎片 20 字节）</text>
+                </svg>
+            </div>
+
+            <h3>FreeRTOS如何缓解碎片？</h3>
+            <ol>
+                <li><strong>heap_4/heap_5的合并机制</strong>：释放内存时，自动检查相邻块是否空闲，若是则合并为一个大块。</li>
+                <li><strong>合理选择堆大小</strong>：根据应用最大内存需求，预留足够堆空间。</li>
+                <li><strong>对象静态创建</strong>：对于长期存在的对象，使用静态创建函数（如<code>xTaskCreateStatic</code>）避免动态分配。</li>
+                <li><strong>内存池模式</strong>：为频繁分配/释放的固定大小对象设计独立的内存池。</li>
+            </ol>
+
+            <h3>最佳实践建议</h3>
+            <ul>
+                <li>对于<span class="highlight">确定性要求高、生命周期明确</span>的系统，优先考虑heap_1或静态分配。</li>
+                <li>大多数动态创建/删除对象的应用，<span class="highlight">首选heap_4</span>。</li>
+                <li>使用heap_5管理非连续内存时，需在<code>vPortDefineHeapRegions()</code>中明确定义各区域。</li>
+                <li>定期监控剩余堆空间（使用<code>xPortGetFreeHeapSize()</code>），预警内存泄漏。</li>
+                <li>避免频繁分配/释放大小差异悬殊的内存块，这容易加剧碎片。</li>
+            </ul>
+        </section>
+    </main>
+
+    <footer>
+        蓝海资料掘金营
+    </footer>
+</body>
+</html>

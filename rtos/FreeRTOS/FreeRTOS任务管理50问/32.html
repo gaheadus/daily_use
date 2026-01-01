@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS任务创建失败处理</title>
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #2196F3;
+            --accent-color: #FFC107;
+            --light-color: #E8F5E9;
+            --dark-color: #2E7D32;
+            --text-color: #333;
+            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background: linear-gradient(135deg, #e0f7fa 0%, #f9fbe7 100%);
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 30px 0;
+            text-align: center;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            margin-top: 10px;
+            opacity: 0.9;
+        }
+        
+        .content-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease;
+        }
+        
+        .content-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        h2 {
+            color: var(--dark-color);
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        
+        h3 {
+            color: var(--secondary-color);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: var(--light-color);
+            color: var(--dark-color);
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        .code-block {
+            background-color: #f5f5f5;
+            border-left: 4px solid var(--secondary-color);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 5px 5px 0;
+            overflow-x: auto;
+        }
+        
+        pre {
+            margin: 0;
+            font-family: 'Courier New', Courier, monospace;
+            white-space: pre-wrap;
+        }
+        
+        .solution-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .solution-card {
+            background-color: var(--light-color);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .flow-chart {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+        
+        .architecture {
+            background-color: #f0f8ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+            background-color: var(--dark-color);
+            color: white;
+            border-radius: 10px;
+        }
+        
+        .tip-box {
+            background-color: #e3f2fd;
+            border-left: 4px solid var(--secondary-color);
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 5px 5px 0;
+        }
+        
+        .warning-box {
+            background-color: #fff8e1;
+            border-left: 4px solid var(--accent-color);
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 5px 5px 0;
+        }
+        
+        ul, ol {
+            padding-left: 20px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>FreeRTOS任务创建失败处理</h1>
+            <div class="subtitle">任务创建失败的原因和解决方法</div>
+        </header>
+        
+        <div class="content-card">
+            <h2>引言</h2>
+            <p>在FreeRTOS嵌入式系统开发中，任务创建是系统初始化的关键步骤。任务创建失败可能导致系统无法正常启动或运行不稳定。本课程将详细分析任务创建失败的各种原因，并提供相应的解决方案。</p>
+            
+            <div class="tip-box">
+                <strong>提示：</strong> FreeRTOS任务创建函数xTaskCreate()和xTaskCreateStatic()返回pdPASS表示成功，返回其他值表示失败。
+            </div>
+        </div>
+        
+        <div class="content-card">
+            <h2>任务创建失败的主要原因</h2>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>失败原因</th>
+                        <th>描述</th>
+                        <th>常见场景</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>内存不足</td>
+                        <td>堆空间不足以分配任务控制块(TCB)和任务栈</td>
+                        <td>系统资源紧张，任务栈设置过大</td>
+                    </tr>
+                    <tr>
+                        <td>堆栈配置错误</td>
+                        <td>任务栈大小设置不合理或堆栈溢出</td>
+                        <td>递归函数调用深度过大，局部变量过多</td>
+                    </tr>
+                    <tr>
+                        <td>优先级冲突</td>
+                        <td>任务优先级超出有效范围或与系统任务冲突</td>
+                        <td>优先级设置为0或大于configMAX_PRIORITIES-1</td>
+                    </tr>
+                    <tr>
+                        <td>任务句柄无效</td>
+                        <td>传递的任务句柄指针为NULL或无效</td>
+                        <td>动态创建任务时未提供有效的任务句柄指针</td>
+                    </tr>
+                    <tr>
+                        <td>FreeRTOS配置错误</td>
+                        <td>FreeRTOSConfig.h中的配置参数设置不当</td>
+                        <td>configSUPPORT_DYNAMIC_ALLOCATION未启用</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="content-card">
+            <h2>内存不足问题详解</h2>
+            
+            <h3>内存分配失败的原因</h3>
+            <ul>
+                <li><strong>堆空间太小：</strong> configTOTAL_HEAP_SIZE设置过小</li>
+                <li><strong>任务栈过大：</strong> 单个任务的栈大小设置超出可用内存</li>
+                <li><strong>任务数量过多：</strong> 同时创建的任务数量超过系统承载能力</li>
+                <li><strong>内存碎片：</strong> 频繁创建删除任务导致内存碎片化</li>
+            </ul>
+            
+            <h3>内存需求计算</h3>
+            <p>每个动态创建的任务需要的内存包括：</p>
+            <ul>
+                <li>任务控制块(TCB)大小</li>
+                <li>任务栈大小（由参数指定）</li>
+                <li>可能的对齐填充字节</li>
+            </ul>
+            
+            <div class="code-block">
+                <pre>// 示例：计算任务内存需求
+size_t task_memory = sizeof(TCB_t) + (stack_depth * sizeof(StackType_t));
+// 注意：实际需求可能因对齐要求而略有增加</pre>
+            </div>
+        </div>
+        
+        <div class="content-card">
+            <h2>任务创建失败处理流程</h2>
+            
+            <div class="flow-chart">
+                <svg width="600" height="400" viewBox="0 0 600 400">
+                    <rect x="50" y="30" width="200" height="40" rx="5" fill="#4CAF50" stroke="#2E7D32" stroke-width="2"/>
+                    <text x="150" y="55" text-anchor="middle" fill="white" font-weight="bold">开始创建任务</text>
+                    
+                    <rect x="100" y="100" width="400" height="40" rx="5" fill="#2196F3" stroke="#0D47A1" stroke-width="2"/>
+                    <text x="300" y="125" text-anchor="middle" fill="white">调用xTaskCreate()</text>
+                    
+                    <rect x="150" y="170" width="300" height="40" rx="5" fill="#FFC107" stroke="#FF8F00" stroke-width="2"/>
+                    <text x="300" y="195" text-anchor="middle" fill="black">检查返回值</text>
+                    
+                    <path d="M300 210 L300 240 M300 240 L250 270 M300 240 L350 270" stroke="#666" stroke-width="2" fill="none"/>
+                    <text x="220" y="290" text-anchor="middle">pdPASS(成功)</text>
+                    <text x="380" y="290" text-anchor="middle">其他值(失败)</text>
+                    
+                    <rect x="50" y="310" width="200" height="40" rx="5" fill="#4CAF50" stroke="#2E7D32" stroke-width="2"/>
+                    <text x="150" y="335" text-anchor="middle" fill="white">任务创建成功</text>
+                    
+                    <rect x="350" y="310" width="200" height="40" rx="5" fill="#F44336" stroke="#B71C1C" stroke-width="2"/>
+                    <text x="450" y="335" text-anchor="middle" fill="white">错误处理流程</text>
+                </svg>
+            </div>
+        </div>
+        
+        <div class="content-card">
+            <h2>解决方案</h2>
+            
+            <div class="solution-grid">
+                <div class="solution-card">
+                    <h3>内存优化</h3>
+                    <ul>
+                        <li>调整configTOTAL_HEAP_SIZE</li>
+                        <li>优化任务栈大小</li>
+                        <li>使用静态内存分配</li>
+                        <li>实现内存监控</li>
+                    </ul>
+                </div>
+                
+                <div class="solution-card">
+                    <h3>配置检查</h3>
+                    <ul>
+                        <li>验证FreeRTOSConfig.h设置</li>
+                        <li>检查优先级范围</li>
+                        <li>确认任务参数有效性</li>
+                        <li>启用必要的配置选项</li>
+                    </ul>
+                </div>
+                
+                <div class="solution-card">
+                    <h3>错误处理</h3>
+                    <ul>
+                        <li>实现健壮的错误检查</li>
+                        <li>添加任务创建重试机制</li>
+                        <li>实现优雅降级方案</li>
+                        <li>记录错误日志</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="content-card">
+            <h2>代码示例：健壮的任务创建</h2>
+            
+            <div class="code-block">
+                <pre>#include "FreeRTOS.h"
+#include "task.h"
+
+// 任务函数原型
+void vExampleTask(void *pvParameters);
+
+// 健壮的任务创建函数
+BaseType_t xRobustTaskCreate(TaskFunction_t pxTaskCode,
+                             const char * const pcName,
+                             const uint16_t usStackDepth,
+                             void * const pvParameters,
+                             UBaseType_t uxPriority,
+                             TaskHandle_t * const pxCreatedTask,
+                             int maxRetries)
+{
+    BaseType_t xReturn;
+    int retryCount = 0;
+    
+    // 参数验证
+    if(pxTaskCode == NULL) {
+        return errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY;
+    }
+    
+    if(usStackDepth == 0) {
+        return errCOULD_NOT_ALLOCATE_REQUIRED_MEMORY;
+    }
+    
+    // 尝试创建任务，支持重试
+    do {
+        xReturn = xTaskCreate(pxTaskCode,
+                             pcName,
+                             usStackDepth,
+                             pvParameters,
+                             uxPriority,
+                             pxCreatedTask);
+        
+        if(xReturn == pdPASS) {
+            // 任务创建成功
+            break;
+        } else {
+            // 任务创建失败，可以在这里添加延迟或清理操作
+            retryCount++;
+            vTaskDelay(pdMS_TO_TICKS(10)); // 短暂延迟后重试
+        }
+    } while(retryCount < maxRetries);
+    
+    return xReturn;
+}
+
+// 使用示例
+void vApplicationTaskCreateExample(void)
+{
+    TaskHandle_t xTaskHandle = NULL;
+    BaseType_t xResult;
+    
+    // 尝试创建任务，最多重试3次
+    xResult = xRobustTaskCreate(vExampleTask,
+                               "ExampleTask",
+                               256,  // 栈深度
+                               NULL,
+                               tskIDLE_PRIORITY + 1,
+                               &xTaskHandle,
+                               3);   // 最大重试次数
+    
+    if(xResult != pdPASS) {
+        // 任务创建失败处理
+        // 可以记录错误、执行降级方案或系统复位
+        configASSERT(0); // 在调试版本中触发断言
+    }
+}</pre>
+            </div>
+        </div>
+        
+        <div class="content-card">
+            <h2>FreeRTOS内存管理架构</h2>
+            
+            <div class="architecture">
+                <svg width="100%" height="300" viewBox="0 0 600 300">
+                    <rect x="50" y="50" width="150" height="40" rx="5" fill="#4CAF50" stroke="#2E7D32" stroke-width="2"/>
+                    <text x="125" y="75" text-anchor="middle" fill="white" font-weight="bold">应用程序</text>
+                    
+                    <rect x="250" y="50" width="150" height="40" rx="5" fill="#2196F3" stroke="#0D47A1" stroke-width="2"/>
+                    <text x="325" y="75" text-anchor="middle" fill="white" font-weight="bold">FreeRTOS API</text>
+                    
+                    <rect x="450" y="50" width="150" height="40" rx="5" fill="#FF9800" stroke="#E65100" stroke-width="2"/>
+                    <text x="525" y="75" text-anchor="middle" fill="white" font-weight="bold">内存管理</text>
+                    
+                    <path d="M125 90 L125 120 M125 120 L325 120 M325 120 L325 90" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+                    <path d="M325 90 L325 120 M325 120 L525 120 M525 120 L525 90" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+                    
+                    <rect x="50" y="150" width="150" height="40" rx="5" fill="#9C27B0" stroke="#4A148C" stroke-width="2"/>
+                    <text x="125" y="175" text-anchor="middle" fill="white">堆内存分配</text>
+                    
+                    <rect x="250" y="150" width="150" height="40" rx="5" fill="#009688" stroke="#004D40" stroke-width="2"/>
+                    <text x="325" y="175" text-anchor="middle" fill="white">任务控制块</text>
+                    
+                    <rect x="450" y="150" width="150" height="40" rx="5" fill="#795548" stroke="#3E2723" stroke-width="2"/>
+                    <text x="525" y="175" text-anchor="middle" fill="white">任务栈</text>
+                    
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#666"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+            
+            <div class="warning-box">
+                <strong>注意：</strong> FreeRTOS提供了5种内存管理方案（heap_1到heap_5），开发者需要根据应用需求选择合适的内存管理策略。对于任务创建频繁的系统，建议使用heap_4或heap_5以减少内存碎片。
+            </div>
+        </div>
+        
+        <div class="content-card">
+            <h2>预防措施和最佳实践</h2>
+            
+            <h3>系统设计阶段</h3>
+            <ol>
+                <li><strong>合理估算内存需求：</strong> 在项目初期准确计算系统内存需求</li>
+                <li><strong>任务栈大小规划：</strong> 通过测试确定每个任务的最小栈需求</li>
+                <li><strong>优先级规划：</strong> 设计清晰的优先级策略，避免冲突</li>
+                <li><strong>内存监控：</strong> 实现运行时内存使用监控机制</li>
+            </ol>
+            
+            <h3>开发实施阶段</h3>
+            <ol>
+                <li><strong>参数验证：</strong> 在创建任务前验证所有输入参数</li>
+                <li><strong>错误处理：</strong> 为所有任务创建操作实现完整的错误处理</li>
+                <li><strong>资源清理：</strong> 确保任务创建失败时释放已分配的资源</li>
+                <li><strong>日志记录：</strong> 记录任务创建失败的原因以便调试</li>
+            </ol>
+            
+            <h3>测试验证阶段</h3>
+            <ol>
+                <li><strong>边界测试：</strong> 测试系统在内存极限条件下的行为</li>
+                <li><strong>压力测试：</strong> 创建大量任务测试系统稳定性</li>
+                <li><strong>长期运行测试：</strong> 验证系统在长期运行中的内存管理</li>
+                <li><strong>错误注入测试：</strong> 模拟各种故障条件测试系统鲁棒性</li>
+            </ol>
+        </div>
+        
+        <footer>
+            <p>蓝海资料掘金营</p>
+        </footer>
+    </div>
+</body>
+</html>

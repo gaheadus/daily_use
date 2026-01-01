@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS任务管理50问 - 任务与事件组</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #bbdefb 50%, #f8bbd0 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px dashed #4fc3f7;
+        }
+        
+        .header h1 {
+            color: #0277bd;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h2 {
+            color: #0288d1;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: #ff9800;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+        
+        .content-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        h3 {
+            color: #0288d1;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #b3e5fc;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 20px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        th {
+            background-color: #4fc3f7;
+            color: white;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e1f5fe;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #e1f5fe;
+        }
+        
+        tr:hover {
+            background-color: #b3e5fc;
+        }
+        
+        .code-block {
+            background: #f5f5f5;
+            border-left: 4px solid #4fc3f7;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        
+        pre {
+            white-space: pre-wrap;
+            font-family: 'Consolas', 'Monaco', monospace;
+            line-height: 1.5;
+        }
+        
+        .svg-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .architecture {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin: 20px 0;
+        }
+        
+        .highlight {
+            background-color: #fff9c4;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 3px dashed #4fc3f7;
+            color: #0277bd;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .note {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .warning {
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .tip {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="badge">FreeRTOS任务管理50问</div>
+            <h1>任务与事件组：事件组在任务同步中的应用</h1>
+            <h2>第44问：事件组如何实现高效的任务同步</h2>
+        </div>
+        
+        <div class="content-section">
+            <h3>1. 事件组概述</h3>
+            <p>事件组是FreeRTOS中一种强大的任务同步机制，它允许任务等待多个事件中的任何一个或所有事件发生。每个事件由事件组中的一个位表示，任务可以设置、清除或等待这些事件位。</p>
+            
+            <div class="svg-container">
+                <svg width="600" height="200" viewBox="0 0 600 200">
+                    <rect x="50" y="50" width="500" height="100" rx="10" ry="10" fill="#e1f5fe" stroke="#4fc3f7" stroke-width="2"/>
+                    <text x="300" y="80" text-anchor="middle" font-family="Arial" font-size="16" fill="#0277bd">事件组 (32位)</text>
+                    <rect x="70" y="100" width="30" height="30" rx="5" ry="5" fill="#4fc3f7" stroke="#0277bd" stroke-width="1"/>
+                    <text x="85" y="120" text-anchor="middle" font-family="Arial" font-size="12" fill="white">0</text>
+                    <rect x="110" y="100" width="30" height="30" rx="5" ry="5" fill="#4fc3f7" stroke="#0277bd" stroke-width="1"/>
+                    <text x="125" y="120" text-anchor="middle" font-family="Arial" font-size="12" fill="white">1</text>
+                    <rect x="150" y="100" width="30" height="30" rx="5" ry="5" fill="#4fc3f7" stroke="#0277bd" stroke-width="1"/>
+                    <text x="165" y="120" text-anchor="middle" font-family="Arial" font-size="12" fill="white">2</text>
+                    <rect x="190" y="100" width="30" height="30" rx="5" ry="5" fill="#4fc3f7" stroke="#0277bd" stroke-width="1"/>
+                    <text x="205" y="120" text-anchor="middle" font-family="Arial" font-size="12" fill="white">3</text>
+                    <text x="300" y="140" text-anchor="middle" font-family="Arial" font-size="12" fill="#0277bd">...</text>
+                    <rect x="430" y="100" width="30" height="30" rx="5" ry="5" fill="#4fc3f7" stroke="#0277bd" stroke-width="1"/>
+                    <text x="445" y="120" text-anchor="middle" font-family="Arial" font-size="12" fill="white">30</text>
+                    <rect x="470" y="100" width="30" height="30" rx="5" ry="5" fill="#4fc3f7" stroke="#0277bd" stroke-width="1"/>
+                    <text x="485" y="120" text-anchor="middle" font-family="Arial" font-size="12" fill="white">31</text>
+                </svg>
+            </div>
+            
+            <div class="tip">
+                <p><strong>提示：</strong> 事件组特别适用于需要等待多个条件满足的场景，比如等待多个传感器数据就绪或等待多个通信接口完成数据传输。</p>
+            </div>
+        </div>
+        
+        <div class="content-section">
+            <h3>2. 事件组的主要特性</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>特性</th>
+                        <th>描述</th>
+                        <th>优势</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>多事件等待</td>
+                        <td>任务可以同时等待多个事件</td>
+                        <td>减少任务切换，提高效率</td>
+                    </tr>
+                    <tr>
+                        <td>位操作</td>
+                        <td>每个事件由事件组中的一个位表示</td>
+                        <td>节省内存，操作高效</td>
+                    </tr>
+                    <tr>
+                        <td>逻辑条件</td>
+                        <td>支持"与"和"或"逻辑条件</td>
+                        <td>灵活的同步策略</td>
+                    </tr>
+                    <tr>
+                        <td>自动清除</td>
+                        <td>可选择在等待成功后自动清除事件</td>
+                        <td>简化事件管理</td>
+                    </tr>
+                    <tr>
+                        <td>超时机制</td>
+                        <td>支持等待超时设置</td>
+                        <td>防止任务永久阻塞</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="content-section">
+            <h3>3. 事件组API函数</h3>
+            <p>FreeRTOS提供了一系列API函数来操作事件组：</p>
+            
+            <div class="code-block">
+                <pre>// 创建事件组
+EventGroupHandle_t xEventGroupCreate( void );
+
+// 设置事件位
+EventBits_t xEventGroupSetBits( EventGroupHandle_t xEventGroup, 
+                                const EventBits_t uxBitsToSet );
+
+// 从ISR中设置事件位
+BaseType_t xEventGroupSetBitsFromISR( EventGroupHandle_t xEventGroup,
+                                      const EventBits_t uxBitsToSet,
+                                      BaseType_t *pxHigherPriorityTaskWoken );
+
+// 等待事件位
+EventBits_t xEventGroupWaitBits( EventGroupHandle_t xEventGroup,
+                                 const EventBits_t uxBitsToWaitFor,
+                                 const BaseType_t xClearOnExit,
+                                 const BaseType_t xWaitForAllBits,
+                                 TickType_t xTicksToWait );
+
+// 清除事件位
+EventBits_t xEventGroupClearBits( EventGroupHandle_t xEventGroup,
+                                  const EventBits_t uxBitsToClear );
+
+// 获取当前事件位值
+EventBits_t xEventGroupGetBits( EventGroupHandle_t xEventGroup );
+
+// 从ISR中获取当前事件位值
+EventBits_t xEventGroupGetBitsFromISR( EventGroupHandle_t xEventGroup );</pre>
+            </div>
+        </div>
+        
+        <div class="content-section">
+            <h3>4. 事件组应用场景</h3>
+            <div class="architecture">
+                <svg width="600" height="400" viewBox="0 0 600 400">
+                    <!-- 任务1 -->
+                    <rect x="50" y="50" width="150" height="60" rx="10" ry="10" fill="#bbdefb" stroke="#1976d2" stroke-width="2"/>
+                    <text x="125" y="85" text-anchor="middle" font-family="Arial" font-size="14" fill="#0d47a1">任务A</text>
+                    
+                    <!-- 任务2 -->
+                    <rect x="50" y="150" width="150" height="60" rx="10" ry="10" fill="#c8e6c9" stroke="#388e3c" stroke-width="2"/>
+                    <text x="125" y="185" text-anchor="middle" font-family="Arial" font-size="14" fill="#1b5e20">任务B</text>
+                    
+                    <!-- 任务3 -->
+                    <rect x="50" y="250" width="150" height="60" rx="10" ry="10" fill="#ffecb3" stroke="#f57c00" stroke-width="2"/>
+                    <text x="125" y="285" text-anchor="middle" font-family="Arial" font-size="14" fill="#e65100">任务C</text>
+                    
+                    <!-- 事件组 -->
+                    <rect x="300" y="150" width="200" height="100" rx="15" ry="15" fill="#f8bbd0" stroke="#c2185b" stroke-width="2"/>
+                    <text x="400" y="200" text-anchor="middle" font-family="Arial" font-size="16" fill="#880e4f">事件组</text>
+                    
+                    <!-- 箭头 -->
+                    <line x1="200" y1="80" x2="300" y2="150" stroke="#1976d2" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    <line x1="200" y1="180" x2="300" y2="180" stroke="#388e3c" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    <line x1="200" y1="280" x2="300" y2="210" stroke="#f57c00" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    
+                    <line x1="500" y1="150" x2="600" y2="80" stroke="#1976d2" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    <line x1="500" y1="180" x2="600" y2="180" stroke="#388e3c" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    <line x1="500" y1="210" x2="600" y2="280" stroke="#f57c00" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    
+                    <!-- 同步任务 -->
+                    <rect x="250" y="300" width="300" height="60" rx="10" ry="10" fill="#d1c4e9" stroke="#512da8" stroke-width="2"/>
+                    <text x="400" y="335" text-anchor="middle" font-family="Arial" font-size="14" fill="#311b92">同步任务(等待所有事件)</text>
+                    
+                    <line x1="300" y1="250" x2="400" y2="300" stroke="#512da8" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#757575"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+            
+            <ul>
+                <li><strong>多任务同步：</strong> 多个任务完成后通知一个任务继续执行</li>
+                <li><strong>条件等待：</strong> 任务等待多个条件中的任何一个满足</li>
+                <li><strong>事件广播：</strong> 一个任务通知多个等待任务</li>
+                <li><strong>状态机：</strong> 实现复杂的状态机逻辑</li>
+                <li><strong>资源管理：</strong> 管理多个共享资源的可用性</li>
+            </ul>
+        </div>
+        
+        <div class="content-section">
+            <h3>5. 事件组使用示例</h3>
+            <p>以下示例演示了如何使用事件组实现任务同步：</p>
+            
+            <div class="code-block">
+                <pre>#include "FreeRTOS.h"
+#include "task.h"
+#include "event_groups.h"
+
+// 定义事件位
+#define TASK_A_BIT (1 << 0)  // 位0
+#define TASK_B_BIT (1 << 1)  // 位1
+#define TASK_C_BIT (1 << 2)  // 位2
+#define ALL_BITS (TASK_A_BIT | TASK_B_BIT | TASK_C_BIT)
+
+// 事件组句柄
+EventGroupHandle_t xEventGroup;
+
+// 任务A - 设置事件位0
+void vTaskA(void *pvParameters)
+{
+    for(;;)
+    {
+        // 模拟任务A的工作
+        vTaskDelay(pdMS_TO_TICKS(1000));
+        
+        // 设置事件位0
+        xEventGroupSetBits(xEventGroup, TASK_A_BIT);
+        printf("任务A完成，设置事件位0\n");
+    }
+}
+
+// 任务B - 设置事件位1
+void vTaskB(void *pvParameters)
+{
+    for(;;)
+    {
+        // 模拟任务B的工作
+        vTaskDelay(pdMS_TO_TICKS(1500));
+        
+        // 设置事件位1
+        xEventGroupSetBits(xEventGroup, TASK_B_BIT);
+        printf("任务B完成，设置事件位1\n");
+    }
+}
+
+// 任务C - 设置事件位2
+void vTaskC(void *pvParameters)
+{
+    for(;;)
+    {
+        // 模拟任务C的工作
+        vTaskDelay(pdMS_TO_TICKS(2000));
+        
+        // 设置事件位2
+        xEventGroupSetBits(xEventGroup, TASK_C_BIT);
+        printf("任务C完成，设置事件位2\n");
+    }
+}
+
+// 同步任务 - 等待所有事件位
+void vSyncTask(void *pvParameters)
+{
+    EventBits_t uxBits;
+    
+    for(;;)
+    {
+        // 等待所有三个事件位都被设置
+        uxBits = xEventGroupWaitBits(
+            xEventGroup,    // 事件组句柄
+            ALL_BITS,       // 等待的位
+            pdTRUE,         // 成功等待后清除这些位
+            pdTRUE,         // 等待所有位
+            portMAX_DELAY   // 无限期等待
+        );
+        
+        if((uxBits & ALL_BITS) == ALL_BITS)
+        {
+            printf("所有任务已完成，同步任务继续执行\n");
+            // 执行同步后的操作
+        }
+    }
+}
+
+int main(void)
+{
+    // 创建事件组
+    xEventGroup = xEventGroupCreate();
+    
+    // 创建任务
+    xTaskCreate(vTaskA, "TaskA", configMINIMAL_STACK_SIZE, NULL, 2, NULL);
+    xTaskCreate(vTaskB, "TaskB", configMINIMAL_STACK_SIZE, NULL, 2, NULL);
+    xTaskCreate(vTaskC, "TaskC", configMINIMAL_STACK_SIZE, NULL, 2, NULL);
+    xTaskCreate(vSyncTask, "SyncTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+    
+    // 启动调度器
+    vTaskStartScheduler();
+    
+    return 0;
+}</pre>
+            </div>
+            
+            <div class="note">
+                <p><strong>注意：</strong> 在事件组的使用中，需要注意事件位的分配和管理，避免位冲突。同时，要合理设置等待超时，防止任务永久阻塞。</p>
+            </div>
+        </div>
+        
+        <div class="content-section">
+            <h3>6. 事件组与其它同步机制对比</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>同步机制</th>
+                        <th>适用场景</th>
+                        <th>优点</th>
+                        <th>缺点</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>事件组</td>
+                        <td>多事件等待、复杂同步条件</td>
+                        <td>灵活、高效、支持多条件</td>
+                        <td>占用较多内存(每个事件组32位)</td>
+                    </tr>
+                    <tr>
+                        <td>信号量</td>
+                        <td>资源计数、简单同步</td>
+                        <td>简单、高效、内存占用少</td>
+                        <td>只能表示单一条件</td>
+                    </tr>
+                    <tr>
+                        <td>互斥量</td>
+                        <td>资源互斥访问</td>
+                        <td>防止优先级反转</td>
+                        <td>只能用于互斥</td>
+                    </tr>
+                    <tr>
+                        <td>队列</td>
+                        <td>数据传输、消息传递</td>
+                        <td>可以传递数据</td>
+                        <td>内存占用较大</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="content-section">
+            <h3>7. 最佳实践与注意事项</h3>
+            <ul>
+                <li><strong>事件位规划：</strong> 提前规划事件位的使用，避免冲突</li>
+                <li><strong>超时设置：</strong> 为事件等待设置合理的超时时间</li>
+                <li><strong>ISR使用：</strong> 在ISR中使用FromISR版本的事件组函数</li>
+                <li><strong>内存管理：</strong> 注意事件组的内存占用，特别是在资源受限的系统</li>
+                <li><strong>调试：</strong> 使用FreeRTOS的跟踪功能调试事件组的使用</li>
+            </ul>
+            
+            <div class="warning">
+                <p><strong>警告：</strong> 事件组不适合用于传递数据，它只用于同步。如果需要传递数据，应该使用队列或流缓冲区。</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            蓝海资料掘金营
+        </div>
+    </div>
+</body>
+</html>

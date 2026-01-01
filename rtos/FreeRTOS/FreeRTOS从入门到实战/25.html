@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS在ESP32上的移植与应用 - 蓝海资料掘金营</title>
+    <style>
+        :root {
+            --tech-blue: #3498db;
+            --vitality-orange: #f39c12;
+            --fresh-green: #2ecc71;
+            --light-bg: #f8f9fa;
+            --dark-text: #2c3e50;
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            color: var(--dark-text);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(90deg, var(--tech-blue), var(--fresh-green));
+            color: white;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: var(--card-shadow);
+        }
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        main {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+        section {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: var(--card-shadow);
+            border-left: 6px solid var(--tech-blue);
+            transition: transform 0.3s ease;
+        }
+        section:hover {
+            transform: translateY(-5px);
+        }
+        h2 {
+            color: var(--tech-blue);
+            border-bottom: 3px solid var(--vitality-orange);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+        h3 {
+            color: var(--fresh-green);
+            margin: 15px 0 10px;
+        }
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        ul, ol {
+            padding-left: 25px;
+            margin-bottom: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: var(--tech-blue);
+            color: white;
+            font-weight: 600;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #e8f4fc;
+        }
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            border-left: 5px solid var(--vitality-orange);
+        }
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 25px 0;
+        }
+        .core-arch {
+            width: 100%;
+            height: 300px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .tip-box {
+            background: #fff8e1;
+            border-left: 5px solid var(--vitality-orange);
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 10px 10px 0;
+        }
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 25px;
+            color: white;
+            background: linear-gradient(90deg, var(--tech-blue), #2980b9);
+            border-radius: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            box-shadow: var(--card-shadow);
+        }
+        .keyword {
+            background: #e1f5fe;
+            color: #0277bd;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>FreeRTOS在ESP32上的移植与应用</h1>
+        <p class="subtitle">ESP32双核特性、任务绑定与ESP-IDF集成实战</p>
+    </header>
+
+    <main>
+        <section>
+            <h2>一、ESP32双核架构与FreeRTOS</h2>
+            <p>ESP32是一款集成了Wi-Fi和蓝牙功能的双核微控制器，其两个核心分别为<span class="keyword">Core 0 (PRO_CPU)</span>和<span class="keyword">Core 1 (APP_CPU)</span>。FreeRTOS作为ESP-IDF默认的实时操作系统，完美地管理了这两个核心，使得开发者能够充分利用硬件并行能力。</p>
+            
+            <div class="svg-container">
+                <svg class="core-arch" viewBox="0 0 800 300">
+                    <rect x="50" y="50" width="300" height="200" rx="15" fill="#d6eaf8" stroke="#3498db" stroke-width="3"/>
+                    <text x="200" y="80" text-anchor="middle" font-size="22" font-weight="bold" fill="#2c3e50">ESP32 双核系统</text>
+                    
+                    <rect x="100" y="120" width="100" height="100" rx="10" fill="#fdebd0" stroke="#f39c12" stroke-width="2"/>
+                    <text x="150" y="150" text-anchor="middle" font-size="18" fill="#d35400">Core 0</text>
+                    <text x="150" y="180" text-anchor="middle" font-size="14" fill="#7d6608">(PRO_CPU)</text>
+                    
+                    <rect x="350" y="120" width="100" height="100" rx="10" fill="#d5f4e6" stroke="#2ecc71" stroke-width="2"/>
+                    <text x="400" y="150" text-anchor="middle" font-size="18" fill="#27ae60">Core 1</text>
+                    <text x="400" y="180" text-anchor="middle" font-size="14" fill="#196f3d">(APP_CPU)</text>
+                    
+                    <line x1="230" y1="170" x2="350" y2="170" stroke="#3498db" stroke-width="3" stroke-dasharray="5,5"/>
+                    <text x="290" y="165" text-anchor="middle" font-size="14" fill="#3498db">FreeRTOS调度</text>
+                    
+                    <rect x="500" y="50" width="250" height="200" rx="15" fill="#e8daef" stroke="#9b59b6" stroke-width="3"/>
+                    <text x="625" y="80" text-anchor="middle" font-size="20" font-weight="bold" fill="#2c3e50">共享资源</text>
+                    <text x="625" y="120" text-anchor="middle" font-size="14" fill="#6c3483">内存、外设、中断</text>
+                    <text x="625" y="150" text-anchor="middle" font-size="14" fill="#6c3483">SPI RAM、RTC</text>
+                </svg>
+            </div>
+
+            <h3>双核分工特点</h3>
+            <ul>
+                <li><strong>Core 0 (PRO_CPU)</strong>：通常用于处理网络协议栈（Wi-Fi/蓝牙）、系统任务、以及高优先级实时任务。</li>
+                <li><strong>Core 1 (APP_CPU)</strong>：通常运行用户应用程序任务，如图形界面、传感器数据处理、业务逻辑等。</li>
+                <li>两个核心共享内存和外设，但拥有独立的缓存和部分寄存器。</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>二、将任务绑定到特定核心（xTaskCreatePinnedToCore）</h2>
+            <p>ESP-IDF对FreeRTOS进行了扩展，提供了<span class="keyword">xTaskCreatePinnedToCore()</span>函数，允许开发者将任务显式地分配到指定的CPU核心上运行。</p>
+            
+            <h3>函数原型</h3>
+            <div class="code-block">
+<pre>
+BaseType_t xTaskCreatePinnedToCore(
+    TaskFunction_t pvTaskCode,          // 任务函数指针
+    const char * const pcName,          // 任务名称（字符串）
+    const uint32_t usStackDepth,        // 任务堆栈大小（字）
+    void * const pvParameters,          // 传递给任务函数的参数
+    UBaseType_t uxPriority,             // 任务优先级
+    TaskHandle_t * const pvCreatedTask, // 任务句柄指针
+    const BaseType_t xCoreID            // 核心ID (0 或 1)
+);
+</pre>
+            </div>
+
+            <h3>核心绑定参数说明</h3>
+            <table>
+                <thead>
+                    <tr><th>核心ID</th><th>宏定义</th><th>说明</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>0</td><td>PRO_CPU_NUM</td><td>将任务绑定到Core 0 (PRO_CPU)</td></tr>
+                    <tr><td>1</td><td>APP_CPU_NUM</td><td>将任务绑定到Core 1 (APP_CPU)</td></tr>
+                    <tr><td>tskNO_AFFINITY</td><td>(-1)</td><td>不绑定，由调度器自由分配</td></tr>
+                </tbody>
+            </table>
+
+            <h3>实战代码示例</h3>
+            <div class="code-block">
+<pre>
+#include &lt;stdio.h&gt;
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
+// 任务函数：Core 0 上的任务
+void task_on_core0(void *pvParameters) {
+    while(1) {
+        printf("任务运行在 Core 0，优先级: %d\n", uxTaskPriorityGet(NULL));
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+    }
+}
+
+// 任务函数：Core 1 上的任务
+void task_on_core1(void *pvParameters) {
+    while(1) {
+        printf("任务运行在 Core 1，优先级: %d\n", uxTaskPriorityGet(NULL));
+        vTaskDelay(1500 / portTICK_PERIOD_MS);
+    }
+}
+
+void app_main() {
+    TaskHandle_t task0_handle = NULL;
+    TaskHandle_t task1_handle = NULL;
+    
+    // 创建绑定到Core 0的任务
+    xTaskCreatePinnedToCore(
+        task_on_core0,   // 任务函数
+        "Core0_Task",    // 任务名
+        2048,            // 堆栈大小
+        NULL,            // 参数
+        5,               // 优先级
+        &task0_handle,   // 任务句柄
+        0                // 核心ID (Core 0)
+    );
+    
+    // 创建绑定到Core 1的任务
+    xTaskCreatePinnedToCore(
+        task_on_core1,
+        "Core1_Task",
+        2048,
+        NULL,
+        4,
+        &task1_handle,
+        1                // 核心ID (Core 1)
+    );
+    
+    // 删除app_main任务本身（FreeRTOS调度器将接管）
+    vTaskDelete(NULL);
+}
+</pre>
+            </div>
+
+            <div class="tip-box">
+                <strong>最佳实践建议：</strong> 将实时性要求高、与硬件直接交互的任务绑定到Core 0；将用户界面、复杂算法等任务绑定到Core 1。注意跨核通信需使用线程安全的机制（如队列、信号量）。
+            </div>
+        </section>
+
+        <section>
+            <h2>三、ESP-IDF中FreeRTOS的集成使用</h2>
+            <p>ESP-IDF已经深度集成了FreeRTOS，并在此基础上增加了许多针对ESP32硬件的优化和功能扩展。</p>
+            
+            <h3>ESP-IDF FreeRTOS 主要特性</h3>
+            <ol>
+                <li><strong>双核感知调度器</strong>：自动平衡双核负载，支持任务绑定。</li>
+                <li><strong>Tickless 空闲模式</strong>：深度节能，延长电池寿命。</li>
+                <li><strong>组件初始化自动化</strong>：通过Kconfig配置系统参数。</li>
+                <li><strong>硬件定时器集成</strong>：提供高精度定时功能。</li>
+                <li><strong>线程安全的中断处理</strong>：支持从中断中安全调用FreeRTOS API。</li>
+            </ol>
+
+            <h3>项目配置（menuconfig）</h3>
+            <p>通过 <code>idf.py menuconfig</code> 可以配置FreeRTOS相关参数：</p>
+            <ul>
+                <li>FreeRTOS内核设置（任务数、队列数、堆大小）</li>
+                <li>CPU频率设置（80MHz, 160MHz, 240MHz）</li>
+                <li>Tick速率（通常为100Hz或1000Hz）</li>
+                <li>是否启用Tickless idle模式</li>
+                <li>任务运行统计功能</li>
+            </ul>
+
+            <h3>常用ESP-IDF FreeRTOS API概览</h3>
+            <table>
+                <thead>
+                    <tr><th>功能类别</th><th>API示例</th><th>说明</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>任务管理</td><td>xTaskCreatePinnedToCore()</td><td>创建绑定核心的任务</td></tr>
+                    <tr><td>时间管理</td><td>esp_timer_get_time()</td><td>获取高精度时间（微秒）</td></tr>
+                    <tr><td>同步机制</td><td>xSemaphoreCreateMutex()</td><td>创建互斥信号量（跨核安全）</td></tr>
+                    <tr><td>队列通信</td><td>xQueueCreate()</td><td>创建队列（跨核通信）</td></tr>
+                    <tr><td>事件组</td><td>xEventGroupCreate()</td><td>创建事件标志组</td></tr>
+                    <tr><td>软件定时器</td><td>xTimerCreate()</td><td>创建FreeRTOS软件定时器</td></tr>
+                </tbody>
+            </table>
+
+            <h3>双核通信示例（队列）</h3>
+            <div class="code-block">
+<pre>
+QueueHandle_t cross_core_queue;
+
+// Core 0 发送任务
+void sender_task(void *pv) {
+    int data = 0;
+    while(1) {
+        xQueueSend(cross_core_queue, &data, portMAX_DELAY);
+        printf("Core 0 发送: %d\n", data++);
+        vTaskDelay(500 / portTICK_PERIOD_MS);
+    }
+}
+
+// Core 1 接收任务
+void receiver_task(void *pv) {
+    int received_data;
+    while(1) {
+        if(xQueueReceive(cross_core_queue, &received_data, portMAX_DELAY)) {
+            printf("Core 1 接收: %d\n", received_data);
+        }
+    }
+}
+
+void app_main() {
+    // 创建跨核队列
+    cross_core_queue = xQueueCreate(10, sizeof(int));
+    
+    xTaskCreatePinnedToCore(sender_task, "Sender", 2048, NULL, 5, NULL, 0);
+    xTaskCreatePinnedToCore(receiver_task, "Receiver", 2048, NULL, 5, NULL, 1);
+    
+    vTaskDelete(NULL);
+}
+</pre>
+            </div>
+        </section>
+
+        <section>
+            <h2>四、总结与最佳实践</h2>
+            <h3>核心要点总结</h3>
+            <ul>
+                <li>ESP32的双核架构为并行处理提供了硬件基础，FreeRTOS在ESP-IDF中已完美适配。</li>
+                <li>使用 <code>xTaskCreatePinnedToCore()</code> 可以精确控制任务在哪个核心上运行。</li>
+                <li>跨核通信必须使用线程安全的机制（队列、信号量、事件组）。</li>
+                <li>合理分配任务到不同核心可以显著提升系统性能和响应速度。</li>
+                <li>ESP-IDF提供了丰富的FreeRTOS扩展和优化，充分利用其配置工具和API。</li>
+            </ul>
+
+            <h3>调试技巧</h3>
+            <ol>
+                <li>使用 <code>uxTaskGetSystemState()</code> 获取任务状态信息。</li>
+                <li>通过 <code>vTaskList()</code> 打印所有任务状态（需启用相应配置）。</li>
+                <li>利用ESP32的JTAG调试功能进行双核同步调试。</li>
+                <li>监控双核利用率，避免单核过载。</li>
+            </ol>
+        </section>
+    </main>
+
+    <footer>
+        蓝海资料掘金营 © 2023 - 探索技术深海，挖掘知识黄金
+    </footer>
+</body>
+</html>

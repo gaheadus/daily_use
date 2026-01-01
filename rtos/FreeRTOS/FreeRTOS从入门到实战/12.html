@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS从入门到实战 - 事件组详解</title>
+    <style>
+        :root {
+            --tech-blue: #4A90E2;
+            --vibrant-orange: #FF8C42;
+            --fresh-green: #6BCF7F;
+            --light-bg: #F0F8FF;
+            --dark-text: #2C3E50;
+            --light-text: #5D6D7E;
+            --card-bg: #FFFFFF;
+            --shadow: rgba(74, 144, 226, 0.15);
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, var(--light-bg) 0%, #E6F7FF 100%);
+            color: var(--dark-text);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(90deg, var(--tech-blue), var(--fresh-green));
+            color: white;
+            border-radius: 20px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px var(--shadow);
+        }
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        main {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+        section {
+            background: var(--card-bg);
+            border-radius: 18px;
+            padding: 30px;
+            box-shadow: 0 8px 25px var(--shadow);
+            border-left: 6px solid var(--tech-blue);
+            transition: transform 0.3s ease;
+        }
+        section:hover {
+            transform: translateY(-5px);
+        }
+        h2 {
+            color: var(--tech-blue);
+            border-bottom: 3px solid var(--vibrant-orange);
+            padding-bottom: 12px;
+            margin-bottom: 25px;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+        }
+        h2 svg {
+            margin-right: 12px;
+            width: 32px;
+            height: 32px;
+        }
+        h3 {
+            color: var(--fresh-green);
+            margin: 20px 0 15px;
+            font-size: 1.4rem;
+        }
+        p {
+            margin-bottom: 18px;
+            color: var(--light-text);
+            font-size: 1.05rem;
+        }
+        ul, ol {
+            padding-left: 25px;
+            margin-bottom: 20px;
+        }
+        li {
+            margin-bottom: 10px;
+            color: var(--light-text);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px var(--shadow);
+        }
+        th {
+            background-color: var(--tech-blue);
+            color: white;
+            padding: 18px 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        td {
+            padding: 16px 15px;
+            border-bottom: 1px solid #E8F4FF;
+        }
+        tr:nth-child(even) {
+            background-color: #F9FDFF;
+        }
+        tr:hover {
+            background-color: #E6F2FF;
+        }
+        .code-block {
+            background: #2C3E50;
+            color: #ECF0F1;
+            padding: 22px;
+            border-radius: 12px;
+            overflow-x: auto;
+            margin: 25px 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            border-left: 5px solid var(--vibrant-orange);
+        }
+        .function-table {
+            background: #FFF9F0;
+            border-left-color: var(--vibrant-orange);
+        }
+        .architecture {
+            text-align: center;
+            margin: 40px 0;
+        }
+        svg.diagram {
+            width: 100%;
+            max-width: 800px;
+            height: auto;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 25px var(--shadow);
+        }
+        .highlight {
+            background-color: #FFF9E6;
+            padding: 4px 8px;
+            border-radius: 6px;
+            color: #E67E22;
+            font-weight: bold;
+        }
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            padding: 30px;
+            color: var(--light-text);
+            border-top: 2px dashed var(--tech-blue);
+            font-size: 1.1rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+            h1 {
+                font-size: 2.2rem;
+            }
+            section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>FreeRTOS从入门到实战</h1>
+        <p class="subtitle">第12章：事件组（Event Groups）—— 高效的多任务同步机制</p>
+    </header>
+
+    <main>
+        <section>
+            <h2>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+                事件标志位概念
+            </h2>
+            <p>事件组（Event Group）是FreeRTOS中一种强大的任务间通信与同步机制。它本质上是一个<strong>无符号整数（EventBits_t类型）</strong>，其中的每一位（bit）都可以作为一个独立的二进制标志，用于表示某个特定事件的发生状态。</p>
+            <ul>
+                <li><span class="highlight">多事件管理</span>：一个事件组可以同时管理多达24个（取决于配置）独立的事件标志。</li>
+                <li><span class="highlight">“或”与“与”同步</span>：任务可以等待多个事件中的任意一个发生（逻辑或），或者等待所有指定事件都发生（逻辑与）。</li>
+                <li><span class="highlight">广播机制</span>：一个任务设置事件位后，可以同时唤醒所有等待这些事件位的任务，实现一对多的通知。</li>
+                <li><span class="highlight">高效轻量</span>：相比使用多个二进制信号量或队列，事件组在资源消耗和效率上更具优势。</li>
+            </ul>
+            <div class="architecture">
+                <svg class="diagram" viewBox="0 0 800 300">
+                    <rect x="50" y="50" width="700" height="200" rx="10" fill="#E6F7FF" stroke="#4A90E2" stroke-width="3"/>
+                    <text x="400" y="90" text-anchor="middle" font-size="22" fill="#2C3E50" font-weight="bold">事件组 (32位寄存器)</text>
+                    <rect x="100" y="120" width="600" height="40" fill="#FFFFFF" stroke="#FF8C42" stroke-width="2"/>
+                    <!-- 事件位 -->
+                    <g font-size="14" text-anchor="middle">
+                        <rect x="105" y="125" width="30" height="30" fill="#6BCF7F" stroke="#2C3E50"/>
+                        <text x="120" y="147" fill="white">BIT0</text>
+                        <text x="120" y="180">按键按下</text>
+                        
+                        <rect x="145" y="125" width="30" height="30" fill="#FF8C42" stroke="#2C3E50"/>
+                        <text x="160" y="147" fill="white">BIT1</text>
+                        <text x="160" y="180">数据接收</text>
+                        
+                        <rect x="185" y="125" width="30" height="30" fill="#4A90E2" stroke="#2C3E50"/>
+                        <text x="200" y="147" fill="white">BIT2</text>
+                        <text x="200" y="180">定时到达</text>
+                        
+                        <rect x="225" y="125" width="30" height="30" fill="#9B59B6" stroke="#2C3E50"/>
+                        <text x="240" y="147" fill="white">BIT3</text>
+                        <text x="240" y="180">传感器就绪</text>
+                        
+                        <!-- 省略号 -->
+                        <text x="300" y="145" font-size="24">...</text>
+                        
+                        <rect x="350" y="125" width="30" height="30" fill="#E74C3C" stroke="#2C3E50"/>
+                        <text x="365" y="147" fill="white">BITn</text>
+                        <text x="365" y="180">用户事件</text>
+                    </g>
+                    <!-- 任务 -->
+                    <circle cx="200" y="250" r="25" fill="#4A90E2"/>
+                    <text x="200" y="255" text-anchor="middle" fill="white" font-size="14">任务A</text>
+                    <text x="200" y="290" text-anchor="middle" font-size="12" fill="#2C3E50">等待BIT0 | BIT1</text>
+                    
+                    <circle cx="400" y="250" r="25" fill="#FF8C42"/>
+                    <text x="400" y="255" text-anchor="middle" fill="white" font-size="14">任务B</text>
+                    <text x="400" y="290" text-anchor="middle" font-size="12" fill="#2C3E50">设置BIT2</text>
+                    
+                    <circle cx="600" y="250" r="25" fill="#6BCF7F"/>
+                    <text x="600" y="255" text-anchor="middle" fill="white" font-size="14">任务C</text>
+                    <text x="600" y="290" text-anchor="middle" font-size="12" fill="#2C3E50">等待BIT2 & BIT3</text>
+                    
+                    <!-- 箭头 -->
+                    <path d="M400 225 L400 170" stroke="#2C3E50" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+                    <path d="M200 170 L200 125" stroke="#2C3E50" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+                    <path d="M600 170 L600 125" stroke="#2C3E50" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+                    <defs>
+                        <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                            <path d="M0,0 L0,6 L9,3 z" fill="#2C3E50"/>
+                        </marker>
+                    </defs>
+                </svg>
+                <p><em>事件组工作原理示意图：多个任务通过事件位进行同步与通信</em></p>
+            </div>
+        </section>
+
+        <section>
+            <h2>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                </svg>
+                核心API函数详解
+            </h2>
+
+            <h3>1. xEventGroupCreate() — 创建事件组</h3>
+            <p>动态分配内存并创建一个新的事件组，返回其句柄。</p>
+            <div class="code-block">
+<pre>EventGroupHandle_t xEventGroupCreate( void );
+
+// 示例：
+EventGroupHandle_t xMyEventGroup;
+
+void vInitFunction( void )
+{
+    // 创建事件组
+    xMyEventGroup = xEventGroupCreate();
+    
+    if( xMyEventGroup == NULL )
+    {
+        // 创建失败，内存不足
+    }
+}</pre>
+            </div>
+
+            <h3>2. xEventGroupSetBits() — 设置事件位</h3>
+            <p>将指定的事件位设置为1（置位），并可能唤醒等待这些事件位的任务。</p>
+            <div class="code-block">
+<pre>EventBits_t xEventGroupSetBits( EventGroupHandle_t xEventGroup,
+                                const EventBits_t uxBitsToSet );
+
+// 参数：
+// xEventGroup - 事件组句柄
+// uxBitsToSet - 要置位的掩码（例如 BIT0 | BIT2）
+
+// 返回值：设置后事件组的值
+
+// 示例：
+#define BIT_SENSOR_READY  ( 1 << 0 ) // 第0位
+#define BIT_DATA_RECEIVED ( 1 << 1 ) // 第1位
+#define BIT_TIMEOUT       ( 1 << 2 ) // 第2位
+
+void vSensorTask( void *pvParameters )
+{
+    while(1)
+    {
+        // 传感器数据就绪
+        xEventGroupSetBits( xMyEventGroup, BIT_SENSOR_READY );
+        
+        // 同时设置多个位
+        xEventGroupSetBits( xMyEventGroup, BIT_DATA_RECEIVED | BIT_TIMEOUT );
+    }
+}</pre>
+            </div>
+
+            <h3>3. xEventGroupWaitBits() — 等待事件位</h3>
+            <p>等待事件组中的一个或多个事件位被置位。任务可以阻塞等待，直到条件满足。</p>
+            <div class="code-block">
+<pre>EventBits_t xEventGroupWaitBits( const EventGroupHandle_t xEventGroup,
+                                 const EventBits_t uxBitsToWaitFor,
+                                 const BaseType_t xClearOnExit,
+                                 const BaseType_t xWaitForAllBits,
+                                 TickType_t xTicksToWait );
+
+// 参数详解表：</pre>
+            </div>
+            <div class="function-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>参数</th>
+                            <th>说明</th>
+                            <th>典型值</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>xEventGroup</strong></td>
+                            <td>要等待的事件组句柄</td>
+                            <td>xMyEventGroup</td>
+                        </tr>
+                        <tr>
+                            <td><strong>uxBitsToWaitFor</strong></td>
+                            <td>要等待的事件位掩码</td>
+                            <td>BIT0 | BIT1</td>
+                        </tr>
+                        <tr>
+                            <td><strong>xClearOnExit</strong></td>
+                            <td>退出时是否清除等待的位<br>pdTRUE: 清除; pdFALSE: 不清除</td>
+                            <td>pdTRUE</td>
+                        </tr>
+                        <tr>
+                            <td><strong>xWaitForAllBits</strong></td>
+                            <td>等待逻辑<br>pdTRUE: 所有位都置位(与)<br>pdFALSE: 任意位置位(或)</td>
+                            <td>pdFALSE</td>
+                        </tr>
+                        <tr>
+                            <td><strong>xTicksToWait</strong></td>
+                            <td>最大阻塞时间（滴答数）<br>portMAX_DELAY: 无限等待</td>
+                            <td>portMAX_DELAY</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="code-block">
+<pre>// 示例：等待传感器就绪或超时
+void vProcessingTask( void *pvParameters )
+{
+    EventBits_t uxBits;
+    const TickType_t xMaxWait = pdMS_TO_TICKS( 1000 ); // 最大等待1秒
+    
+    while(1)
+    {
+        // 等待BIT0或BIT2置位，退出时不清除位，等待任意一个，最多等1秒
+        uxBits = xEventGroupWaitBits(
+            xMyEventGroup,          // 事件组句柄
+            BIT_SENSOR_READY | BIT_TIMEOUT, // 等待的位
+            pdFALSE,                // 退出时不清除位
+            pdFALSE,                // 任意一个置位即可
+            xMaxWait );             // 等待时间
+            
+        if( ( uxBits & BIT_SENSOR_READY ) != 0 )
+        {
+            // 传感器就绪事件发生
+            vProcessSensorData();
+        }
+        
+        if( ( uxBits & BIT_TIMEOUT ) != 0 )
+        {
+            // 超时事件发生
+            vHandleTimeout();
+        }
+        
+        if( ( uxBits & (BIT_SENSOR_READY | BIT_TIMEOUT) ) == 0 )
+        {
+            // 超时且没有事件发生
+        }
+    }
+}</pre>
+            </div>
+        </section>
+
+        <section>
+            <h2>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/>
+                </svg>
+                多事件同步等待实战模式
+            </h2>
+            <p>事件组最强大的功能之一是能够同时等待多个事件的复杂组合。以下是几种常见的同步模式：</p>
+            
+            <h3>模式一：逻辑“或”等待（任一事件触发）</h3>
+            <p>任务需要多个事件中的任意一个发生即可继续执行。</p>
+            <div class="code-block">
+<pre>// 等待按键按下或通信超时
+#define BIT_BUTTON_PRESSED  ( 1 << 0 )
+#define BIT_COMM_TIMEOUT    ( 1 << 1 )
+
+uxBits = xEventGroupWaitBits(
+    xEventGroup,
+    BIT_BUTTON_PRESSED | BIT_COMM_TIMEOUT,
+    pdTRUE,     // 退出时清除这些位
+    pdFALSE,    // 等待任意一个事件
+    portMAX_DELAY );
+
+if( uxBits & BIT_BUTTON_PRESSED )
+{
+    // 处理按键
+}
+else if( uxBits & BIT_COMM_TIMEOUT )
+{
+    // 处理超时
+}</pre>
+            </div>
+
+            <h3>模式二：逻辑“与”等待（所有事件触发）</h3>
+            <p>任务需要所有指定事件都发生才能继续执行。</p>
+            <div class="code-block">
+<pre>// 等待所有传感器都就绪
+#define BIT_SENSOR1_READY ( 1 << 0 )
+#define BIT_SENSOR2_READY ( 1 << 1 )
+#define BIT_SENSOR3_READY ( 1 << 2 )
+
+uxBits = xEventGroupWaitBits(
+    xEventGroup,
+    BIT_SENSOR1_READY | BIT_SENSOR2_READY | BIT_SENSOR3_READY,
+    pdTRUE,     // 退出时清除位
+    pdTRUE,     // 等待所有位都置位（逻辑与）
+    pdMS_TO_TICKS( 5000 ) ); // 最多等待5秒
+
+if( (uxBits & (BIT_SENSOR1_READY | BIT_SENSOR2_READY | BIT_SENSOR3_READY)) 
+    == (BIT_SENSOR1_READY | BIT_SENSOR2_READY | BIT_SENSOR3_READY) )
+{
+    // 所有传感器都已就绪，开始数据融合
+    vSensorDataFusion();
+}</pre>
+            </div>
+
+            <h3>模式三：混合模式与超时处理</h3>
+            <p>结合超时机制，实现更健壮的同步逻辑。</p>
+            <div class="code-block">
+<pre>// 复杂事件等待：等待(A或B)与C，带超时
+EventBits_t uxRequiredBits = BIT_EVENT_A | BIT_EVENT_B;
+EventBits_t uxAllRequiredBits = uxRequiredBits | BIT_EVENT_C;
+
+while(1)
+{
+    uxBits = xEventGroupWaitBits(
+        xEventGroup,
+        uxAllRequiredBits,
+        pdFALSE,    // 不清除位
+        pdFALSE,    // 先检查是否有任意事件
+        0 );        // 不阻塞，立即返回
+        
+    // 检查是否满足条件：(A或B)与C
+    if( ( (uxBits & uxRequiredBits) != 0 ) && 
+        ( (uxBits & BIT_EVENT_C) != 0 ) )
+    {
+        // 条件满足，执行操作
+        vPerformAction();
+        // 清除相关位
+        xEventGroupClearBits(xEventGroup, uxAllRequiredBits);
+    }
+    else
+    {
+        // 条件不满足，阻塞等待100ms再检查
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
+}</pre>
+            </div>
+
+            <h3>最佳实践与注意事项</h3>
+            <ul>
+                <li><strong>位定义清晰</strong>：使用宏或枚举明确定义每个事件位的含义。</li>
+                <li><strong>避免位冲突</strong>：确保不同模块使用不同的事件位，或建立位分配表。</li>
+                <li><strong>清除策略</strong>：根据应用需求合理选择xClearOnExit参数，避免事件被重复处理。</li>
+                <li><strong>超时设置</strong>：总是设置合理的超时时间，防止任务永久阻塞。</li>
+                <li><strong>ISR中使用</strong>：在中断服务程序中使用<code>xEventGroupSetBitsFromISR()</code>函数。</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                </svg>
+                综合示例：多任务数据采集系统
+            </h2>
+            <p>下面是一个完整的事件组应用示例，模拟一个数据采集系统中多个传感器的同步。</p>
+            <div class="code-block">
+<pre>#include "FreeRTOS.h"
+#include "task.h"
+#include "event_groups.h"
+
+// 事件位定义
+#define BIT_TEMP_READY     ( 1 << 0 )
+#define BIT_HUMID_READY    ( 1 << 1 )
+#define BIT_PRESS_READY    ( 1 << 2 )
+#define BIT_ALL_SENSORS    ( BIT_TEMP_READY | BIT_HUMID_READY | BIT_PRESS_READY )
+
+// 事件组句柄
+EventGroupHandle_t xSensorEventGroup;
+
+// 温度传感器任务
+void vTemperatureTask( void *pvParameters )
+{
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+    
+    while(1)
+    {
+        // 模拟温度采集（每200ms一次）
+        vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(200) );
+        
+        // 采集完成，设置温度就绪位
+        xEventGroupSetBits( xSensorEventGroup, BIT_TEMP_READY );
+        printf("温度数据就绪\\n");
+    }
+}
+
+// 湿度传感器任务
+void vHumidityTask( void *pvParameters )
+{
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+    
+    while(1)
+    {
+        vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(300) );
+        xEventGroupSetBits( xSensorEventGroup, BIT_HUMID_READY );
+        printf("湿度数据就绪\\n");
+    }
+}
+
+// 压力传感器任务
+void vPressureTask( void *pvParameters )
+{
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+    
+    while(1)
+    {
+        vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(500) );
+        xEventGroupSetBits( xSensorEventGroup, BIT_PRESS_READY );
+        printf("压力数据就绪\\n");
+    }
+}
+
+// 数据处理任务（等待所有传感器数据）
+void vDataProcessingTask( void *pvParameters )
+{
+    EventBits_t uxBits;
+    
+    while(1)
+    {
+        // 等待所有传感器数据就绪
+        uxBits = xEventGroupWaitBits(
+            xSensorEventGroup,
+            BIT_ALL_SENSORS,
+            pdTRUE,        // 退出时清除所有位
+            pdTRUE,        // 等待所有位（逻辑与）
+            portMAX_DELAY );
+            
+        if( (uxBits & BIT_ALL_SENSORS) == BIT_ALL_SENSORS )
+        {
+            printf("所有传感器数据已就绪，开始数据融合处理...\\n");
+            // 这里进行实际的数据处理
+            vTaskDelay(pdMS_TO_TICKS(50)); // 模拟处理时间
+            printf("数据处理完成！\\n\\n");
+        }
+    }
+}
+
+// 主函数
+int main( void )
+{
+    // 创建事件组
+    xSensorEventGroup = xEventGroupCreate();
+    
+    // 创建任务
+    xTaskCreate( vTemperatureTask, "Temp", 1024, NULL, 2, NULL );
+    xTaskCreate( vHumidityTask, "Humid", 1024, NULL, 2, NULL );
+    xTaskCreate( vPressureTask, "Press", 1024, NULL, 2, NULL );
+    xTaskCreate( vDataProcessingTask, "Process", 1024, NULL, 3, NULL );
+    
+    // 启动调度器
+    vTaskStartScheduler();
+    
+    return 0;
+}</pre>
+            </div>
+            <p>这个示例展示了事件组如何优雅地协调多个传感器任务与一个数据处理任务。每个传感器独立运行，在数据就绪时设置对应的事件位。数据处理任务等待所有事件位都被置位，然后进行数据融合处理。这种模式在嵌入式数据采集系统中非常常见。</p>
+        </section>
+    </main>
+
+    <footer>
+        蓝海资料掘金营
+    </footer>
+</body>
+</html>

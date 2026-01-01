@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS任务管理50问 - 任务创建函数详解</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #f9fbe7 50%, #e8f5e9 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+        
+        .header h1 {
+            color: #1565c0;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h2 {
+            color: #ff9800;
+            font-size: 1.8rem;
+            font-weight: 500;
+        }
+        
+        .decorative-line {
+            height: 5px;
+            background: linear-gradient(90deg, #ff9800, #1565c0, #4caf50);
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .content-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .section-title {
+            color: #1565c0;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px dashed #ff9800;
+        }
+        
+        .subsection-title {
+            color: #4caf50;
+            font-size: 1.2rem;
+            margin: 20px 0 10px;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        th {
+            background-color: #1565c0;
+            color: white;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f5f5f5;
+        }
+        
+        tr:hover {
+            background-color: #e3f2fd;
+        }
+        
+        pre {
+            background-color: #f5f5f5;
+            border-left: 4px solid #1565c0;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+            border-radius: 5px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        code {
+            background-color: #f5f5f5;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+        
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .return-table {
+            background-color: #e8f5e9;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #1565c0;
+            font-weight: bold;
+            border-top: 2px dashed #ff9800;
+        }
+        
+        .note-box {
+            background-color: #fff8e1;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .example-box {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .highlight {
+            background-color: #fff9c4;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>FreeRTOS任务管理50问</h1>
+            <h2>任务创建函数详解：xTaskCreate函数参数解析、返回值含义</h2>
+            <div class="decorative-line"></div>
+        </div>
+        
+        <div class="content-section">
+            <h3 class="section-title">xTaskCreate函数概述</h3>
+            <p><code>xTaskCreate</code> 是 FreeRTOS 中最常用的任务创建函数，用于动态创建一个新的任务。该函数会在 FreeRTOS 堆中分配任务控制块（TCB）和任务栈所需的内存空间。</p>
+            
+            <div class="svg-container">
+                <svg width="600" height="200" viewBox="0 0 600 200">
+                    <rect x="50" y="50" width="500" height="100" rx="10" fill="#e3f2fd" stroke="#1565c0" stroke-width="2"/>
+                    <text x="300" y="80" text-anchor="middle" font-family="Arial" font-size="16" fill="#1565c0">xTaskCreate函数</text>
+                    <text x="300" y="110" text-anchor="middle" font-family="Arial" font-size="14" fill="#333">动态分配TCB和栈内存</text>
+                    <text x="300" y="130" text-anchor="middle" font-family="Arial" font-size="14" fill="#333">创建新任务并加入就绪列表</text>
+                    
+                    <line x1="50" y1="100" x2="20" y2="100" stroke="#1565c0" stroke-width="2"/>
+                    <polygon points="20,100 30,95 30,105" fill="#1565c0"/>
+                    <text x="10" y="95" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">输入</text>
+                    
+                    <line x1="550" y1="100" x2="580" y2="100" stroke="#1565c0" stroke-width="2"/>
+                    <polygon points="580,100 570,95 570,105" fill="#1565c0"/>
+                    <text x="590" y="95" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">输出</text>
+                </svg>
+            </div>
+        </div>
+        
+        <div class="content-section">
+            <h3 class="section-title">函数原型</h3>
+            <pre>BaseType_t xTaskCreate( 
+    TaskFunction_t pvTaskCode,
+    const char * const pcName,
+    configSTACK_DEPTH_TYPE usStackDepth,
+    void *pvParameters,
+    UBaseType_t uxPriority,
+    TaskHandle_t *pvCreatedTask
+);</pre>
+        </div>
+        
+        <div class="content-section">
+            <h3 class="section-title">参数详解</h3>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th width="15%">参数</th>
+                        <th width="25%">数据类型</th>
+                        <th width="60%">描述</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>pvTaskCode</code></td>
+                        <td>TaskFunction_t</td>
+                        <td>指向任务函数的指针。任务函数应该是一个无限循环，通常不返回，或者使用 <code>vTaskDelete(NULL)</code> 显式删除自身。</td>
+                    </tr>
+                    <tr>
+                        <td><code>pcName</code></td>
+                        <td>const char *</td>
+                        <td>任务的描述性名称。主要用于调试目的，FreeRTOS 不会使用它。该字符串通常存储在只读内存中。</td>
+                    </tr>
+                    <tr>
+                        <td><code>usStackDepth</code></td>
+                        <td>configSTACK_DEPTH_TYPE</td>
+                        <td>指定任务栈的大小，以字（word）为单位。例如，在32位架构上，栈深度为100表示分配400字节的栈空间。</td>
+                    </tr>
+                    <tr>
+                        <td><code>pvParameters</code></td>
+                        <td>void *</td>
+                        <td>传递给任务函数的参数指针。可以用于在任务创建时向任务传递数据。</td>
+                    </tr>
+                    <tr>
+                        <td><code>uxPriority</code></td>
+                        <td>UBaseType_t</td>
+                        <td>任务的优先级。数值越大优先级越高。0 表示最低优先级，<code>configMAX_PRIORITIES-1</code> 表示最高优先级。</td>
+                    </tr>
+                    <tr>
+                        <td><code>pvCreatedTask</code></td>
+                        <td>TaskHandle_t *</td>
+                        <td>用于传回任务句柄的指针。任务句柄可用于在 API 调用中引用任务，例如更改任务优先级或删除任务。可以设置为 NULL。</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="note-box">
+                <p><strong>注意：</strong>栈深度单位是字（word），而不是字节。在32位处理器上，1个字等于4字节；在16位处理器上，1个字等于2字节。</p>
+            </div>
+        </div>
+        
+        <div class="content-section">
+            <h3 class="section-title">返回值含义</h3>
+            
+            <table class="return-table">
+                <thead>
+                    <tr>
+                        <th width="30%">返回值</th>
+                        <th width="70%">含义</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>pdPASS</code></td>
+                        <td>任务创建成功。任务已创建并添加到就绪列表中。</td>
+                    </tr>
+                    <tr>
+                        <td><code>pdFAIL</code></td>
+                        <td>任务创建失败。通常是因为没有足够的堆内存来分配任务控制块（TCB）或任务栈。</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="note-box">
+                <p><strong>注意：</strong>如果返回 <code>pdFAIL</code>，需要检查 FreeRTOS 堆大小配置（<code>configTOTAL_HEAP_SIZE</code>）是否足够，或者考虑使用静态任务创建函数 <code>xTaskCreateStatic</code>。</p>
+            </div>
+        </div>
+        
+        <div class="content-section">
+            <h3 class="section-title">任务创建流程</h3>
+            
+            <div class="svg-container">
+                <svg width="600" height="400" viewBox="0 0 600 400">
+                    <!-- 流程图 -->
+                    <rect x="250" y="20" width="100" height="40" rx="5" fill="#e3f2fd" stroke="#1565c0" stroke-width="2"/>
+                    <text x="300" y="45" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">开始创建任务</text>
+                    
+                    <polygon points="300,60 290,70 310,70" fill="#1565c0"/>
+                    
+                    <rect x="200" y="80" width="200" height="40" rx="5" fill="#e3f2fd" stroke="#1565c0" stroke-width="2"/>
+                    <text x="300" y="105" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">分配TCB内存</text>
+                    
+                    <polygon points="300,120 290,130 310,130" fill="#1565c0"/>
+                    
+                    <rect x="200" y="140" width="200" height="40" rx="5" fill="#e3f2fd" stroke="#1565c0" stroke-width="2"/>
+                    <text x="300" y="165" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">分配栈内存</text>
+                    
+                    <polygon points="300,180 290,190 310,190" fill="#1565c0"/>
+                    
+                    <rect x="200" y="200" width="200" height="40" rx="5" fill="#e3f2fd" stroke="#1565c0" stroke-width="2"/>
+                    <text x="300" y="225" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">初始化TCB和栈</text>
+                    
+                    <polygon points="300,240 290,250 310,250" fill="#1565c0"/>
+                    
+                    <rect x="200" y="260" width="200" height="40" rx="5" fill="#e3f2fd" stroke="#1565c0" stroke-width="2"/>
+                    <text x="300" y="285" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">将任务添加到就绪列表</text>
+                    
+                    <polygon points="300,300 290,310 310,310" fill="#1565c0"/>
+                    
+                    <rect x="250" y="320" width="100" height="40" rx="5" fill="#e8f5e9" stroke="#4caf50" stroke-width="2"/>
+                    <text x="300" y="345" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">返回pdPASS</text>
+                    
+                    <!-- 失败分支 -->
+                    <rect x="450" y="140" width="120" height="40" rx="5" fill="#ffebee" stroke="#f44336" stroke-width="2"/>
+                    <text x="510" y="165" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">内存分配失败</text>
+                    
+                    <line x1="400" y1="160" x2="450" y2="160" stroke="#f44336" stroke-width="2"/>
+                    <polygon points="450,160 440,155 440,165" fill="#f44336"/>
+                    
+                    <rect x="450" y="200" width="120" height="40" rx="5" fill="#ffebee" stroke="#f44336" stroke-width="2"/>
+                    <text x="510" y="225" text-anchor="middle" font-family="Arial" font-size="12" fill="#333">返回pdFAIL</text>
+                    
+                    <line x1="510" y1="240" x2="510" y2="200" stroke="#f44336" stroke-width="2"/>
+                    <polygon points="510,200 505,210 515,210" fill="#f44336"/>
+                </svg>
+            </div>
+        </div>
+        
+        <div class="content-section">
+            <h3 class="section-title">代码示例</h3>
+            
+            <div class="example-box">
+                <p>以下是一个完整的任务创建示例：</p>
+                
+                <pre>#include "FreeRTOS.h"
+#include "task.h"
+
+// 任务函数原型
+void vTaskFunction( void *pvParameters );
+
+// 任务参数结构
+typedef struct {
+    int id;
+    const char* name;
+} TaskParams_t;
+
+int main( void )
+{
+    // 定义任务参数
+    TaskParams_t taskParams = {
+        .id = 1,
+        .name = "MyTask"
+    };
+    
+    TaskHandle_t xTaskHandle = NULL;
+    
+    // 创建任务
+    BaseType_t xReturn = xTaskCreate(
+        vTaskFunction,        // 任务函数指针
+        "DemoTask",           // 任务名称
+        100,                  // 栈深度（字）
+        &taskParams,          // 任务参数
+        tskIDLE_PRIORITY + 1, // 任务优先级
+        &xTaskHandle          // 任务句柄
+    );
+    
+    // 检查任务是否创建成功
+    if( xReturn == pdPASS ) {
+        // 任务创建成功，启动调度器
+        vTaskStartScheduler();
+    } else {
+        // 任务创建失败，处理错误
+        while(1);
+    }
+    
+    return 0;
+}
+
+// 任务函数实现
+void vTaskFunction( void *pvParameters )
+{
+    TaskParams_t *params = (TaskParams_t *)pvParameters;
+    
+    for( ;; ) {
+        // 任务主体 - 无限循环
+        // 使用参数: params->id, params->name
+        
+        // 任务延时
+        vTaskDelay( pdMS_TO_TICKS( 1000 ) );
+    }
+    
+    // 理论上任务不应该返回，但如果返回则删除自身
+    vTaskDelete( NULL );
+}</pre>
+            </div>
+        </div>
+        
+        <div class="content-section">
+            <h3 class="section-title">使用注意事项</h3>
+            
+            <ul>
+                <li>在调用 <code>vTaskStartScheduler()</code> 之前创建任务</li>
+                <li>确保栈大小足够，避免栈溢出</li>
+                <li>合理设置任务优先级，避免优先级反转问题</li>
+                <li>任务函数通常应该是无限循环，或者显式调用 <code>vTaskDelete(NULL)</code></li>
+                <li>使用任务参数传递数据，而不是使用全局变量（如果可能）</li>
+                <li>检查返回值以确保任务创建成功</li>
+                <li>考虑使用 <code>configASSERT()</code> 来捕获配置错误</li>
+            </ul>
+            
+            <div class="note-box">
+                <p><strong>最佳实践：</strong>为每个任务指定一个有意义的名称，这会在调试时非常有用。FreeRTOS 的许多调试工具和跟踪功能都会显示任务名称。</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            蓝海资料掘金营
+        </div>
+    </div>
+</body>
+</html>

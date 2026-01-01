@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS在STM32CubeMX中的集成 - 《FreeRTOS从入门到实战》</title>
+    <style>
+        :root {
+            --tech-blue: #4a9eff;
+            --vitality-orange: #ff9a3d;
+            --fresh-green: #6bc46b;
+            --light-bg: #f0f8ff;
+            --dark-text: #333333;
+            --card-bg: #ffffff;
+            --shadow: 0 8px 20px rgba(74, 158, 255, 0.15);
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, var(--light-bg) 0%, #e6f7ff 100%);
+            color: var(--dark-text);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(90deg, var(--tech-blue), var(--fresh-green));
+            color: white;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+        }
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        main {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+        section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+            border-left: 6px solid var(--vitality-orange);
+        }
+        h2 {
+            color: var(--tech-blue);
+            border-bottom: 3px solid var(--fresh-green);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+        h3 {
+            color: var(--vitality-orange);
+            margin: 15px 0 10px;
+        }
+        ul, ol {
+            padding-left: 25px;
+            margin: 15px 0;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: var(--tech-blue);
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Consolas', monospace;
+            border-left: 5px solid var(--vitality-orange);
+        }
+        code {
+            background: #eef7ff;
+            color: var(--tech-blue);
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+        }
+        .svg-container {
+            text-align: center;
+            margin: 25px 0;
+            background: #f9fdfe;
+            padding: 20px;
+            border-radius: 12px;
+        }
+        .architecture-svg {
+            width: 100%;
+            max-width: 800px;
+            height: auto;
+        }
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .step-card {
+            background: linear-gradient(145deg, #ffffff, #f0f9ff);
+            padding: 20px;
+            border-radius: 12px;
+            border-top: 5px solid var(--fresh-green);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 25px;
+            background: linear-gradient(90deg, var(--tech-blue), #2a75c9);
+            color: white;
+            border-radius: 16px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            box-shadow: var(--shadow);
+        }
+        .highlight {
+            background-color: #fff9e6;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 5px solid var(--vitality-orange);
+            margin: 20px 0;
+        }
+        .tip {
+            background-color: #e6fff2;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 5px solid var(--fresh-green);
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>FreeRTOS在STM32CubeMX中的集成</h1>
+        <p class="subtitle">《FreeRTOS从入门到实战》第26讲：使用STM32CubeMX图形化配置工具快速搭建RTOS项目框架</p>
+    </header>
+
+    <main>
+        <section>
+            <h2>一、课程目标</h2>
+            <p>本讲将指导你如何使用<strong>STM32CubeMX</strong>图形化配置工具，在STM32微控制器上快速集成FreeRTOS实时操作系统。你将学会：</p>
+            <ul>
+                <li>在CubeMX中启用并配置FreeRTOS内核</li>
+                <li>图形化创建任务并设置其参数（优先级、堆栈大小等）</li>
+                <li>配置内核对象：信号量、队列、互斥量、事件组</li>
+                <li>生成完整的、可编译的FreeRTOS工程代码</li>
+                <li>理解生成的代码结构，并在此基础上进行功能开发</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>二、为什么选择STM32CubeMX集成FreeRTOS？</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>优势</th>
+                        <th>说明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>可视化配置</strong></td>
+                        <td>无需手动编写大量板级和内核初始化代码，通过图形界面勾选和填写参数即可。</td>
+                    </tr>
+                    <tr>
+                        <td><strong>降低入门门槛</strong></td>
+                        <td>初学者可以避开复杂的底层细节，专注于RTOS应用逻辑本身。</td>
+                    </tr>
+                    <tr>
+                        <td><strong>保证代码规范性</strong></td>
+                        <td>生成的代码结构清晰、符合STM32 HAL库规范，易于维护和移植。</td>
+                    </tr>
+                    <tr>
+                        <td><strong>高效开发</strong></td>
+                        <td>快速搭建项目框架，将开发时间从“搭建环境”转移到“实现功能”。</td>
+                    </tr>
+                    <tr>
+                        <td><strong>与硬件配置无缝结合</strong></td>
+                        <td>FreeRTOS配置与GPIO、时钟、外设等配置在同一工具中完成，保持一致性。</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section>
+            <h2>三、实战步骤详解</h2>
+            <div class="steps">
+                <div class="step-card">
+                    <h3>步骤1：创建新工程并选择MCU</h3>
+                    <p>打开STM32CubeMX，点击“New Project”。在MCU选择器中，根据你的开发板选择具体的STM32型号（如STM32F407ZG）。</p>
+                </div>
+                <div class="step-card">
+                    <h3>步骤2：启用FreeRTOS</h3>
+                    <p>在“Pinout & Configuration”选项卡中，左侧找到“Middleware”分类，点击<strong>FREERTOS</strong>。在中间的下拉菜单中，将“Interface”从<code>Disabled</code>改为<code>CMSIS_V2</code>（推荐，功能更全）。</p>
+                </div>
+                <div class="step-card">
+                    <h3>步骤3：配置FreeRTOS内核参数</h3>
+                    <p>在“Configuration”子选项卡中，可以全局配置：
+                        <ul>
+                            <li><code>TICK_RATE_HZ</code>：系统节拍频率（通常1000Hz）</li>
+                            <li><code>USE_PREEMPTION</code>：是否使用抢占式调度</li>
+                            <li><code>TOTAL_HEAP_SIZE</code>：内核动态内存总大小</li>
+                        </ul>
+                    </p>
+                </div>
+                <div class="step-card">
+                    <h3>步骤4：创建任务（Tasks）</h3>
+                    <p>切换到“Tasks and Queues”选项卡。点击“Add”按钮创建新任务。为每个任务设置：
+                        <ul>
+                            <li>名称（如LED_Task）</li>
+                            <li>优先级（Priority）</li>
+                            <li>堆栈大小（Stack Size，单位字）</li>
+                            <li>入口函数（Entry Function，自动生成）</li>
+                        </ul>
+                    </p>
+                </div>
+                <div class="step-card">
+                    <h3>步骤5：添加内核对象</h3>
+                    <p>在“Queues and Semaphores”等子选项卡中，可以添加：
+                        <ul>
+                            <li><strong>二进制信号量</strong>（Binary Semaphore）</li>
+                            <li><strong>计数信号量</strong>（Counting Semaphore）</li>
+                            <li><strong>互斥量</strong>（Mutex）</li>
+                            <li><strong>队列</strong>（Queue）</li>
+                        </ul>
+                        只需指定名称、长度和类型即可。
+                    </p>
+                </div>
+                <div class="step-card">
+                    <h3>步骤6：生成工程代码</h3>
+                    <p>点击“Project Manager”选项卡，设置工程名称、路径和IDE（如MDK-ARM V5或STM32CubeIDE）。在“Code Generator”中，选择“Generate peripheral initialization as a pair of ‘.c/.h’ files”。最后点击右上角的<strong>GENERATE CODE</strong>。</p>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>四、生成的代码架构解析</h2>
+            <div class="svg-container">
+                <svg class="architecture-svg" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="10" y="50" width="180" height="60" rx="10" fill="#4a9eff" stroke="#2a75c9" stroke-width="2"/>
+                    <text x="100" y="85" text-anchor="middle" fill="white" font-weight="bold">Core/Startup</text>
+                    <text x="100" y="105" text-anchor="middle" fill="#e6f7ff" font-size="14">启动文件，main入口</text>
+
+                    <rect x="210" y="50" width="180" height="60" rx="10" fill="#ff9a3d" stroke="#d97c1a" stroke-width="2"/>
+                    <text x="300" y="85" text-anchor="middle" fill="white" font-weight="bold">Drivers</text>
+                    <text x="300" y="105" text-anchor="middle" fill="#fff4e6" font-size="14">HAL库，BSP驱动</text>
+
+                    <rect x="410" y="50" width="180" height="60" rx="10" fill="#6bc46b" stroke="#4a9c4a" stroke-width="2"/>
+                    <text x="500" y="85" text-anchor="middle" fill="white" font-weight="bold">Middleware</text>
+                    <text x="500" y="105" text-anchor="middle" fill="#f0fff0" font-size="14">FreeRTOS内核</text>
+
+                    <rect x="610" y="50" width="180" height="60" rx="10" fill="#9d6bff" stroke="#7a4ad9" stroke-width="2"/>
+                    <text x="700" y="85" text-anchor="middle" fill="white" font-weight="bold">Application</text>
+                    <text x="700" y="105" text-anchor="middle" fill="#f5f0ff" font-size="14">用户任务与业务逻辑</text>
+
+                    <line x1="190" y1="80" x2="210" y2="80" stroke="#666" stroke-width="2" stroke-dasharray="5,5"/>
+                    <line x1="390" y1="80" x2="410" y2="80" stroke="#666" stroke-width="2" stroke-dasharray="5,5"/>
+                    <line x1="590" y1="80" x2="610" y2="80" stroke="#666" stroke-width="2" stroke-dasharray="5,5"/>
+
+                    <rect x="50" y="200" width="700" height="150" rx="15" fill="#f0f8ff" stroke="#4a9eff" stroke-width="3"/>
+                    <text x="400" y="230" text-anchor="middle" fill="#2a75c9" font-size="20" font-weight="bold">FreeRTOS任务调度核心</text>
+
+                    <circle cx="200" y="300" r="40" fill="#ff9a3d"/>
+                    <text x="200" y="305" text-anchor="middle" fill="white" font-weight="bold">LED任务</text>
+                    <circle cx="350" y="300" r="40" fill="#6bc46b"/>
+                    <text x="350" y="305" text-anchor="middle" fill="white" font-weight="bold">传感器</text>
+                    <circle cx="500" y="300" r="40" fill="#4a9eff"/>
+                    <text x="500" y="305" text-anchor="middle" fill="white" font-weight="bold">通信</text>
+                    <circle cx="650" y="300" r="40" fill="#9d6bff"/>
+                    <text x="650" y="305" text-anchor="middle" fill="white" font-weight="bold">UI</text>
+
+                    <path d="M 400 150 L 200 240" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+                    <path d="M 400 150 L 350 240" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+                    <path d="M 400 150 L 500 240" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+                    <path d="M 400 150 L 650 240" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+                    <circle cx="400" cy="150" r="25" fill="#ff6b8b"/>
+                    <text x="400" y="155" text-anchor="middle" fill="white" font-weight="bold">调度器</text>
+
+                    <defs>
+                        <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                            <path d="M0,0 L0,6 L9,3 z" fill="#666"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+            <p>代码生成后，关键文件与目录如下：</p>
+            <ul>
+                <li><code>Core/Src/freertos.c</code> – FreeRTOS对象（任务、信号量等）的创建与初始化代码。</li>
+                <li><code>Core/Inc/FreeRTOSConfig.h</code> – FreeRTOS内核的配置文件，所有宏定义在此。</li>
+                <li><code>Core/Src/main.c</code> – 在<code>main()</code>函数中，调用<code>MX_FREERTOS_Init()</code>后启动调度器<code>osKernelStart()</code>。</li>
+                <li><code>Core/Src/</code> 下自动生成的<code>app_*.c</code>文件 – 每个任务的独立实现文件，包含任务函数框架。</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>五、示例：创建LED闪烁任务与信号量</h2>
+            <h3>1. CubeMX图形化配置</h3>
+            <ul>
+                <li>创建一个名为<code>LED_Task</code>的任务，优先级设为<code>osPriorityNormal</code>，堆栈128字。</li>
+                <li>添加一个二进制信号量，命名为<code>binarySem01</code>。</li>
+                <li>配置一个GPIO引脚（如PC13）为输出模式，作为LED控制引脚。</li>
+            </ul>
+
+            <h3>2. 生成的代码框架示例</h3>
+            <pre>
+/* 在 freertos.c 中自动生成的任务创建和信号量创建代码 */
+void MX_FREERTOS_Init(void) {
+    /* 创建二进制信号量 */
+    binarySem01Handle = osSemaphoreNew(1, 1, &binarySem01_attributes);
+
+    /* 创建LED任务 */
+    const osThreadAttr_t LED_Task_attributes = {
+        .name = "LED_Task",
+        .stack_size = 128 * 4,
+        .priority = (osPriority_t) osPriorityNormal,
+    };
+    LED_TaskHandle = osThreadNew(LED_Task, NULL, &LED_Task_attributes);
+}
+
+/* 在 app_ledtask.c 中生成的任务函数框架 */
+void LED_Task(void *argument) {
+    for(;;) {
+        /* 等待信号量（此处仅为示例，实际可能由其他任务释放） */
+        if (osSemaphoreAcquire(binarySem01Handle, osWaitForever) == osOK) {
+            /* 取到信号量后，执行LED翻转 */
+            HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+        }
+        osDelay(500); /* 延迟500ms */
+    }
+}
+            </pre>
+            <div class="tip">
+                <strong>提示：</strong> 生成的任务函数框架是空的无限循环。你需要在<code>osDelay</code>前后添加你的具体业务逻辑，例如读取传感器、发送消息等。
+            </div>
+        </section>
+
+        <section>
+            <h2>六、常见配置项与技巧</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>配置项</th>
+                        <th>推荐值/选项</th>
+                        <th>说明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>USE_PREEMPTION</code></td>
+                        <td>Enabled</td>
+                        <td>启用抢占式调度，使高优先级任务能立即运行。</td>
+                    </tr>
+                    <tr>
+                        <td><code>TICK_RATE_HZ</code></td>
+                        <td>1000</td>
+                        <td>系统节拍1ms，兼顾响应速度和系统开销。</td>
+                    </tr>
+                    <tr>
+                        <td><code>MAX_PRIORITIES</code></td>
+                        <td>7</td>
+                        <td>根据实际任务数量设置，不宜过多。</td>
+                    </tr>
+                    <tr>
+                        <td><code>TOTAL_HEAP_SIZE</code></td>
+                        <td>4096 * 4</td>
+                        <td>根据任务和队列数量调整，确保内存充足。</td>
+                    </tr>
+                    <tr>
+                        <td><code>USE_TRACE_FACILITY</code></td>
+                        <td>Enabled</td>
+                        <td>为调试工具提供支持，便于性能分析。</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="highlight">
+                <strong>高级技巧：</strong> 生成代码后，若需要添加CubeMX未直接支持的FreeRTOS高级功能（如软件定时器、流缓冲区），可以手动修改<code>FreeRTOSConfig.h</code>文件，并调用相应的FreeRTOS API。CubeMX生成的代码与原生FreeRTOS API完全兼容。
+            </div>
+        </section>
+
+        <section>
+            <h2>七、总结与下一步</h2>
+            <p>通过本讲的学习，你已经掌握了使用<strong>STM32CubeMX</strong>图形化工具快速搭建FreeRTOS项目框架的技能。这种方法极大地提升了开发效率，尤其适合项目初期原型构建和初学者上手。</p>
+            <ol>
+                <li><strong>验证框架</strong>：生成代码后，编译并下载到开发板，确保无错误，调度器能正常启动。</li>
+                <li><strong>填充业务逻辑</strong>：在生成的任务框架中，编写你的具体应用代码。</li>
+                <li><strong>调试与优化</strong>：利用FreeRTOS的调试视图（如STM32CubeIDE中的）观察任务状态、堆栈使用等。</li>
+                <li><strong>深入探索</strong>：在框架稳定后，可以进一步学习FreeRTOS的内存管理、任务通知等高级特性，并手动集成到工程中。</li>
+            </ol>
+            <p>从此，你将告别繁琐的RTOS环境搭建，专注于创造精彩的产品功能！</p>
+        </section>
+    </main>
+
+    <footer>
+        蓝海资料掘金营
+    </footer>
+</body>
+</html>

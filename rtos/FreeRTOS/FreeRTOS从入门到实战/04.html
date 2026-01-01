@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS从入门到实战 - 任务管理基础</title>
+    <style>
+        :root {
+            --tech-blue: #4A90E2;
+            --vital-orange: #FF8C42;
+            --fresh-green: #6BCF7F;
+            --light-bg: #F0F8FF;
+            --dark-text: #333333;
+            --light-text: #666666;
+            --card-shadow: 0 8px 20px rgba(74, 144, 226, 0.15);
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, var(--light-bg) 0%, #E6F7FF 100%);
+            color: var(--dark-text);
+            line-height: 1.7;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(90deg, var(--tech-blue), var(--fresh-green));
+            color: white;
+            border-radius: 20px;
+            margin-bottom: 40px;
+            box-shadow: var(--card-shadow);
+        }
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        .subtitle {
+            font-size: 1.3rem;
+            opacity: 0.9;
+        }
+        main section {
+            background: white;
+            border-radius: 18px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: var(--card-shadow);
+            border-left: 8px solid var(--tech-blue);
+            transition: transform 0.3s ease;
+        }
+        main section:hover {
+            transform: translateY(-5px);
+        }
+        h2 {
+            color: var(--tech-blue);
+            border-bottom: 3px solid var(--vital-orange);
+            padding-bottom: 12px;
+            margin-bottom: 25px;
+            font-size: 1.8rem;
+        }
+        h3 {
+            color: var(--fresh-green);
+            margin: 20px 0 15px;
+            font-size: 1.4rem;
+        }
+        p {
+            margin-bottom: 18px;
+            color: var(--light-text);
+        }
+        ul, ol {
+            padding-left: 25px;
+            margin-bottom: 20px;
+        }
+        li {
+            margin-bottom: 10px;
+            color: var(--light-text);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        th {
+            background-color: var(--tech-blue);
+            color: white;
+            padding: 18px 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        td {
+            padding: 16px 15px;
+            border-bottom: 1px solid #eee;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #E6F7FF;
+        }
+        .code-block {
+            background: #2D2D2D;
+            color: #f8f8f2;
+            padding: 22px;
+            border-radius: 12px;
+            margin: 25px 0;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            border-left: 6px solid var(--vital-orange);
+        }
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+        .state-svg, .arch-svg {
+            max-width: 100%;
+            height: auto;
+        }
+        .highlight {
+            background-color: #FFF9E6;
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: #E67E22;
+            font-weight: bold;
+        }
+        footer {
+            text-align: center;
+            padding: 30px;
+            margin-top: 50px;
+            color: white;
+            background: linear-gradient(90deg, var(--tech-blue), #2C6CA8);
+            border-radius: 20px;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            box-shadow: var(--card-shadow);
+        }
+        .note {
+            background: #E6F7FF;
+            border-left: 6px solid var(--fresh-green);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 25px 0;
+        }
+        .note strong {
+            color: var(--tech-blue);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>FreeRTOS从入门到实战</h1>
+        <p class="subtitle">第四章：任务（Task）管理基础</p>
+        <p class="subtitle">任务的概念与状态机、TCB、xTaskCreate函数详解、优先级与调度器</p>
+    </header>
+
+    <main>
+        <section id="task-concept">
+            <h2>1. 任务（Task）的概念</h2>
+            <p>在FreeRTOS中，<span class="highlight">任务（Task）</span>是并发执行的基本单元，可以看作是一个独立的“小程序”。每个任务拥有自己的栈空间、程序计数器（PC）和系统资源，由内核调度器决定何时运行。任务实现了多任务并发，使得单个微控制器可以“同时”处理多个事务。</p>
+            <div class="note">
+                <strong>核心理解：</strong> 任务就是一段无限循环的函数，它永远不会返回（除非被删除）。RTOS通过快速切换任务，制造出“并行”执行的假象。
+            </div>
+        </section>
+
+        <section id="task-state">
+            <h2>2. 任务状态机（State Machine）</h2>
+            <p>一个任务在其生命周期中会处于以下四种核心状态之一，状态间的转换由内核事件触发。</p>
+            <div class="svg-container">
+                <svg class="state-svg" width="800" height="400" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#4A90E2"/>
+                        </marker>
+                    </defs>
+                    <rect x="50" y="150" width="160" height="80" rx="15" ry="15" fill="#FF8C42" stroke="#D2691E" stroke-width="3"/>
+                    <text x="130" y="195" text-anchor="middle" fill="white" font-size="18" font-weight="bold">运行(Running)</text>
+
+                    <rect x="300" y="50" width="160" height="80" rx="15" ry="15" fill="#6BCF7F" stroke="#2E8B57" stroke-width="3"/>
+                    <text x="380" y="95" text-anchor="middle" fill="white" font-size="18" font-weight="bold">就绪(Ready)</text>
+
+                    <rect x="300" y="250" width="160" height="80" rx="15" ry="15" fill="#4A90E2" stroke="#2C6CA8" stroke-width="3"/>
+                    <text x="380" y="295" text-anchor="middle" fill="white" font-size="18" font-weight="bold">阻塞(Blocked)</text>
+
+                    <rect x="550" y="150" width="160" height="80" rx="15" ry="15" fill="#9B59B6" stroke="#6C3483" stroke-width="3"/>
+                    <text x="630" y="195" text-anchor="middle" fill="white" font-size="18" font-weight="bold">挂起(Suspended)</text>
+
+                    <line x1="210" y1="190" x2="300" y2="90" stroke="#4A90E2" stroke-width="3" marker-end="url(#arrowhead)"/>
+                    <text x="255" y="130" text-anchor="middle" fill="#333" font-size="14">被更高优先级任务抢占</text>
+
+                    <line x1="380" y1="130" x2="380" y2="250" stroke="#4A90E2" stroke-width="3" marker-end="url(#arrowhead)"/>
+                    <text x="420" y="190" text-anchor="middle" fill="#333" font-size="14">等待事件（延时、信号量等）</text>
+
+                    <line x1="460" y1="290" x2="550" y2="190" stroke="#4A90E2" stroke-width="3" marker-end="url(#arrowhead)"/>
+                    <text x="505" y="260" text-anchor="middle" fill="#333" font-size="14">vTaskSuspend()</text>
+
+                    <line x1="630" y1="230" x2="630" y2="320" stroke="#4A90E2" stroke-width="3" marker-end="url(#arrowhead)"/>
+                    <line x1="630" y1="320" x2="460" y2="320" stroke="#4A90E2" stroke-width="3" marker-end="url(#arrowhead)"/>
+                    <text x="545" y="345" text-anchor="middle" fill="#333" font-size="14">vTaskResume()</text>
+
+                    <line x1="380" y1="330" x2="380" y2="380" stroke="#4A90E2" stroke-width="3" marker-end="url(#arrowhead)"/>
+                    <line x1="380" y1="380" x2="130" y2="380" stroke="#4A90E2" stroke-width="3" marker-end="url(#arrowhead)"/>
+                    <line x1="130" y1="380" x2="130" y2="230" stroke="#4A90E2" stroke-width="3" marker-end="url(#arrowhead)"/>
+                    <text x="255" y="395" text-anchor="middle" fill="#333" font-size="14">事件发生/延时结束</text>
+                </svg>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>状态</th>
+                        <th>描述</th>
+                        <th>触发条件</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>就绪 (Ready)</strong></td>
+                        <td>任务已准备就绪，等待调度器分配CPU时间。位于就绪列表中。</td>
+                        <td>任务创建后、事件等待结束、从阻塞/挂起恢复。</td>
+                    </tr>
+                    <tr>
+                        <td><strong>运行 (Running)</strong></td>
+                        <td>任务正在CPU上执行。任何时刻，只有一个任务处于此状态（单核）。</td>
+                        <td>被调度器选中，从就绪态切换而来。</td>
+                    </tr>
+                    <tr>
+                        <td><strong>阻塞 (Blocked)</strong></td>
+                        <td>任务等待某个事件（如延时、信号量、队列消息），不占用CPU。</td>
+                        <td>调用 vTaskDelay(), xQueueReceive(), xSemaphoreTake() 等。</td>
+                    </tr>
+                    <tr>
+                        <td><strong>挂起 (Suspended)</strong></td>
+                        <td>任务被主动暂停，不参与调度，直到被显式恢复。可用于调试。</td>
+                        <td>调用 vTaskSuspend()。只能由 vTaskResume() 恢复。</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="tcb">
+            <h2>3. 任务控制块（Task Control Block - TCB）</h2>
+            <p>TCB是FreeRTOS内核用于管理任务的数据结构，包含了任务的所有元信息。每个任务都有一个唯一的TCB。</p>
+            <div class="svg-container">
+                <svg class="arch-svg" width="700" height="300" viewBox="0 0 700 300" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="10" y="10" width="680" height="280" rx="10" ry="10" fill="#FFF" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="350" y="40" text-anchor="middle" fill="#4A90E2" font-size="24" font-weight="bold">任务控制块 (TCB) 内部结构</text>
+
+                    <rect x="50" y="70" width="600" height="40" fill="#E6F7FF" stroke="#4A90E2" stroke-width="1"/>
+                    <text x="60" y="95" fill="#333" font-size="16">pxTopOfStack: 栈顶指针</text>
+
+                    <rect x="50" y="120" width="600" height="40" fill="#FFF9E6" stroke="#FF8C42" stroke-width="1"/>
+                    <text x="60" y="145" fill="#333" font-size="16">pxStack: 栈起始地址</text>
+
+                    <rect x="50" y="170" width="290" height="40" fill="#E6FFE6" stroke="#6BCF7F" stroke-width="1"/>
+                    <text x="60" y="195" fill="#333" font-size="16">pcTaskName: 任务名称字符串</text>
+
+                    <rect x="360" y="170" width="290" height="40" fill="#F0E6FF" stroke="#9B59B6" stroke-width="1"/>
+                    <text x="370" y="195" fill="#333" font-size="16">uxPriority: 任务优先级</text>
+
+                    <rect x="50" y="220" width="290" height="40" fill="#FFE6E6" stroke="#E74C3C" stroke-width="1"/>
+                    <text x="60" y="245" fill="#333" font-size="16">eState: 当前任务状态</text>
+
+                    <rect x="360" y="220" width="290" height="40" fill="#E6FFFF" stroke="#1ABC9C" stroke-width="1"/>
+                    <text x="370" y="245" fill="#333" font-size="16">xEventListItem: 事件列表项</text>
+                </svg>
+            </div>
+            <ul>
+                <li><strong>栈指针（pxTopOfStack）</strong>：指向任务栈的当前栈顶，用于上下文切换时保存/恢复寄存器。</li>
+                <li><strong>栈起始地址（pxStack）</strong>：任务栈的起始地址，用于栈溢出检测。</li>
+                <li><strong>任务名称（pcTaskName）</strong>：便于调试和识别的字符串。</li>
+                <li><strong>任务优先级（uxPriority）</strong>：决定任务调度的顺序。</li>
+                <li><strong>任务状态（eState）</strong>：记录任务当前处于就绪、阻塞、挂起等状态。</li>
+                <li><strong>事件列表项（xEventListItem）</strong>：当任务阻塞在事件（如队列、信号量）上时，用于将任务链接到相应的事件列表。</li>
+            </ul>
+        </section>
+
+        <section id="xtaskcreate">
+            <h2>4. xTaskCreate函数详解</h2>
+            <p>这是FreeRTOS中最常用的任务创建函数，用于动态分配栈和TCB来创建一个新任务。</p>
+            <div class="code-block">
+<pre>
+BaseType_t xTaskCreate(
+    TaskFunction_t pvTaskCode,        // 任务函数指针（无限循环函数）
+    const char * const pcName,        // 任务描述性名称（用于调试）
+    configSTACK_DEPTH_TYPE usStackDepth, // 任务栈大小（以字为单位）
+    void *pvParameters,               // 传递给任务函数的参数
+    UBaseType_t uxPriority,           // 任务优先级（0 ~ configMAX_PRIORITIES-1）
+    TaskHandle_t *pxCreatedTask       // 用于返回任务句柄（可NULL）
+);
+</pre>
+            </div>
+            <h3>参数解析：</h3>
+            <ol>
+                <li><span class="highlight">pvTaskCode</span>：指向任务函数的指针。该函数应永不返回，通常是一个无限循环。</li>
+                <li><span class="highlight">pcName</span>：字符串，便于在调试器中识别任务。不超过configMAX_TASK_NAME_LEN。</li>
+                <li><span class="highlight">usStackDepth</span>：栈深度，即栈可以容纳的<strong>字数（word）</strong>。例如在32位架构上，传入100表示栈大小为400字节。</li>
+                <li><span class="highlight">pvParameters</span>：泛型指针，用于在创建时向任务函数传递参数。</li>
+                <li><span class="highlight">uxPriority</span>：优先级数值，数值越大优先级越高。0为最低优先级。</li>
+                <li><span class="highlight">pxCreatedTask</span>：返回的任务句柄，可用于后续API调用（如vTaskDelete, vTaskPrioritySet）。</li>
+            </ol>
+            <h3>示例代码：</h3>
+            <div class="code-block">
+<pre>
+#include "FreeRTOS.h"
+#include "task.h"
+
+void vTaskLED(void *pvParameters) {
+    uint32_t blink_delay = *(uint32_t*)pvParameters; // 获取参数
+    while(1) {
+        GPIO_ToggleBits(GPIO_LED);
+        vTaskDelay(pdMS_TO_TICKS(blink_delay)); // 阻塞态延时
+    }
+}
+
+void main(void) {
+    uint32_t delay_ms = 500;
+    TaskHandle_t xTaskHandle = NULL;
+
+    // 创建LED闪烁任务
+    xTaskCreate(vTaskLED,         // 任务函数
+                "LED Blink",      // 任务名
+                128,              // 栈深度（128字）
+                &delay_ms,        // 传递参数地址
+                2,                // 优先级为2
+                &xTaskHandle);    // 获取任务句柄
+
+    vTaskStartScheduler(); // 启动调度器，任务开始运行
+    while(1);
+}
+</pre>
+            </div>
+        </section>
+
+        <section id="priority-scheduler">
+            <h2>5. 任务优先级与调度器基本行为</h2>
+            <h3>优先级规则</h3>
+            <ul>
+                <li>FreeRTOS支持<strong>固定优先级抢占式调度</strong>。</li>
+                <li>优先级数值范围：0 (最低) 到 <span class="highlight">configMAX_PRIORITIES-1</span> (最高)。</li>
+                <li>高优先级任务一旦就绪，会立即抢占低优先级任务的CPU使用权。</li>
+                <li>相同优先级的任务采用<strong>时间片轮转（Round Robin）</strong>调度，共享CPU时间。</li>
+            </ul>
+            <h3>调度器行为</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>场景</th>
+                        <th>调度器动作</th>
+                        <th>结果</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>高优先级任务就绪</td>
+                        <td>立即发生上下文切换</td>
+                        <td>高优先级任务抢占运行，低优先级任务回到就绪态。</td>
+                    </tr>
+                    <tr>
+                        <td>运行态任务阻塞（如调用vTaskDelay）</td>
+                        <td>任务移出就绪列表，调度器选择下一个最高优先级就绪任务。</td>
+                        <td>CPU切换到另一个就绪任务。</td>
+                    </tr>
+                    <tr>
+                        <td>运行态任务挂起（vTaskSuspend）</td>
+                        <td>任务被移出所有调度列表。</td>
+                        <td>任务停止运行，直到被恢复。</td>
+                    </tr>
+                    <tr>
+                        <td>多个同优先级任务就绪</td>
+                        <td>每个时间片（tick）结束时轮转。</td>
+                        <td>任务按时间片轮流执行。</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="note">
+                <strong>重要提示：</strong> 优先级反转是实时系统常见问题。FreeRTOS提供了互斥量（Mutex）的优先级继承机制来缓解。合理规划任务优先级是系统设计的关键。
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        蓝海资料掘金营
+    </footer>
+</body>
+</html>

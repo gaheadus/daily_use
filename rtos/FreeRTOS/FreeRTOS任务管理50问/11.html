@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS任务参数传递</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #bbdefb 50%, #f8bbd0 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+        
+        .header h1 {
+            color: #1565c0;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header p {
+            color: #546e7a;
+            font-size: 1.2rem;
+        }
+        
+        .decorative-border {
+            height: 8px;
+            background: linear-gradient(90deg, #ff9800, #e91e63, #2196f3, #4caf50);
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        
+        .content-section {
+            margin-bottom: 40px;
+        }
+        
+        h2 {
+            color: #d81b60;
+            border-left: 5px solid #ff9800;
+            padding-left: 15px;
+            margin: 25px 0 15px;
+            font-size: 1.8rem;
+        }
+        
+        h3 {
+            color: #3949ab;
+            margin: 20px 0 10px;
+            font-size: 1.4rem;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        .highlight-box {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .code-block {
+            background-color: #263238;
+            color: #e0e0e0;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .code-block pre {
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        th {
+            background-color: #7986cb;
+            color: white;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f5f5f5;
+        }
+        
+        tr:hover {
+            background-color: #e3f2fd;
+        }
+        
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+        
+        .architecture-diagram {
+            width: 100%;
+            max-width: 800px;
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .example-box {
+            background-color: #f1f8e9;
+            border: 1px solid #c5e1a5;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            color: #546e7a;
+            border-top: 1px solid #b0bec5;
+            font-size: 1.1rem;
+        }
+        
+        .note {
+            background-color: #fff8e1;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .tip {
+            background-color: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .warning {
+            background-color: #ffebee;
+            border-left: 4px solid #f44336;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+            
+            h3 {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>FreeRTOS任务参数传递</h1>
+            <p>创建任务时如何传递参数</p>
+            <div class="decorative-border"></div>
+        </div>
+        
+        <div class="content-section">
+            <h2>任务参数传递概述</h2>
+            <p>在FreeRTOS中，创建任务时可以通过参数传递机制向任务函数传递数据。这种机制允许我们在任务创建时向任务传递特定的配置信息、初始化数据或其他必要的参数，使任务能够根据不同的参数执行不同的操作。</p>
+            
+            <div class="highlight-box">
+                <p>任务参数传递是FreeRTOS任务创建过程中的一个重要特性，它允许开发者创建更加灵活和可重用的任务函数。</p>
+            </div>
+        </div>
+        
+        <div class="content-section">
+            <h2>任务创建函数原型</h2>
+            <p>FreeRTOS提供了<xBaseType xTaskCreate()</code>函数用于创建任务，其函数原型如下：</p>
+            
+            <div class="code-block">
+                <pre>BaseType_t xTaskCreate(
+    TaskFunction_t pvTaskCode,
+    const char * const pcName,
+    configSTACK_DEPTH_TYPE usStackDepth,
+    void *pvParameters,
+    UBaseType_t uxPriority,
+    TaskHandle_t *pxCreatedTask
+);</pre>
+            </div>
+            
+            <p>其中，<code>pvParameters</code>参数就是用于传递任务参数的指针。</p>
+        </div>
+        
+        <div class="content-section">
+            <h2>参数传递机制</h2>
+            <p>FreeRTOS通过<code>pvParameters</code>参数实现任务参数传递，其工作机制如下：</p>
+            
+            <div class="svg-container">
+                <svg class="architecture-diagram" viewBox="0 0 800 300">
+                    <rect x="50" y="50" width="200" height="60" rx="10" fill="#90caf9" stroke="#1976d2" stroke-width="2"/>
+                    <text x="150" y="85" text-anchor="middle" fill="#0d47a1" font-weight="bold">任务创建</text>
+                    
+                    <rect x="300" y="50" width="200" height="60" rx="10" fill="#a5d6a7" stroke="#388e3c" stroke-width="2"/>
+                    <text x="400" y="85" text-anchor="middle" fill="#1b5e20" font-weight="bold">参数传递</text>
+                    
+                    <rect x="550" y="50" width="200" height="60" rx="10" fill="#ffcc80" stroke="#f57c00" stroke-width="2"/>
+                    <text x="650" y="85" text-anchor="middle" fill="#e65100" font-weight="bold">任务执行</text>
+                    
+                    <path d="M250 80 L300 80" stroke="#757575" stroke-width="2" fill="none"/>
+                    <path d="M500 80 L550 80" stroke="#757575" stroke-width="2" fill="none"/>
+                    
+                    <rect x="100" y="150" width="600" height="100" rx="10" fill="#e1f5fe" stroke="#01579b" stroke-width="2"/>
+                    <text x="400" y="190" text-anchor="middle" fill="#01579b" font-weight="bold">参数传递流程</text>
+                    <text x="400" y="220" text-anchor="middle" fill="#01579b">1. 创建参数结构体 → 2. 传递参数指针 → 3. 任务函数接收参数</text>
+                    
+                    <path d="M150 120 L150 150" stroke="#757575" stroke-width="2" fill="none" stroke-dasharray="5,5"/>
+                    <path d="M400 120 L400 150" stroke="#757575" stroke-width="2" fill="none" stroke-dasharray="5,5"/>
+                    <path d="M650 120 L650 150" stroke="#757575" stroke-width="2" fill="none" stroke-dasharray="5,5"/>
+                </svg>
+            </div>
+            
+            <h3>参数传递步骤</h3>
+            <ol>
+                <li>定义需要传递的参数数据结构</li>
+                <li>在创建任务时，将参数指针传递给<code>pvParameters</code></li>
+                <li>在任务函数中，通过类型转换获取参数</li>
+                <li>任务使用传递的参数执行相应的操作</li>
+            </ol>
+        </div>
+        
+        <div class="content-section">
+            <h2>参数传递示例</h2>
+            <p>下面是一个完整的使用参数传递创建任务的示例：</p>
+            
+            <div class="code-block">
+                <pre>// 定义任务参数结构体
+typedef struct {
+    uint8_t task_id;
+    uint32_t delay_ms;
+    char task_name[20];
+} TaskParams_t;
+
+// 任务函数
+void vTaskFunction(void *pvParameters) {
+    // 将void指针转换为具体的参数类型
+    TaskParams_t *params = (TaskParams_t *)pvParameters;
+    
+    // 使用传递的参数
+    printf("任务ID: %d, 任务名称: %s\n", params->task_id, params->task_name);
+    
+    for(;;) {
+        // 任务主体代码
+        printf("任务 %s 正在运行...\n", params->task_name);
+        
+        // 使用参数中的延迟时间
+        vTaskDelay(pdMS_TO_TICKS(params->delay_ms));
+    }
+}
+
+// 创建任务的函数
+void createTasks(void) {
+    TaskHandle_t xTaskHandle = NULL;
+    
+    // 定义并初始化任务参数
+    TaskParams_t task1_params = {
+        .task_id = 1,
+        .delay_ms = 1000,
+        .task_name = "任务1"
+    };
+    
+    TaskParams_t task2_params = {
+        .task_id = 2,
+        .delay_ms = 500,
+        .task_name = "任务2"
+    };
+    
+    // 创建任务并传递参数
+    xTaskCreate(
+        vTaskFunction,        // 任务函数
+        "Task1",              // 任务名称
+        1024,                 // 堆栈大小
+        &task1_params,        // 传递参数指针
+        1,                    // 优先级
+        &xTaskHandle          // 任务句柄
+    );
+    
+    xTaskCreate(
+        vTaskFunction,
+        "Task2",
+        1024,
+        &task2_params,
+        1,
+        NULL
+    );
+}</pre>
+            </div>
+        </div>
+        
+        <div class="content-section">
+            <h2>参数传递注意事项</h2>
+            
+            <div class="note">
+                <h3>重要提醒</h3>
+                <p>参数的生命周期必须确保在任务使用期间有效。如果参数是局部变量，需要确保在任务开始执行前不会被销毁。</p>
+            </div>
+            
+            <div class="tip">
+                <h3>最佳实践</h3>
+                <p>建议使用动态内存分配或全局变量来存储任务参数，以确保参数在任务整个生命周期内都有效。</p>
+            </div>
+            
+            <div class="warning">
+                <h3>注意事项</h3>
+                <p>避免在任务参数中传递指向局部变量的指针，除非你能确保这些变量在任务使用期间一直存在。</p>
+            </div>
+            
+            <h3>参数传递方法对比</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>方法</th>
+                        <th>优点</th>
+                        <th>缺点</th>
+                        <th>适用场景</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>全局变量</td>
+                        <td>简单直接，生命周期长</td>
+                        <td>可能造成全局命名空间污染</td>
+                        <td>简单的参数传递，参数数量少</td>
+                    </tr>
+                    <tr>
+                        <td>动态内存分配</td>
+                        <td>灵活，可传递复杂数据结构</td>
+                        <td>需要手动管理内存，可能造成内存泄漏</td>
+                        <td>复杂的参数结构，需要动态创建</td>
+                    </tr>
+                    <tr>
+                        <td>静态局部变量</td>
+                        <td>生命周期与程序相同</td>
+                        <td>可能被其他函数修改</td>
+                        <td>需要保持状态但不适合全局变量的情况</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="content-section">
+            <h2>高级参数传递技巧</h2>
+            
+            <h3>1. 使用联合体(Union)传递多种类型参数</h3>
+            <div class="code-block">
+                <pre>typedef union {
+    int int_val;
+    float float_val;
+    char *string_val;
+} ParamUnion_t;
+
+void vTaskWithUnionParam(void *pvParameters) {
+    ParamUnion_t *param = (ParamUnion_t *)pvParameters;
+    
+    // 根据实际情况使用不同的参数类型
+    printf("整数值: %d\n", param->int_val);
+}</pre>
+            </div>
+            
+            <h3>2. 传递函数指针实现回调机制</h3>
+            <div class="code-block">
+                <pre>typedef struct {
+    uint8_t task_id;
+    void (*callback)(void);
+} TaskWithCallback_t;
+
+void vTaskWithCallback(void *pvParameters) {
+    TaskWithCallback_t *params = (TaskWithCallback_t *)pvParameters;
+    
+    for(;;) {
+        // 执行任务工作
+        if(params->callback != NULL) {
+            params->callback();  // 调用回调函数
+        }
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+}</pre>
+            </div>
+        </div>
+        
+        <div class="content-section">
+            <h2>常见问题与解决方案</h2>
+            
+            <h3>问题1：参数指针无效或指向已释放内存</h3>
+            <p><strong>解决方案：</strong>使用静态变量或动态分配内存，并确保在任务删除时正确释放内存。</p>
+            
+            <h3>问题2：多个任务共享相同参数导致数据竞争</h3>
+            <p><strong>解决方案：</strong>为每个任务创建独立的参数副本，或使用互斥锁保护共享数据。</p>
+            
+            <h3>问题3：参数结构体过大导致栈溢出</h3>
+            <p><strong>解决方案：</strong>使用指针传递大型数据结构，或在堆上分配参数内存。</p>
+        </div>
+        
+        <div class="footer">
+            <p>蓝海资料掘金营</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS任务优先级获取：uxTaskPriorityGet函数的应用</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #f9fbe7 50%, #e8f5e9 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 150, 136, 0.2);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: "";
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 200px;
+            height: 200px;
+            background: #ffcc80;
+            border-radius: 50%;
+            opacity: 0.3;
+            z-index: 0;
+        }
+
+        .container::after {
+            content: "";
+            position: absolute;
+            bottom: -80px;
+            left: -80px;
+            width: 300px;
+            height: 300px;
+            background: #80deea;
+            border-radius: 50%;
+            opacity: 0.3;
+            z-index: 0;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+            z-index: 1;
+        }
+
+        h1 {
+            color: #00695c;
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .subtitle {
+            color: #4db6ac;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+
+        .content {
+            position: relative;
+            z-index: 1;
+        }
+
+        section {
+            margin-bottom: 40px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        section:hover {
+            transform: translateY(-5px);
+        }
+
+        h2 {
+            color: #00796b;
+            border-left: 5px solid #4db6ac;
+            padding-left: 15px;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+
+        h3 {
+            color: #004d40;
+            margin: 20px 0 15px;
+            font-size: 1.4rem;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th {
+            background-color: #4db6ac;
+            color: white;
+            padding: 15px;
+            text-align: left;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0f2f1;
+        }
+
+        tr:nth-child(even) {
+            background-color: #e0f2f1;
+        }
+
+        tr:hover {
+            background-color: #b2dfdb;
+        }
+
+        .code-block {
+            background: #f5f5f5;
+            border-left: 4px solid #4db6ac;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+
+        pre {
+            white-space: pre-wrap;
+            font-family: 'Consolas', 'Monaco', monospace;
+            line-height: 1.5;
+        }
+
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 25px 0;
+        }
+
+        .note {
+            background: #fff9c4;
+            border-left: 4px solid #ffd54f;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .warning {
+            background: #ffebee;
+            border-left: 4px solid #e57373;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            color: #00695c;
+            font-weight: bold;
+            position: relative;
+            z-index: 1;
+        }
+
+        .architecture {
+            width: 100%;
+            height: 300px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>FreeRTOS任务优先级获取：uxTaskPriorityGet函数的应用</h1>
+            <p class="subtitle">《FreeRTOS任务管理50问》第8课 - 深入理解任务优先级获取机制</p>
+        </header>
+
+        <div class="content">
+            <section>
+                <h2>uxTaskPriorityGet函数概述</h2>
+                <p>uxTaskPriorityGet()是FreeRTOS提供的一个核心API函数，用于查询指定任务的当前优先级。在复杂的嵌入式系统中，任务优先级可能会动态变化，了解任务的当前优先级对于系统调试和优化至关重要。</p>
+                
+                <div class="svg-container">
+                    <svg width="600" height="200" viewBox="0 0 600 200">
+                        <rect x="50" y="80" width="100" height="40" rx="5" fill="#4db6ac" opacity="0.8"/>
+                        <text x="100" y="105" text-anchor="middle" fill="white" font-weight="bold">任务A</text>
+                        <text x="100" y="125" text-anchor="middle" fill="white" font-size="12">优先级: 3</text>
+                        
+                        <rect x="200" y="80" width="100" height="40" rx="5" fill="#4db6ac" opacity="0.8"/>
+                        <text x="250" y="105" text-anchor="middle" fill="white" font-weight="bold">任务B</text>
+                        <text x="250" y="125" text-anchor="middle" fill="white" font-size="12">优先级: 2</text>
+                        
+                        <rect x="350" y="80" width="100" height="40" rx="5" fill="#4db6ac" opacity="0.8"/>
+                        <text x="400" y="105" text-anchor="middle" fill="white" font-weight="bold">任务C</text>
+                        <text x="400" y="125" text-anchor="middle" fill="white" font-size="12">优先级: 1</text>
+                        
+                        <rect x="450" y="30" width="100" height="40" rx="5" fill="#ff9800" opacity="0.8"/>
+                        <text x="500" y="55" text-anchor="middle" fill="white" font-weight="bold">uxTaskPriorityGet</text>
+                        
+                        <line x1="500" y1="70" x2="500" y2="80" stroke="#ff9800" stroke-width="2"/>
+                        <line x1="500" y1="80" x2="400" y2="80" stroke="#ff9800" stroke-width="2" marker-end="url(#arrowhead)"/>
+                        
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#ff9800"/>
+                            </marker>
+                        </defs>
+                    </svg>
+                </div>
+            </section>
+
+            <section>
+                <h2>函数原型与参数说明</h2>
+                <div class="code-block">
+                    <pre>UBaseType_t uxTaskPriorityGet( TaskHandle_t xTask );</pre>
+                </div>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>参数</th>
+                            <th>类型</th>
+                            <th>描述</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>xTask</td>
+                            <td>TaskHandle_t</td>
+                            <td>要查询优先级的任务句柄。传入NULL表示查询当前调用任务</td>
+                        </tr>
+                        <tr>
+                            <td>返回值</td>
+                            <td>UBaseType_t</td>
+                            <td>返回指定任务的当前优先级值</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section>
+                <h2>应用场景与使用示例</h2>
+                <h3>1. 查询自身任务优先级</h3>
+                <div class="code-block">
+                    <pre>void vTaskExample( void *pvParameters )
+{
+    // 获取当前任务的优先级
+    UBaseType_t uxCurrentPriority;
+    uxCurrentPriority = uxTaskPriorityGet( NULL );
+    
+    // 打印优先级信息
+    printf("当前任务优先级: %d\n", uxCurrentPriority);
+    
+    for( ;; )
+    {
+        // 任务主体代码
+        vTaskDelay( 1000 / portTICK_PERIOD_MS );
+    }
+}</pre>
+                </div>
+
+                <h3>2. 查询其他任务优先级</h3>
+                <div class="code-block">
+                    <pre>// 全局任务句柄声明
+TaskHandle_t xDisplayTaskHandle;
+
+void vDisplayTask( void *pvParameters )
+{
+    // 任务初始化代码
+    for( ;; )
+    {
+        // 显示任务代码
+        vTaskDelay( 500 / portTICK_PERIOD_MS );
+    }
+}
+
+void vMonitorTask( void *pvParameters )
+{
+    // 获取显示任务的优先级
+    UBaseType_t uxDisplayPriority;
+    uxDisplayPriority = uxTaskPriorityGet( xDisplayTaskHandle );
+    
+    printf("显示任务优先级: %d\n", uxDisplayPriority);
+    
+    for( ;; )
+    {
+        // 监控任务代码
+        vTaskDelay( 2000 / portTICK_PERIOD_MS );
+    }
+}
+
+// 创建任务时保存句柄
+xTaskCreate( vDisplayTask, "Display", 1000, NULL, 2, &xDisplayTaskHandle );</pre>
+                </div>
+            </section>
+
+            <section>
+                <h2>优先级管理架构</h2>
+                <div class="svg-container">
+                    <svg width="600" height="400" viewBox="0 0 600 400">
+                        <!-- 内核层 -->
+                        <rect x="50" y="50" width="500" height="80" rx="10" fill="#e1f5fe" stroke="#4db6ac" stroke-width="2"/>
+                        <text x="300" y="85" text-anchor="middle" fill="#00695c" font-weight="bold" font-size="16">FreeRTOS内核</text>
+                        
+                        <!-- 任务控制块 -->
+                        <rect x="80" y="150" width="440" height="180" rx="10" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="2"/>
+                        <text x="300" y="180" text-anchor="middle" fill="#4a148c" font-weight="bold" font-size="14">任务控制块(TCB)</text>
+                        
+                        <!-- TCB内部结构 -->
+                        <rect x="100" y="200" width="120" height="40" rx="5" fill="#e8f5e9" stroke="#388e3c" stroke-width="1"/>
+                        <text x="160" y="225" text-anchor="middle" fill="#1b5e20" font-size="12">任务名称</text>
+                        
+                        <rect x="240" y="200" width="120" height="40" rx="5" fill="#fff3e0" stroke="#f57c00" stroke-width="1"/>
+                        <text x="300" y="225" text-anchor="middle" fill="#e65100" font-size="12">任务状态</text>
+                        
+                        <rect x="380" y="200" width="120" height="40" rx="5" fill="#e3f2fd" stroke="#1976d2" stroke-width="1"/>
+                        <text x="440" y="225" text-anchor="middle" fill="#0d47a1" font-size="12">堆栈指针</text>
+                        
+                        <rect x="100" y="260" width="120" height="40" rx="5" fill="#ffebee" stroke="#d32f2f" stroke-width="1"/>
+                        <text x="160" y="285" text-anchor="middle" fill="#b71c1c" font-size="12">事件列表</text>
+                        
+                        <rect x="240" y="260" width="120" height="40" rx="5" fill="#fce4ec" stroke="#c2185b" stroke-width="1"/>
+                        <text x="300" y="285" text-anchor="middle" fill="#880e4f" font-weight="bold" font-size="12">任务优先级</text>
+                        
+                        <rect x="380" y="260" width="120" height="40" rx="5" fill="#e8eaf6" stroke="#303f9f" stroke-width="1"/>
+                        <text x="440" y="285" text-anchor="middle" fill="#1a237e" font-size="12">局部数据</text>
+                        
+                        <!-- 连接线 -->
+                        <line x1="300" y1="130" x2="300" y2="150" stroke="#4db6ac" stroke-width="2"/>
+                        <line x1="300" y1="150" x2="300" y2="200" stroke="#4db6ac" stroke-width="2" stroke-dasharray="5,5"/>
+                        
+                        <!-- 函数调用 -->
+                        <rect x="200" y="350" width="200" height="40" rx="5" fill="#ffcc80" stroke="#ef6c00" stroke-width="2"/>
+                        <text x="300" y="375" text-anchor="middle" fill="#e65100" font-weight="bold" font-size="14">uxTaskPriorityGet()</text>
+                        
+                        <line x1="300" y1="320" x2="300" y2="350" stroke="#ef6c00" stroke-width="2"/>
+                        <line x1="300" y1="300" x2="300" y2="320" stroke="#ef6c00" stroke-width="2" stroke-dasharray="5,5"/>
+                    </svg>
+                </div>
+            </section>
+
+            <section>
+                <h2>使用注意事项</h2>
+                <div class="note">
+                    <h3>重要提示</h3>
+                    <ul>
+                        <li>uxTaskPriorityGet()函数可以在任务和中断服务程序(ISR)中调用</li>
+                        <li>在ISR中调用时，需要确保configUSE_TRACE_FACILITY配置为1</li>
+                        <li>查询不存在的任务句柄将导致未定义行为</li>
+                        <li>返回的优先级数值范围取决于configMAX_PRIORITIES配置</li>
+                    </ul>
+                </div>
+                
+                <div class="warning">
+                    <h3>警告</h3>
+                    <ul>
+                        <li>在多任务环境中，任务优先级可能在其他任务中被修改，获取的值可能不是最新值</li>
+                        <li>高优先级任务可能抢占当前任务，影响优先级获取的实时性</li>
+                        <li>避免在临界区内频繁调用此函数，以免影响系统性能</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section>
+                <h2>实际应用案例</h2>
+                <h3>动态优先级调整监控</h3>
+                <div class="code-block">
+                    <pre>// 任务优先级监控函数
+void vTaskPriorityMonitor( void *pvParameters )
+{
+    TaskHandle_t xTargetTask = (TaskHandle_t)pvParameters;
+    UBaseType_t uxLastPriority = 0;
+    UBaseType_t uxCurrentPriority;
+    
+    for( ;; )
+    {
+        // 获取目标任务当前优先级
+        uxCurrentPriority = uxTaskPriorityGet( xTargetTask );
+        
+        // 检测优先级变化
+        if( uxCurrentPriority != uxLastPriority )
+        {
+            printf("任务优先级已改变: %d -> %d\n", 
+                   uxLastPriority, uxCurrentPriority);
+            uxLastPriority = uxCurrentPriority;
+        }
+        
+        // 每隔1秒检查一次
+        vTaskDelay( 1000 / portTICK_PERIOD_MS );
+    }
+}
+
+// 创建优先级监控任务
+xTaskCreate( vTaskPriorityMonitor, "PriMonitor", 512, 
+             xTargetTaskHandle, 1, NULL );</pre>
+                </div>
+            </section>
+
+            <section>
+                <h2>总结</h2>
+                <p>uxTaskPriorityGet()函数是FreeRTOS任务管理中的重要工具，它提供了查询任务优先级的标准方法。通过合理使用这个函数，开发者可以：</p>
+                <ul>
+                    <li>实现动态的任务优先级监控和调试</li>
+                    <li>构建基于优先级的任务协调机制</li>
+                    <li>优化系统资源分配和任务调度策略</li>
+                    <li>增强系统的可观测性和可维护性</li>
+                </ul>
+                <p>掌握uxTaskPriorityGet()的应用技巧，对于开发高效、稳定的FreeRTOS嵌入式系统具有重要意义。</p>
+            </section>
+        </div>
+
+        <footer>
+            <p>蓝海资料掘金营</p>
+        </footer>
+    </div>
+</body>
+</html>

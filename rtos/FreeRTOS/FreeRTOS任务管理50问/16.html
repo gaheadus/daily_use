@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS任务管理50问 - 任务恢复所有任务</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #f9fbe7 50%, #e8f5e9 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            border: 2px solid #4db6ac;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px dashed #4db6ac;
+        }
+        
+        h1 {
+            color: #00695c;
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        h2 {
+            color: #00796b;
+            font-size: 1.8rem;
+            margin: 25px 0 15px;
+            padding-left: 15px;
+            border-left: 5px solid #4db6ac;
+        }
+        
+        h3 {
+            color: #00897b;
+            font-size: 1.4rem;
+            margin: 20px 0 10px;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+        
+        .card {
+            background: linear-gradient(145deg, #ffffff, #f0f4c3);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid #c8e6c9;
+        }
+        
+        .highlight {
+            background-color: #e8f5e9;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 5px solid #4caf50;
+            margin: 15px 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: #f1f8e9;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #c8e6c9;
+        }
+        
+        th {
+            background-color: #4db6ac;
+            color: white;
+            font-weight: bold;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9fbe7;
+        }
+        
+        tr:hover {
+            background-color: #e8f5e9;
+        }
+        
+        pre {
+            background-color: #263238;
+            color: #e0f2f1;
+            padding: 15px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border-left: 5px solid #4db6ac;
+        }
+        
+        code {
+            background-color: #e0f2f1;
+            color: #00695c;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+        
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 25px 0;
+        }
+        
+        .flow-chart {
+            background-color: #f9fbe7;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+        
+        .warning {
+            background-color: #fff8e1;
+            border-left: 5px solid #ffb300;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px dashed #4db6ac;
+            color: #00796b;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .example-box {
+            background-color: #e1f5fe;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #4fc3f7;
+        }
+        
+        .function-signature {
+            background-color: #f3e5f5;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            margin: 15px 0;
+            border-left: 5px solid #8e24aa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>FreeRTOS任务管理50问</h1>
+            <h2>16、任务恢复所有任务：xTaskResumeAll函数的使用</h2>
+        </header>
+        
+        <section>
+            <div class="card">
+                <h3>概述</h3>
+                <p><code>xTaskResumeAll()</code> 是 FreeRTOS 中一个重要的任务管理函数，用于恢复所有被 <code>vTaskSuspendAll()</code> 挂起的任务。这个函数通常与调度器挂起函数配对使用，用于实现临界区保护。</p>
+                
+                <div class="highlight">
+                    <p><strong>核心功能：</strong>恢复所有被挂起的任务，重新启动任务调度器。</p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>函数原型</h3>
+                <div class="function-signature">
+                    BaseType_t xTaskResumeAll( void );
+                </div>
+                
+                <h3>返回值</h3>
+                <table>
+                    <tr>
+                        <th>返回值</th>
+                        <th>描述</th>
+                    </tr>
+                    <tr>
+                        <td>pdTRUE</td>
+                        <td>恢复操作导致了一个上下文切换</td>
+                    </tr>
+                    <tr>
+                        <td>pdFALSE</td>
+                        <td>恢复操作没有导致上下文切换</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div class="card">
+                <h3>使用场景</h3>
+                <ul>
+                    <li>临界区保护 - 与 <code>vTaskSuspendAll()</code> 配对使用</li>
+                    <li>批量任务管理 - 需要同时挂起/恢复多个任务时</li>
+                    <li>系统初始化 - 在系统初始化完成后恢复所有任务</li>
+                    <li>调试和测试 - 在调试过程中控制任务执行</li>
+                </ul>
+            </div>
+            
+            <div class="card">
+                <h3>工作原理</h3>
+                <div class="svg-container">
+                    <svg width="600" height="300" viewBox="0 0 600 300">
+                        <rect x="50" y="50" width="100" height="60" rx="10" fill="#4db6ac" stroke="#00796b" stroke-width="2"/>
+                        <text x="100" y="85" text-anchor="middle" fill="white" font-weight="bold">vTaskSuspendAll()</text>
+                        
+                        <rect x="200" y="50" width="100" height="60" rx="10" fill="#81c784" stroke="#388e3c" stroke-width="2"/>
+                        <text x="250" y="85" text-anchor="middle" fill="white" font-weight="bold">调度器挂起</text>
+                        
+                        <rect x="350" y="50" width="100" height="60" rx="10" fill="#4db6ac" stroke="#00796b" stroke-width="2"/>
+                        <text x="400" y="85" text-anchor="middle" fill="white" font-weight="bold">临界区操作</text>
+                        
+                        <rect x="500" y="50" width="100" height="60" rx="10" fill="#81c784" stroke="#388e3c" stroke-width="2"/>
+                        <text x="550" y="85" text-anchor="middle" fill="white" font-weight="bold">xTaskResumeAll()</text>
+                        
+                        <rect x="200" y="150" width="100" height="60" rx="10" fill="#fff176" stroke="#f57f17" stroke-width="2"/>
+                        <text x="250" y="185" text-anchor="middle" fill="black" font-weight="bold">任务恢复</text>
+                        
+                        <rect x="350" y="150" width="100" height="60" rx="10" fill="#4db6ac" stroke="#00796b" stroke-width="2"/>
+                        <text x="400" y="185" text-anchor="middle" fill="white" font-weight="bold">调度器恢复</text>
+                        
+                        <!-- 箭头 -->
+                        <path d="M150 80 L200 80" stroke="#00796b" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+                        <path d="M300 80 L350 80" stroke="#00796b" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+                        <path d="M450 80 L500 80" stroke="#00796b" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+                        <path d="M550 110 L550 150 L200 150" stroke="#00796b" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+                        <path d="M300 150 L350 150" stroke="#00796b" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+                        
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#00796b"/>
+                            </marker>
+                        </defs>
+                    </svg>
+                </div>
+                
+                <div class="flow-chart">
+                    <h4>执行流程：</h4>
+                    <ol>
+                        <li>检查调度器挂起计数器</li>
+                        <li>如果计数器大于0，递减计数器</li>
+                        <li>如果计数器减到0，恢复调度器</li>
+                        <li>检查是否有待处理的任务切换请求</li>
+                        <li>返回是否发生了上下文切换</li>
+                    </ol>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>代码示例</h3>
+                <div class="example-box">
+                    <h4>示例1：基本使用</h4>
+                    <pre><code>// 挂起调度器以保护临界区
+vTaskSuspendAll();
+
+// 执行临界区操作
+critical_section_operation();
+
+// 恢复调度器
+if(xTaskResumeAll() == pdTRUE)
+{
+    // 发生了上下文切换
+    // 可以在这里处理相关逻辑
+}</code></pre>
+                </div>
+                
+                <div class="example-box">
+                    <h4>示例2：嵌套使用</h4>
+                    <pre><code>void nested_critical_section(void)
+{
+    // 第一次挂起
+    vTaskSuspendAll();
+    
+    // 第一次临界区操作
+    operation1();
+    
+    // 第二次挂起（嵌套）
+    vTaskSuspendAll();
+    
+    // 第二次临界区操作
+    operation2();
+    
+    // 第一次恢复
+    xTaskResumeAll();  // 此时调度器仍未恢复
+    
+    // 继续操作
+    operation3();
+    
+    // 第二次恢复（实际恢复调度器）
+    xTaskResumeAll();  // 此时调度器真正恢复
+}</code></pre>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>注意事项</h3>
+                <div class="warning">
+                    <p><strong>重要提醒：</strong></p>
+                    <ul>
+                        <li><code>vTaskSuspendAll()</code> 和 <code>xTaskResumeAll()</code> 必须成对使用</li>
+                        <li>支持嵌套调用，需要相同次数的恢复调用才能真正恢复调度器</li>
+                        <li>在调度器挂起期间，中断仍然可以执行</li>
+                        <li>挂起时间不宜过长，否则会影响系统实时性</li>
+                        <li>不能在中断服务程序(ISR)中调用 <code>xTaskResumeAll()</code></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>与相关函数的比较</h3>
+                <table>
+                    <tr>
+                        <th>函数</th>
+                        <th>功能</th>
+                        <th>使用场景</th>
+                        <th>是否可嵌套</th>
+                    </tr>
+                    <tr>
+                        <td><code>xTaskResumeAll()</code></td>
+                        <td>恢复所有被挂起的任务</td>
+                        <td>临界区保护，批量任务管理</td>
+                        <td>是</td>
+                    </tr>
+                    <tr>
+                        <td><code>vTaskSuspend()</code></td>
+                        <td>挂起指定任务</td>
+                        <td>单个任务控制</td>
+                        <td>否</td>
+                    </tr>
+                    <tr>
+                        <td><code>vTaskResume()</code></td>
+                        <td>恢复指定任务</td>
+                        <td>单个任务控制</td>
+                        <td>否</td>
+                    </tr>
+                    <tr>
+                        <td><code>taskENTER_CRITICAL()</code></td>
+                        <td>进入临界区</td>
+                        <td>短时间临界区保护</td>
+                        <td>是</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div class="card">
+                <h3>最佳实践</h3>
+                <ul>
+                    <li>尽量保持临界区代码简短，减少调度器挂起时间</li>
+                    <li>使用计数器记录嵌套深度，确保正确恢复</li>
+                    <li>在复杂操作中考虑使用信号量等其他同步机制</li>
+                    <li>在调试版本中添加断言检查挂起/恢复的配对</li>
+                </ul>
+                
+                <div class="highlight">
+                    <p><strong>经验总结：</strong> <code>xTaskResumeAll()</code> 是 FreeRTOS 中实现批量任务控制的重要工具，正确使用可以有效地保护临界区资源，但需要注意嵌套使用时的配对问题。</p>
+                </div>
+            </div>
+        </section>
+        
+        <footer>
+            蓝海资料掘金营
+        </footer>
+    </div>
+</body>
+</html>

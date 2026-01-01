@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS任务管理50问 - 任务通知状态查询</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #f9fbe7 50%, #e8f5e9 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px dashed #4db6ac;
+        }
+        
+        .header h1 {
+            color: #00695c;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h2 {
+            color: #00796b;
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+        }
+        
+        .question-number {
+            display: inline-block;
+            background: #ff9800;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+        }
+        
+        .content-section {
+            margin-bottom: 40px;
+            padding: 25px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        h3 {
+            color: #00796b;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #b2dfdb;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        .code-block {
+            background: #f5f5f5;
+            border-left: 4px solid #4db6ac;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+            overflow-x: auto;
+        }
+        
+        pre {
+            white-space: pre-wrap;
+            font-family: 'Consolas', 'Monaco', monospace;
+            color: #00695c;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0f2f1;
+        }
+        
+        th {
+            background-color: #4db6ac;
+            color: white;
+            font-weight: bold;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #e0f2f1;
+        }
+        
+        tr:hover {
+            background-color: #b2dfdb;
+        }
+        
+        .function-syntax {
+            background: #e8f5e9;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .function-syntax h4 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+        
+        .usage-example {
+            background: #fff3e0;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .usage-example h4 {
+            color: #ef6c00;
+            margin-bottom: 10px;
+        }
+        
+        .diagram-container {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+        
+        .diagram {
+            width: 100%;
+            max-width: 800px;
+            height: 300px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px solid #4db6ac;
+            color: #00796b;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .note-box {
+            background: #fff9c4;
+            border-left: 4px solid #ffd600;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .tip-box {
+            background: #e1f5fe;
+            border-left: 4px solid #03a9f4;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        .highlight {
+            background-color: #fff9c4;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="question-number">第28问</div>
+            <h1>FreeRTOS任务管理50问</h1>
+            <h2>任务通知状态查询：xTaskNotifyStateClear函数</h2>
+        </div>
+        
+        <div class="content-section">
+            <h3>函数概述</h3>
+            <p><span class="highlight">xTaskNotifyStateClear</span>函数是FreeRTOS任务通知机制中的一个重要函数，用于清除任务的通知状态。任务通知是FreeRTOS提供的一种轻量级通信机制，可以替代队列、信号量等传统通信方式，具有更高的效率和更低的内存占用。</p>
+            
+            <div class="function-syntax">
+                <h4>函数原型</h4>
+                <div class="code-block">
+                    <pre>BaseType_t xTaskNotifyStateClear( TaskHandle_t xTask );</pre>
+                </div>
+            </div>
+            
+            <h3>参数说明</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>参数</th>
+                        <th>类型</th>
+                        <th>描述</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>xTask</td>
+                        <td>TaskHandle_t</td>
+                        <td>要清除通知状态的任务句柄。使用NULL表示清除当前任务的通知状态。</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>返回值</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>返回值</th>
+                        <th>描述</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>pdTRUE</td>
+                        <td>成功清除了任务的通知状态</td>
+                    </tr>
+                    <tr>
+                        <td>pdFALSE</td>
+                        <td>任务的通知状态已经是清除状态，无需再次清除</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="content-section">
+            <h3>功能详解</h3>
+            <p><span class="highlight">xTaskNotifyStateClear</span>函数的主要功能是清除指定任务的通知状态。当任务接收到通知后，其通知状态会被设置为"pending"（待处理），使用此函数可以手动清除该状态。</p>
+            
+            <p>任务通知状态有两种可能的值：</p>
+            <ul>
+                <li><span class="highlight">taskNOT_WAITING_NOTIFICATION</span> - 任务没有等待通知</li>
+                <li><span class="highlight">taskWAITING_NOTIFICATION</span> - 任务正在等待通知</li>
+                <li><span class="highlight">taskNOTIFICATION_RECEIVED</span> - 任务已收到通知</li>
+            </ul>
+            
+            <div class="note-box">
+                <p><strong>注意：</strong>此函数只清除任务的通知状态，不会清除任务的通知值。如果需要同时清除通知值和状态，应使用xTaskNotifyClear函数。</p>
+            </div>
+            
+            <h3>使用场景</h3>
+            <ol>
+                <li>在任务需要重新等待通知之前，清除之前的通知状态</li>
+                <li>在任务通知被意外触发后，恢复任务的正常等待状态</li>
+                <li>在调试过程中，手动重置任务的通知状态</li>
+                <li>在任务通知机制与其他同步机制混合使用时，确保状态一致性</li>
+            </ol>
+        </div>
+        
+        <div class="content-section">
+            <h3>代码示例</h3>
+            
+            <div class="usage-example">
+                <h4>示例1：清除当前任务的通知状态</h4>
+                <div class="code-block">
+                    <pre>void vExampleTask( void *pvParameters )
+{
+    // 等待任务通知
+    ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
+    
+    // 处理通知...
+    
+    // 清除通知状态，准备接收下一个通知
+    xTaskNotifyStateClear( NULL );
+    
+    // 继续等待下一个通知
+    ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
+    
+    // 更多处理...
+}</pre>
+                </div>
+            </div>
+            
+            <div class="usage-example">
+                <h4>示例2：清除其他任务的通知状态</h4>
+                <div class="code-block">
+                    <pre>// 全局变量，存储任务句柄
+TaskHandle_t xOtherTaskHandle;
+
+void vSenderTask( void *pvParameters )
+{
+    // 发送通知给其他任务
+    xTaskNotifyGive( xOtherTaskHandle );
+    
+    // 一段时间后，清除其他任务的通知状态
+    vTaskDelay( pdMS_TO_TICKS( 100 ) );
+    
+    if( xTaskNotifyStateClear( xOtherTaskHandle ) == pdTRUE )
+    {
+        // 成功清除了任务的通知状态
+        // 可以执行相关操作
+    }
+}</pre>
+                </div>
+            </div>
+        </div>
+        
+        <div class="content-section">
+            <h3>任务通知状态转换图</h3>
+            <div class="diagram-container">
+                <svg class="diagram" viewBox="0 0 800 300" xmlns="http://www.w3.org/2000/svg">
+                    <!-- 状态图背景 -->
+                    <rect x="0" y="0" width="800" height="300" fill="#f5f5f5" rx="10" ry="10"/>
+                    
+                    <!-- 状态1：无通知 -->
+                    <rect x="50" y="100" width="150" height="80" fill="#e3f2fd" stroke="#2196f3" stroke-width="2" rx="10" ry="10"/>
+                    <text x="125" y="145" text-anchor="middle" fill="#0d47a1" font-weight="bold">无通知状态</text>
+                    <text x="125" y="165" text-anchor="middle" fill="#0d47a1" font-size="14">taskNOT_WAITING_NOTIFICATION</text>
+                    
+                    <!-- 状态2：等待通知 -->
+                    <rect x="300" y="100" width="150" height="80" fill="#e8f5e9" stroke="#4caf50" stroke-width="2" rx="10" ry="10"/>
+                    <text x="375" y="145" text-anchor="middle" fill="#1b5e20" font-weight="bold">等待通知</text>
+                    <text x="375" y="165" text-anchor="middle" fill="#1b5e20" font-size="14">taskWAITING_NOTIFICATION</text>
+                    
+                    <!-- 状态3：已接收通知 -->
+                    <rect x="550" y="100" width="150" height="80" fill="#fff3e0" stroke="#ff9800" stroke-width="2" rx="10" ry="10"/>
+                    <text x="625" y="145" text-anchor="middle" fill="#e65100" font-weight="bold">已接收通知</text>
+                    <text x="625" y="165" text-anchor="middle" fill="#e65100" font-size="14">taskNOTIFICATION_RECEIVED</text>
+                    
+                    <!-- 箭头1：从无通知到等待通知 -->
+                    <path d="M 200 140 L 280 140 L 280 120 L 300 140 L 280 160 L 280 140" fill="#2196f3"/>
+                    <text x="240" y="130" text-anchor="middle" fill="#2196f3" font-size="14">等待通知</text>
+                    
+                    <!-- 箭头2：从等待通知到已接收通知 -->
+                    <path d="M 450 140 L 530 140 L 530 120 L 550 140 L 530 160 L 530 140" fill="#4caf50"/>
+                    <text x="490" y="130" text-anchor="middle" fill="#4caf50" font-size="14">收到通知</text>
+                    
+                    <!-- 箭头3：从已接收通知到无通知 -->
+                    <path d="M 550 140 L 470 140 L 470 120 L 450 140 L 470 160 L 470 140" fill="#ff9800"/>
+                    <text x="510" y="200" text-anchor="middle" fill="#ff9800" font-size="14">xTaskNotifyStateClear</text>
+                    
+                    <!-- 箭头4：从已接收通知到等待通知 -->
+                    <path d="M 625 180 L 625 220 L 375 220 L 375 180" fill="none" stroke="#ff9800" stroke-width="2" stroke-dasharray="5,5"/>
+                    <path d="M 375 220 L 355 210 L 375 200 L 375 220" fill="#ff9800"/>
+                    <text x="500" y="240" text-anchor="middle" fill="#ff9800" font-size="14">xTaskNotifyStateClear</text>
+                </svg>
+            </div>
+            
+            <div class="tip-box">
+                <p><strong>提示：</strong>在使用xTaskNotifyStateClear函数时，需要注意任务通知状态的变化。清除通知状态后，任务可以重新等待新的通知，但之前接收到的通知值仍然保留，除非使用xTaskNotifyClear函数同时清除状态和值。</p>
+            </div>
+        </div>
+        
+        <div class="content-section">
+            <h3>相关函数对比</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>函数名</th>
+                        <th>功能</th>
+                        <th>清除内容</th>
+                        <th>适用场景</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>xTaskNotifyStateClear</td>
+                        <td>清除任务通知状态</td>
+                        <td>仅状态</td>
+                        <td>需要重置通知状态但保留通知值</td>
+                    </tr>
+                    <tr>
+                        <td>xTaskNotifyClear</td>
+                        <td>清除任务通知状态和值</td>
+                        <td>状态和值</td>
+                        <td>需要完全重置任务通知</td>
+                    </tr>
+                    <tr>
+                        <td>ulTaskNotifyTake</td>
+                        <td>等待通知并清除状态/值</td>
+                        <td>状态和/或值</td>
+                        <td>任务等待通知并处理</td>
+                    </tr>
+                    <tr>
+                        <td>xTaskNotifyWait</td>
+                        <td>等待通知并可选清除状态/值</td>
+                        <td>状态和/或值</td>
+                        <td>复杂的通知等待和处理</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="content-section">
+            <h3>最佳实践</h3>
+            <ul>
+                <li>在任务进入等待通知状态前，确保通知状态已被清除</li>
+                <li>使用xTaskNotifyStateClear函数时，检查返回值以确认操作是否成功</li>
+                <li>在多任务环境中，注意任务通知的竞争条件，必要时使用互斥锁保护</li>
+                <li>在调试任务通知相关问题时，可以使用xTaskNotifyStateClear函数重置状态</li>
+                <li>结合任务通知状态查询函数（如ulTaskNotifyValueClear）使用，实现更精细的控制</li>
+            </ul>
+            
+            <div class="note-box">
+                <p><strong>重要提醒：</strong>任务通知是FreeRTOS中最高效的任务间通信机制之一，但使用时需要注意状态管理。错误的状态处理可能导致任务永久阻塞或丢失通知。</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            蓝海资料掘金营
+        </div>
+    </div>
+</body>
+</html>

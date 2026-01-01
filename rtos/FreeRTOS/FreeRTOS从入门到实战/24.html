@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS实战：数据采集与上传系统</title>
+    <style>
+        :root {
+            --tech-blue: #4A90E2;
+            --vital-orange: #FF8C42;
+            --fresh-green: #7BC950;
+            --light-bg: #F0F8FF;
+            --dark-text: #333333;
+            --light-text: #666666;
+            --card-bg: #FFFFFF;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, var(--light-bg) 0%, #E6F7FF 100%);
+            color: var(--dark-text);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(to right, var(--tech-blue), var(--fresh-green));
+            color: white;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 20px rgba(74, 144, 226, 0.2);
+        }
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        main {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+        section {
+            background-color: var(--card-bg);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border-left: 6px solid var(--tech-blue);
+        }
+        section:nth-child(2) {
+            border-left-color: var(--vital-orange);
+        }
+        section:nth-child(3) {
+            border-left-color: var(--fresh-green);
+        }
+        h2 {
+            color: var(--tech-blue);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px dashed #eee;
+            font-size: 1.8rem;
+        }
+        h3 {
+            color: var(--vital-orange);
+            margin: 15px 0 10px;
+        }
+        ul, ol {
+            padding-left: 25px;
+            margin: 15px 0;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background-color: var(--tech-blue);
+            color: white;
+            font-weight: 600;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        pre {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            border-left: 5px solid var(--vital-orange);
+        }
+        code {
+            background-color: #f1f1f1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            color: #d63384;
+        }
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 25px 0;
+        }
+        .arch-svg {
+            width: 100%;
+            max-width: 800px;
+            height: auto;
+        }
+        .task-flow {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .task-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            width: 180px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border-top: 5px solid var(--fresh-green);
+        }
+        .task-card h4 {
+            color: var(--tech-blue);
+            margin-bottom: 10px;
+        }
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 25px;
+            color: var(--light-text);
+            font-size: 1.1rem;
+            border-top: 2px solid #eee;
+        }
+        .footer-text {
+            font-weight: bold;
+            color: var(--tech-blue);
+            font-size: 1.3rem;
+            letter-spacing: 2px;
+        }
+        .highlight {
+            background-color: rgba(255, 140, 66, 0.1);
+            padding: 3px 6px;
+            border-radius: 4px;
+            color: var(--vital-orange);
+            font-weight: 600;
+        }
+        .note {
+            background-color: #e8f4fd;
+            border-left: 4px solid var(--tech-blue);
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>FreeRTOS从入门到实战</h1>
+        <p class="subtitle">综合实战二：数据采集与上传系统</p>
+        <p class="subtitle">多传感器数据采集、滤波、显示与通信</p>
+    </header>
+
+    <main>
+        <section>
+            <h2>项目概述</h2>
+            <p>本实战项目旨在设计一个基于FreeRTOS的嵌入式多传感器数据采集与上传系统。系统模拟采集温度和湿度数据，经过滤波处理后，在本地显示并通过队列传递给通信任务，模拟上传至云端或服务器。项目涵盖了多任务创建、队列通信、信号量/互斥锁、数据滤波算法等核心RTOS概念。</p>
+            <div class="note">
+                <strong>核心目标：</strong>掌握FreeRTOS多任务设计与通信机制，理解嵌入式系统中数据采集、处理、显示、上传的完整流程。
+            </div>
+        </section>
+
+        <section>
+            <h2>系统架构设计</h2>
+            <p>系统采用分层、模块化的任务设计，各任务通过FreeRTOS的通信原语进行数据同步和共享。</p>
+            <div class="svg-container">
+                <svg class="arch-svg" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#4A90E2;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#7BC950;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#FF8C42;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#FFD166;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <rect x="50" y="50" width="700" height="300" rx="10" fill="url(#grad1)" fill-opacity="0.1" stroke="#4A90E2" stroke-width="2"/>
+                    <text x="400" y="40" text-anchor="middle" font-size="20" font-weight="bold" fill="#333">FreeRTOS数据采集系统软件架构</text>
+
+                    <rect x="100" y="100" width="150" height="60" rx="8" fill="#4A90E2" fill-opacity="0.8"/>
+                    <text x="175" y="135" text-anchor="middle" fill="white" font-size="14" font-weight="bold">传感器采集任务</text>
+                    <text x="175" y="155" text-anchor="middle" fill="#E0F7FF" font-size="12">(模拟ADC读取)</text>
+
+                    <rect x="325" y="100" width="150" height="60" rx="8" fill="#FF8C42" fill-opacity="0.8"/>
+                    <text x="400" y="135" text-anchor="middle" fill="white" font-size="14" font-weight="bold">数据滤波任务</text>
+                    <text x="400" y="155" text-anchor="middle" fill="#FFF3E0" font-size="12">(移动平均/中值)</text>
+
+                    <rect x="550" y="100" width="150" height="60" rx="8" fill="#7BC950" fill-opacity="0.8"/>
+                    <text x="625" y="135" text-anchor="middle" fill="white" font-size="14" font-weight="bold">本地显示任务</text>
+                    <text x="625" y="155" text-anchor="middle" fill="#F0FFE8" font-size="12">(OLED/LCD)</text>
+
+                    <rect x="100" y="220" width="150" height="60" rx="8" fill="#9C4ED8" fill-opacity="0.8"/>
+                    <text x="175" y="255" text-anchor="middle" fill="white" font-size="14" font-weight="bold">数据队列</text>
+                    <text x="175" y="275" text-anchor="middle" fill="#F0E6FF" font-size="12">(Queue)</text>
+
+                    <rect x="325" y="220" width="150" height="60" rx="8" fill="#FF6B6B" fill-opacity="0.8"/>
+                    <text x="400" y="255" text-anchor="middle" fill="white" font-size="14" font-weight="bold">通信上传任务</text>
+                    <text x="400" y="275" text-anchor="middle" fill="#FFE6E6" font-size="12">(模拟UART/WiFi)</text>
+
+                    <rect x="550" y="220" width="150" height="60" rx="8" fill="#4ECDC4" fill-opacity="0.8"/>
+                    <text x="625" y="255" text-anchor="middle" fill="white" font-size="14" font-weight="bold">系统监控任务</text>
+                    <text x="625" y="275" text-anchor="middle" fill="#E6FFFD" font-size="12">(可选)</text>
+
+                    <path d="M175 160 L175 200 M175 200 L175 220" stroke="#333" stroke-width="2" stroke-dasharray="5,5" fill="none"/>
+                    <path d="M400 160 L400 200 M400 200 L400 220" stroke="#333" stroke-width="2" stroke-dasharray="5,5" fill="none"/>
+                    <path d="M625 160 L625 200 M625 200 L625 220" stroke="#333" stroke-width="2" stroke-dasharray="5,5" fill="none"/>
+
+                    <path d="M250 130 L315 130" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    <path d="M475 130 L540 130" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    <path d="M250 250 L315 250" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#333"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+            <div class="task-flow">
+                <div class="task-card">
+                    <h4>采集任务</h4>
+                    <p>周期性读取模拟传感器数据</p>
+                </div>
+                <div class="task-card">
+                    <h4>滤波任务</h4>
+                    <p>对原始数据进行平滑处理</p>
+                </div>
+                <div class="task-card">
+                    <h4>显示任务</h4>
+                    <p>实时显示数据到屏幕</p>
+                </div>
+                <div class="task-card">
+                    <h4>通信任务</h4>
+                    <p>将数据打包并模拟上传</p>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>任务详细设计与实现</h2>
+            <h3>1. 数据结构定义</h3>
+            <pre><code>// data_types.h
+#ifndef DATA_TYPES_H
+#define DATA_TYPES_H
+
+#include &lt;stdint.h&gt;
+
+// 传感器数据结构体
+typedef struct {
+    float temperature;     // 温度值 (°C)
+    float humidity;        // 湿度值 (%RH)
+    uint32_t timestamp;    // 时间戳 (ms)
+    uint8_t sensor_id;     // 传感器ID
+} SensorData_t;
+
+// 滤波后数据包
+typedef struct {
+    float filtered_temp;
+    float filtered_hum;
+    uint32_t sample_count;
+} FilteredData_t;
+
+#endif // DATA_TYPES_H</code></pre>
+
+            <h3>2. 主要任务函数框架</h3>
+            <pre><code>// tasks.c
+#include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
+#include "data_types.h"
+
+// 全局队列句柄
+QueueHandle_t xSensorQueue;
+QueueHandle_t xFilteredQueue;
+
+// 传感器采集任务
+void vSensorAcquisitionTask(void *pvParameters) {
+    SensorData_t rawData;
+    const TickType_t xDelay = pdMS_TO_TICKS(100); // 100ms采样周期
+
+    while(1) {
+        // 模拟ADC读取温度湿度
+        rawData.temperature = simulateTemperatureRead();
+        rawData.humidity = simulateHumidityRead();
+        rawData.timestamp = xTaskGetTickCount();
+        rawData.sensor_id = 0x01;
+
+        // 发送原始数据到滤波任务队列
+        if(xQueueSend(xSensorQueue, &rawData, portMAX_DELAY) != pdPASS) {
+            // 错误处理
+        }
+
+        vTaskDelay(xDelay);
+    }
+}
+
+// 数据滤波任务 (移动平均滤波示例)
+void vDataFilterTask(void *pvParameters) {
+    SensorData_t rawData;
+    FilteredData_t filteredData;
+    static float tempBuffer[10] = {0};
+    static float humBuffer[10] = {0};
+    static uint8_t index = 0;
+
+    while(1) {
+        // 从队列接收原始数据
+        if(xQueueReceive(xSensorQueue, &rawData, portMAX_DELAY) == pdPASS) {
+            // 更新缓冲区
+            tempBuffer[index] = rawData.temperature;
+            humBuffer[index] = rawData.humidity;
+            index = (index + 1) % 10;
+
+            // 计算移动平均值
+            filteredData.filtered_temp = calculateMovingAverage(tempBuffer, 10);
+            filteredData.filtered_hum = calculateMovingAverage(humBuffer, 10);
+            filteredData.sample_count++;
+
+            // 发送滤波后数据到显示和通信队列
+            xQueueSend(xFilteredQueue, &filteredData, 0);
+        }
+    }
+}
+
+// 本地显示任务
+void vLocalDisplayTask(void *pvParameters) {
+    FilteredData_t displayData;
+
+    while(1) {
+        if(xQueueReceive(xFilteredQueue, &displayData, pdMS_TO_TICKS(500)) == pdPASS) {
+            // 更新OLED/LCD显示
+            updateDisplay(displayData.filtered_temp, displayData.filtered_hum);
+        }
+        vTaskDelay(pdMS_TO_TICKS(200)); // 显示刷新率
+    }
+}
+
+// 通信上传任务
+void vCommunicationTask(void *pvParameters) {
+    FilteredData_t uploadData;
+    char txBuffer[64];
+
+    while(1) {
+        if(xQueueReceive(xFilteredQueue, &uploadData, pdMS_TO_TICKS(1000)) == pdPASS) {
+            // 格式化数据包
+            snprintf(txBuffer, sizeof(txBuffer),
+                    "T:%.2fC,H:%.1f%%#",
+                    uploadData.filtered_temp,
+                    uploadData.filtered_hum);
+
+            // 模拟UART发送 (实际项目中调用HAL_UART_Transmit等)
+            simulateUartTransmit(txBuffer);
+        }
+    }
+}</code></pre>
+
+            <h3>3. 系统初始化与任务创建</h3>
+            <pre><code>// main.c
+int main(void) {
+    // 硬件初始化
+    HAL_Init();
+    SystemClock_Config();
+    GPIO_Init();
+    ADC_Init();
+    UART_Init();
+
+    // 创建队列
+    xSensorQueue = xQueueCreate(10, sizeof(SensorData_t));
+    xFilteredQueue = xQueueCreate(10, sizeof(FilteredData_t));
+
+    // 创建任务
+    xTaskCreate(vSensorAcquisitionTask, "Sensor", 256, NULL, 3, NULL);
+    xTaskCreate(vDataFilterTask, "Filter", 256, NULL, 2, NULL);
+    xTaskCreate(vLocalDisplayTask, "Display", 256, NULL, 1, NULL);
+    xTaskCreate(vCommunicationTask, "Comm", 256, NULL, 2, NULL);
+
+    // 启动调度器
+    vTaskStartScheduler();
+
+    while(1);
+}</code></pre>
+        </section>
+
+        <section>
+            <h2>关键技术点</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>技术点</th>
+                        <th>说明</th>
+                        <th>FreeRTOS API</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>任务优先级设计</strong></td>
+                        <td>采集任务优先级最高，确保数据及时性；显示任务优先级较低</td>
+                        <td><code>xTaskCreate()</code> 参数</td>
+                    </tr>
+                    <tr>
+                        <td><strong>队列通信</strong></td>
+                        <td>使用队列在任务间传递结构体数据，实现解耦</td>
+                        <td><code>xQueueCreate()</code>, <code>xQueueSend()</code>, <code>xQueueReceive()</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>数据滤波算法</strong></td>
+                        <td>移动平均滤波、中值滤波等，提高数据稳定性</td>
+                        <td>自定义算法实现</td>
+                    </tr>
+                    <tr>
+                        <td><strong>时间管理</strong></td>
+                        <td>使用<code>vTaskDelay()</code>和<code>pdMS_TO_TICKS()</code>控制任务周期</td>
+                        <td><code>vTaskDelay()</code>, <code>xTaskGetTickCount()</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>错误处理</strong></td>
+                        <td>检查队列操作返回值，防止阻塞或数据丢失</td>
+                        <td>返回值判断与超时设置</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>数据流示意图</h3>
+            <div class="svg-container">
+                <svg viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="50" y="80" width="80" height="40" rx="5" fill="#4A90E2" fill-opacity="0.7"/>
+                    <text x="90" y="105" text-anchor="middle" fill="white" font-size="12">传感器</text>
+                    <text x="90" y="120" text-anchor="middle" fill="#E0F7FF" font-size="10">(硬件)</text>
+
+                    <rect x="160" y="80" width="80" height="40" rx="5" fill="#FF8C42" fill-opacity="0.7"/>
+                    <text x="200" y="105" text-anchor="middle" fill="white" font-size="12">采集任务</text>
+
+                    <rect x="270" y="80" width="80" height="40" rx="5" fill="#7BC950" fill-opacity="0.7"/>
+                    <text x="310" y="105" text-anchor="middle" fill="white" font-size="12">滤波任务</text>
+
+                    <rect x="380" y="80" width="80" height="40" rx="5" fill="#9C4ED8" fill-opacity="0.7"/>
+                    <text x="420" y="105" text-anchor="middle" fill="white" font-size="12">队列</text>
+
+                    <rect x="470" y="40" width="80" height="40" rx="5" fill="#4ECDC4" fill-opacity="0.7"/>
+                    <text x="510" y="65" text-anchor="middle" fill="white" font-size="12">显示任务</text>
+
+                    <rect x="470" y="120" width="80" height="40" rx="5" fill="#FF6B6B" fill-opacity="0.7"/>
+                    <text x="510" y="145" text-anchor="middle" fill="white" font-size="12">通信任务</text>
+
+                    <path d="M130 100 L160 100" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+                    <path d="M240 100 L270 100" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+                    <path d="M350 100 L380 100" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+                    <path d="M460 100 L470 120" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+                    <path d="M460 100 L470 60" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+
+                    <defs>
+                        <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#333"/>
+                        </marker>
+                    </defs>
+
+                    <text x="300" y="180" text-anchor="middle" font-size="14" fill="#666">数据流向：传感器 → 采集 → 滤波 → 队列 → 显示/上传</text>
+                </svg>
+            </div>
+        </section>
+
+        <section>
+            <h2>扩展与优化建议</h2>
+            <ul>
+                <li><span class="highlight">增加看门狗任务</span>：监控各任务运行状态，防止系统死锁</li>
+                <li><span class="highlight">实现低功耗模式</span>：在无数据时让MCU进入睡眠，由定时器唤醒</li>
+                <li><span class="highlight">添加数据存储</span>：使用Flash或SD卡存储历史数据</li>
+                <li><span class="highlight">网络协议集成</span>：实现MQTT/HTTP协议，连接物联网平台</li>
+                <li><span class="highlight">图形化配置</span>：通过FreeRTOS+CLI实现参数动态配置</li>
+                <li><span class="highlight">异常处理</span>：传感器故障检测与系统降级运行</li>
+            </ul>
+
+            <div class="note">
+                <strong>调试技巧：</strong>使用FreeRTOS的跟踪功能（<code>vTaskList()</code>）监控任务状态和栈使用情况；合理设置队列长度和任务优先级避免饥饿或死锁。
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>《FreeRTOS从入门到实战》课程实践项目</p>
+        <p class="footer-text">蓝海资料掘金营</p>
+        <p style="margin-top: 10px; font-size: 0.9rem; color: #999;">嵌入式系统 · RTOS · 单片机开发 · 项目实战</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS任务管理50问 - 任务延时函数</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #f9fbe7 50%, #e8f5e9 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border: 2px solid #4db6ac;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #4db6ac 0%, #80deea 50%, #26c6da 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #00897b;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+            padding: 25px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid #4db6ac;
+        }
+        
+        h2 {
+            color: #00897b;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px dashed #b2dfdb;
+            font-size: 1.8rem;
+        }
+        
+        h3 {
+            color: #00796b;
+            margin: 15px 0 10px;
+            font-size: 1.4rem;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        .highlight {
+            background-color: #e0f2f1;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #26a69a;
+            margin: 15px 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #4db6ac 0%, #26c6da 100%);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0f2f1;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f5f5f5;
+        }
+        
+        tr:hover {
+            background-color: #e0f2f1;
+        }
+        
+        .code-block {
+            background: #263238;
+            color: #e0f2f1;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .comparison {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .comparison-item {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border-top: 5px solid #4db6ac;
+        }
+        
+        .comparison-item h3 {
+            text-align: center;
+            color: #00897b;
+            margin-bottom: 15px;
+        }
+        
+        .diagram {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 30px 0;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .diagram svg {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        footer {
+            background: linear-gradient(135deg, #00897b 0%, #004d40 100%);
+            color: white;
+            text-align: center;
+            padding: 25px;
+            font-size: 1.2rem;
+            margin-top: 40px;
+        }
+        
+        ul, ol {
+            margin: 15px 0 15px 30px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        .note {
+            background: #fff9c4;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #ffd600;
+            margin: 15px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .comparison {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .content {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>FreeRTOS任务管理50问</h1>
+            <div class="subtitle">第9问：任务延时函数 vTaskDelay 和 vTaskDelayUntil 的区别</div>
+        </header>
+        
+        <div class="content">
+            <div class="section">
+                <h2>概述</h2>
+                <p>在FreeRTOS中，任务延时是任务管理的基本功能之一。FreeRTOS提供了两种主要的延时函数：<code>vTaskDelay</code> 和 <code>vTaskDelayUntil</code>。虽然它们都用于实现任务延时，但在使用场景和实现原理上有着重要的区别。</p>
+                
+                <div class="highlight">
+                    <p>理解这两种延时函数的区别对于编写高效、准确的实时应用程序至关重要。选择正确的延时函数可以确保任务按照预期的时间间隔执行，避免时间漂移问题。</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>函数定义与原型</h2>
+                
+                <div class="comparison">
+                    <div class="comparison-item">
+                        <h3>vTaskDelay</h3>
+                        <div class="code-block">
+                            <pre>void vTaskDelay( const TickType_t xTicksToDelay );</pre>
+                        </div>
+                        <p><strong>参数：</strong>xTicksToDelay - 需要延时的时钟节拍数</p>
+                        <p><strong>功能：</strong>将任务延时指定的时钟节拍数</p>
+                    </div>
+                    
+                    <div class="comparison-item">
+                        <h3>vTaskDelayUntil</h3>
+                        <div class="code-block">
+                            <pre>void vTaskDelayUntil( TickType_t *pxPreviousWakeTime, 
+                      const TickType_t xTimeIncrement );</pre>
+                        </div>
+                        <p><strong>参数：</strong></p>
+                        <ul>
+                            <li>pxPreviousWakeTime - 指向存储上次唤醒时间的变量</li>
+                            <li>xTimeIncrement - 周期时间间隔（时钟节拍）</li>
+                        </ul>
+                        <p><strong>功能：</strong>实现固定频率的周期性任务</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>核心区别对比</h2>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>对比项</th>
+                            <th>vTaskDelay</th>
+                            <th>vTaskDelayUntil</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>延时基准</strong></td>
+                            <td>从调用时刻开始延时</td>
+                            <td>从上一次唤醒时间开始计算</td>
+                        </tr>
+                        <tr>
+                            <td><strong>时间精度</strong></td>
+                            <td>相对时间，可能产生累积误差</td>
+                            <td>绝对时间，保持固定周期</td>
+                        </tr>
+                        <tr>
+                            <td><strong>适用场景</strong></td>
+                            <td>简单的延时需求</td>
+                            <td>需要精确周期执行的任务</td>
+                        </tr>
+                        <tr>
+                            <td><strong>时间漂移</strong></td>
+                            <td>可能存在时间漂移</td>
+                            <td>无时间漂移</td>
+                        </tr>
+                        <tr>
+                            <td><strong>实现原理</strong></td>
+                            <td>相对延时</td>
+                            <td>绝对时间延时</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="section">
+                <h2>工作原理详解</h2>
+                
+                <div class="diagram">
+                    <h3>vTaskDelay 工作原理</h3>
+                    <svg width="800" height="200" viewBox="0 0 800 200">
+                        <!-- 时间轴 -->
+                        <line x1="50" y1="100" x2="750" y2="100" stroke="#00897b" stroke-width="2"/>
+                        
+                        <!-- 时间点标记 -->
+                        <circle cx="100" cy="100" r="5" fill="#4db6ac"/>
+                        <circle cx="300" cy="100" r="5" fill="#4db6ac"/>
+                        <circle cx="500" cy="100" r="5" fill="#4db6ac"/>
+                        <circle cx="700" cy="100" r="5" fill="#4db6ac"/>
+                        
+                        <!-- 标签 -->
+                        <text x="100" y="80" text-anchor="middle" fill="#00897b">调用vTaskDelay</text>
+                        <text x="300" y="80" text-anchor="middle" fill="#00897b">延时结束</text>
+                        <text x="500" y="80" text-anchor="middle" fill="#00897b">再次调用</text>
+                        <text x="700" y="80" text-anchor="middle" fill="#00897b">延时结束</text>
+                        
+                        <!-- 延时区间 -->
+                        <rect x="100" y="90" width="200" height="20" fill="#80deea" opacity="0.6"/>
+                        <rect x="500" y="90" width="200" height="20" fill="#80deea" opacity="0.6"/>
+                        
+                        <!-- 箭头 -->
+                        <line x1="100" y1="120" x2="300" y2="120" stroke="#e91e63" stroke-width="2"/>
+                        <polygon points="300,120 290,115 290,125" fill="#e91e63"/>
+                        <text x="200" y="140" text-anchor="middle" fill="#e91e63">延时时间</text>
+                        
+                        <line x1="500" y1="120" x2="700" y2="120" stroke="#e91e63" stroke-width="2"/>
+                        <polygon points="700,120 690,115 690,125" fill="#e91e63"/>
+                        <text x="600" y="140" text-anchor="middle" fill="#e91e63">延时时间</text>
+                        
+                        <!-- 执行区间 -->
+                        <rect x="300" y="90" width="200" height="20" fill="#aed581" opacity="0.6"/>
+                        <text x="400" y="105" text-anchor="middle" fill="#33691e">任务执行时间</text>
+                    </svg>
+                    <p class="note">vTaskDelay：每次延时都是从调用时刻开始计算，任务执行时间会影响实际周期</p>
+                </div>
+                
+                <div class="diagram">
+                    <h3>vTaskDelayUntil 工作原理</h3>
+                    <svg width="800" height="200" viewBox="0 0 800 200">
+                        <!-- 时间轴 -->
+                        <line x1="50" y1="100" x2="750" y2="100" stroke="#00897b" stroke-width="2"/>
+                        
+                        <!-- 固定周期标记 -->
+                        <circle cx="100" cy="100" r="5" fill="#4db6ac"/>
+                        <circle cx="300" cy="100" r="5" fill="#4db6ac"/>
+                        <circle cx="500" cy="100" r="5" fill="#4db6ac"/>
+                        <circle cx="700" cy="100" r="5" fill="#4db6ac"/>
+                        
+                        <!-- 标签 -->
+                        <text x="100" y="80" text-anchor="middle" fill="#00897b">周期起点</text>
+                        <text x="300" y="80" text-anchor="middle" fill="#00897b">周期起点</text>
+                        <text x="500" y="80" text-anchor="middle" fill="#00897b">周期起点</text>
+                        <text x="700" y="80" text-anchor="middle" fill="#00897b">周期起点</text>
+                        
+                        <!-- 固定周期 -->
+                        <line x1="100" y1="70" x2="100" y2="130" stroke="#ff9800" stroke-width="2" stroke-dasharray="5,5"/>
+                        <line x1="300" y1="70" x2="300" y2="130" stroke="#ff9800" stroke-width="2" stroke-dasharray="5,5"/>
+                        <line x1="500" y1="70" x2="500" y2="130" stroke="#ff9800" stroke-width="2" stroke-dasharray="5,5"/>
+                        <line x1="700" y1="70" x2="700" y2="130" stroke="#ff9800" stroke-width="2" stroke-dasharray="5,5"/>
+                        
+                        <!-- 执行区间 -->
+                        <rect x="100" y="90" width="150" height="20" fill="#aed581" opacity="0.6"/>
+                        <rect x="300" y="90" width="150" height="20" fill="#aed581" opacity="0.6"/>
+                        <rect x="500" y="90" width="150" height="20" fill="#aed581" opacity="0.6"/>
+                        
+                        <!-- 延时区间 -->
+                        <rect x="250" y="90" width="50" height="20" fill="#80deea" opacity="0.6"/>
+                        <rect x="450" y="90" width="50" height="20" fill="#80deea" opacity="0.6"/>
+                        <rect x="650" y="90" width="50" height="20" fill="#80deea" opacity="0.6"/>
+                        
+                        <!-- 固定周期箭头 -->
+                        <line x1="100" y1="120" x2="300" y2="120" stroke="#ff9800" stroke-width="2"/>
+                        <polygon points="300,120 290,115 290,125" fill="#ff9800"/>
+                        <text x="200" y="140" text-anchor="middle" fill="#ff9800">固定周期</text>
+                        
+                        <line x1="300" y1="120" x2="500" y2="120" stroke="#ff9800" stroke-width="2"/>
+                        <polygon points="500,120 490,115 490,125" fill="#ff9800"/>
+                        <text x="400" y="140" text-anchor="middle" fill="#ff9800">固定周期</text>
+                        
+                        <line x1="500" y1="120" x2="700" y2="120" stroke="#ff9800" stroke-width="2"/>
+                        <polygon points="700,120 690,115 690,125" fill="#ff9800"/>
+                        <text x="600" y="140" text-anchor="middle" fill="#ff9800">固定周期</text>
+                    </svg>
+                    <p class="note">vTaskDelayUntil：基于绝对时间，确保任务按照固定周期执行，不受任务执行时间影响</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>代码示例</h2>
+                
+                <h3>使用 vTaskDelay 的示例</h3>
+                <div class="code-block">
+                    <pre>void vTaskExample( void *pvParameters )
+{
+    TickType_t xDelay = pdMS_TO_TICKS( 1000 ); // 转换为1秒的节拍数
+    
+    for( ;; )
+    {
+        // 任务功能代码
+        vTaskFunction();
+        
+        // 延时1秒（相对延时）
+        vTaskDelay( xDelay );
+    }
+}</pre>
+                </div>
+                <p class="note">注意：如果vTaskFunction()执行需要时间，实际周期会大于1秒</p>
+                
+                <h3>使用 vTaskDelayUntil 的示例</h3>
+                <div class="code-block">
+                    <pre>void vPeriodicTask( void *pvParameters )
+{
+    TickType_t xLastWakeTime;
+    const TickType_t xFrequency = pdMS_TO_TICKS( 1000 ); // 1秒周期
+    
+    // 初始化上次唤醒时间
+    xLastWakeTime = xTaskGetTickCount();
+    
+    for( ;; )
+    {
+        // 等待下一个周期
+        vTaskDelayUntil( &xLastWakeTime, xFrequency );
+        
+        // 任务功能代码（保证每1秒执行一次）
+        vTaskFunction();
+    }
+}</pre>
+                </div>
+                <p class="note">使用vTaskDelayUntil可以确保任务精确地每1秒执行一次，无论vTaskFunction()执行需要多长时间</p>
+            </div>
+            
+            <div class="section">
+                <h2>使用场景建议</h2>
+                
+                <div class="comparison">
+                    <div class="comparison-item">
+                        <h3>使用 vTaskDelay 的场景</h3>
+                        <ul>
+                            <li>简单的延时需求</li>
+                            <li>对时间精度要求不高的场景</li>
+                            <li>非周期性任务</li>
+                            <li>任务执行时间远小于延时时间</li>
+                            <li>一次性延时操作</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="comparison-item">
+                        <h3>使用 vTaskDelayUntil 的场景</h3>
+                        <ul>
+                            <li>需要精确周期执行的任务</li>
+                            <li>数据采集、控制循环等实时应用</li>
+                            <li>通信协议处理</li>
+                            <li>需要避免时间漂移的系统</li>
+                            <li>固定频率的信号生成</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>重要注意事项</h2>
+                
+                <div class="highlight">
+                    <h3>配置检查</h3>
+                    <p>在使用这些延时函数前，确保FreeRTOSConfig.h中已正确配置：</p>
+                    <div class="code-block">
+                        <pre>#define INCLUDE_vTaskDelay 1
+#define INCLUDE_vTaskDelayUntil 1</pre>
+                    </div>
+                </div>
+                
+                <div class="note">
+                    <h3>时间单位转换</h3>
+                    <p>FreeRTOS使用时钟节拍作为时间单位，可以使用宏进行转换：</p>
+                    <div class="code-block">
+                        <pre>// 将毫秒转换为节拍数
+TickType_t xDelay = pdMS_TO_TICKS( 1000 ); // 1000ms = 1秒
+
+// 将秒转换为节拍数（需要知道configTICK_RATE_HZ）
+TickType_t xDelay = ( 1000 / portTICK_PERIOD_MS ); // 1秒</pre>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>总结</h2>
+                <p><code>vTaskDelay</code> 和 <code>vTaskDelayUntil</code> 都是FreeRTOS中重要的任务延时函数，但它们适用于不同的场景：</p>
+                
+                <ul>
+                    <li><strong>vTaskDelay</strong> 实现相对延时，适用于简单的延时需求，但可能存在时间漂移</li>
+                    <li><strong>vTaskDelayUntil</strong> 实现绝对时间延时，适用于需要精确周期执行的任务，能够避免时间漂移</li>
+                </ul>
+                
+                <div class="highlight">
+                    <p>在实际应用中，应根据任务的具体需求选择合适的延时函数。对于需要精确时间控制的周期性任务，强烈推荐使用vTaskDelayUntil；对于简单的非周期性延时，使用vTaskDelay更加方便。</p>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            蓝海资料掘金营
+        </footer>
+    </div>
+</body>
+</html>

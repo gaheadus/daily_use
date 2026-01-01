@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS安全性与可靠性考量 - 蓝海资料掘金营</title>
+    <style>
+        :root {
+            --tech-blue: #3498db;
+            --vitality-orange: #f39c12;
+            --fresh-green: #2ecc71;
+            --light-bg: #f8f9fa;
+            --dark-text: #2c3e50;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            color: var(--dark-text);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(90deg, var(--tech-blue), var(--fresh-green));
+            color: white;
+            border-radius: 20px;
+            margin-bottom: 40px;
+            box-shadow: var(--shadow);
+        }
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        main {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease;
+            border-top: 6px solid var(--tech-blue);
+        }
+        .card:nth-child(2) { border-top-color: var(--vitality-orange); }
+        .card:nth-child(3) { border-top-color: var(--fresh-green); }
+        .card:nth-child(4) { border-top-color: #9b59b6; }
+        .card:hover {
+            transform: translateY(-10px);
+        }
+        h2 {
+            color: var(--tech-blue);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px dashed #eee;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        h2 svg {
+            width: 28px;
+            height: 28px;
+        }
+        h3 {
+            color: var(--vitality-orange);
+            margin: 20px 0 10px;
+        }
+        ul, ol {
+            padding-left: 24px;
+            margin: 15px 0;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background-color: var(--tech-blue);
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        pre {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            border-left: 5px solid var(--fresh-green);
+        }
+        code {
+            background: #f1f1f1;
+            padding: 3px 6px;
+            border-radius: 4px;
+            color: #c7254e;
+            font-family: 'Courier New', monospace;
+        }
+        .svg-container {
+            text-align: center;
+            margin: 25px 0;
+        }
+        .architecture {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            margin: 30px 0;
+        }
+        footer {
+            text-align: center;
+            padding: 30px;
+            margin-top: 50px;
+            border-top: 3px solid var(--tech-blue);
+            color: var(--dark-text);
+            font-size: 1.1rem;
+            font-weight: bold;
+            background: rgba(255,255,255,0.8);
+            border-radius: 15px;
+        }
+        .highlight {
+            background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+        .tip {
+            background: #e8f6f3;
+            border-left: 5px solid var(--fresh-green);
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 10px 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>FreeRTOS安全性与可靠性考量</h1>
+        <p class="subtitle">第28讲：任务栈、看门狗、断言与系统监控的实战设计</p>
+        <div class="svg-container">
+            <svg width="120" height="120" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="45" fill="none" stroke="white" stroke-width="3" stroke-dasharray="5,5"/>
+                <rect x="30" y="30" width="15" height="40" rx="3" fill="white" opacity="0.8"/>
+                <rect x="55" y="20" width="15" height="50" rx="3" fill="white" opacity="0.9"/>
+                <path d="M20,50 Q50,10 80,50 Q50,90 20,50" fill="none" stroke="white" stroke-width="2"/>
+                <circle cx="50" cy="50" r="8" fill="#f39c12"/>
+            </svg>
+        </div>
+    </header>
+
+    <main>
+        <section class="card">
+            <h2>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M4 4h16v2H4zm0 4h16v2H4zm0 4h16v2H4zm0 4h16v2H4z"/>
+                </svg>
+                任务栈大小合理设置与检测
+            </h2>
+            <p>任务栈是RTOS中每个任务独立拥有的内存区域，用于保存局部变量、函数调用地址和上下文。栈溢出是嵌入式系统最常见、最隐蔽的故障之一。</p>
+            
+            <h3>合理设置栈大小</h3>
+            <ul>
+                <li><span class="highlight">经验估算</span>：根据任务复杂度，一般从256字起步，复杂任务可设1024字以上。</li>
+                <li><span class="highlight">静态分析</span>：通过map文件查看函数调用深度和局部变量大小。</li>
+                <li><span class="highlight">动态检测</span>：FreeRTOS提供的栈溢出检测机制。</li>
+            </ul>
+            
+            <h3>FreeRTOS栈检测方法</h3>
+            <table>
+                <thead>
+                    <tr><th>检测模式</th><th>配置宏</th><th>原理</th><th>开销</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>模式1</td><td>configCHECK_FOR_STACK_OVERFLOW=1</td><td>任务切换时检查栈指针是否越界</td><td>小</td></tr>
+                    <tr><td>模式2</td><td>configCHECK_FOR_STACK_OVERFLOW=2</td><td>填充魔数，检查是否被改写</td><td>中</td></tr>
+                </tbody>
+            </table>
+            
+            <h3>栈使用率监控代码</h3>
+<pre>
+// 获取任务栈使用率
+void vTaskStackUsage(TaskHandle_t xTask) {
+    UBaseType_t uxHighWaterMark;
+    uxHighWaterMark = uxTaskGetStackHighWaterMark(xTask);
+    
+    // 栈总大小可通过创建任务时参数获取或手动记录
+    UBaseType_t uxStackSize = 1024; // 假设栈大小为1024字
+    uint32_t usagePercent = (uxStackSize - uxHighWaterMark) * 100 / uxStackSize;
+    
+    printf("任务栈使用率: %lu%%\n", usagePercent);
+    if(usagePercent > 90) {
+        printf("警告：栈使用率过高！\n");
+    }
+}
+
+// 在FreeRTOSConfig.h中启用检测
+#define configCHECK_FOR_STACK_OVERFLOW 2
+</pre>
+            
+            <div class="tip">
+                <strong>实战技巧：</strong>在产品测试阶段，将栈大小设置为预估值的1.5倍，通过监控高水位线确定实际需求，再逐步优化。
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.24 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z"/>
+                </svg>
+                看门狗任务设计
+            </h2>
+            <p>看门狗是系统最后一道防线，用于检测系统死锁、任务卡死等异常情况，触发系统复位。</p>
+            
+            <h3>两级看门狗架构</h3>
+            <div class="svg-container">
+                <svg width="300" height="200" viewBox="0 0 300 200">
+                    <rect x="10" y="80" width="80" height="40" rx="5" fill="#3498db" opacity="0.8"/>
+                    <text x="50" y="105" text-anchor="middle" fill="white" font-size="12">硬件看门狗</text>
+                    
+                    <rect x="110" y="20" width="80" height="40" rx="5" fill="#f39c12" opacity="0.8"/>
+                    <text x="150" y="45" text-anchor="middle" fill="white" font-size="12">监控任务</text>
+                    
+                    <rect x="110" y="80" width="80" height="40" rx="5" fill="#2ecc71" opacity="0.8"/>
+                    <text x="150" y="105" text-anchor="middle" fill="white" font-size="12">任务1</text>
+                    
+                    <rect x="110" y="140" width="80" height="40" rx="5" fill="#2ecc71" opacity="0.8"/>
+                    <text x="150" y="165" text-anchor="middle" fill="white" font-size="12">任务N</text>
+                    
+                    <line x1="90" y1="100" x2="110" y2="100" stroke="#2c3e50" stroke-width="2"/>
+                    <line x1="150" y1="60" x2="150" y2="80" stroke="#2c3e50" stroke-width="2"/>
+                    <line x1="150" y1="120" x2="150" y2="140" stroke="#2c3e50" stroke-width="2"/>
+                    
+                    <polygon points="110,100 105,95 105,105" fill="#2c3e50"/>
+                    <polygon points="150,80 145,75 155,75" fill="#2c3e50"/>
+                    <polygon points="150,140 145,135 155,135" fill="#2c3e50"/>
+                    
+                    <text x="50" y="180" text-anchor="middle" fill="#2c3e50" font-size="10">超时则系统复位</text>
+                    <text x="150" y="180" text-anchor="middle" fill="#2c3e50" font-size="10">任务喂狗，超时则重启任务</text>
+                </svg>
+            </div>
+            
+            <h3>软件看门狗任务实现</h3>
+<pre>
+// 任务心跳记录结构
+typedef struct {
+    TaskHandle_t taskHandle;
+    char taskName[16];
+    uint32_t lastFeedTime;
+    uint32_t timeoutMs;
+    bool isAlive;
+} TaskWatchdogItem;
+
+static TaskWatchdogItem taskList[MAX_TASKS];
+static UBaseType_t taskCount = 0;
+
+// 注册任务到看门狗监控
+void vRegisterTaskToWatchdog(TaskHandle_t task, const char* name, uint32_t timeout) {
+    if(taskCount < MAX_TASKS) {
+        taskList[taskCount].taskHandle = task;
+        strncpy(taskList[taskCount].taskName, name, 15);
+        taskList[taskCount].timeoutMs = timeout;
+        taskList[taskCount].lastFeedTime = xTaskGetTickCount();
+        taskList[taskCount].isAlive = true;
+        taskCount++;
+    }
+}
+
+// 任务喂狗函数
+void vTaskFeedWatchdog(void) {
+    TaskHandle_t currentTask = xTaskGetCurrentTaskHandle();
+    for(int i = 0; i < taskCount; i++) {
+        if(taskList[i].taskHandle == currentTask) {
+            taskList[i].lastFeedTime = xTaskGetTickCount();
+            taskList[i].isAlive = true;
+            break;
+        }
+    }
+}
+
+// 看门狗监控任务
+void vWatchdogTask(void *pvParameters) {
+    const TickType_t xDelay = pdMS_TO_TICKS(1000); // 每秒检查一次
+    
+    while(1) {
+        uint32_t currentTime = xTaskGetTickCount();
+        
+        for(int i = 0; i < taskCount; i++) {
+            if((currentTime - taskList[i].lastFeedTime) > 
+               pdMS_TO_TICKS(taskList[i].timeoutMs)) {
+                // 任务超时，执行恢复操作
+                printf("任务 %s 超时！\n", taskList[i].taskName);
+                
+                // 可选：重启任务或系统复位
+                vTaskSuspend(taskList[i].taskHandle);
+                vTaskResume(taskList[i].taskHandle);
+                
+                taskList[i].lastFeedTime = currentTime;
+            }
+        }
+        
+        // 喂硬件看门狗
+        HAL_IWDG_Refresh(&hiwdg);
+        
+        vTaskDelay(xDelay);
+    }
+}
+</pre>
+        </section>
+
+        <section class="card">
+            <h2>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                </svg>
+                断言（configASSERT）的使用
+            </h2>
+            <p>断言是开发阶段的强大调试工具，能在运行时检查假设条件，及早发现程序逻辑错误。</p>
+            
+            <h3>FreeRTOS断言配置</h3>
+<pre>
+// FreeRTOSConfig.h 中配置
+#define configASSERT( x ) \
+    if( ( x ) == 0 ) { \
+        taskDISABLE_INTERRUPTS(); \
+        printf("断言失败: %s, 文件: %s, 行: %d\n", \
+               #x, __FILE__, __LINE__); \
+        for( ;; ); \
+    }
+
+// 或者使用更复杂的断言处理
+#define configASSERT( x ) \
+    if( ( x ) == 0 ) { \
+        vAssertCalled(__FILE__, __LINE__); \
+    }
+
+void vAssertCalled(const char *pcFile, uint32_t ulLine) {
+    volatile uint32_t ul = 0;
+    
+    printf("断言失败！文件: %s, 行: %lu\n", pcFile, ulLine);
+    
+    // 保存错误上下文（可用于后续分析）
+    error_file = pcFile;
+    error_line = ulLine;
+    
+    // 关闭中断，进入死循环或系统复位
+    taskDISABLE_INTERRUPTS();
+    while(1) {
+        // 可添加LED闪烁指示错误
+        ul++;
+    }
+}
+</pre>
+            
+            <h3>断言使用场景</h3>
+            <ol>
+                <li><strong>参数检查</strong>：API函数入口参数合法性验证</li>
+                <li><strong>资源状态</strong>：检查队列、信号量等资源操作是否成功</li>
+                <li><strong>临界区</strong>：验证是否在中断中调用了不允许的函数</li>
+                <li><strong>内存分配</strong>：检查pvPortMalloc返回值是否为NULL</li>
+            </ol>
+            
+            <h3>生产环境处理</h3>
+            <table>
+                <thead>
+                    <tr><th>环境</th><th>断言策略</th><th>说明</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>开发调试</td><td>启用完整断言</td><td>捕获所有可能错误</td></tr>
+                    <tr><td>现场测试</td><td>启用关键断言</td><td>只检查致命错误</td></tr>
+                    <tr><td>量产发布</td><td>禁用断言或记录日志</td><td>避免系统挂起，记录错误信息</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="card">
+            <h2>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+                </svg>
+                系统运行状态监控
+            </h2>
+            <p>实时监控系统关键指标，为性能优化和故障诊断提供数据支持。</p>
+            
+            <div class="architecture">
+                <h3>系统监控架构图</h3>
+                <div class="svg-container">
+                    <svg width="350" height="250" viewBox="0 0 350 250">
+                        <!-- 数据采集层 -->
+                        <rect x="20" y="30" width="310" height="50" rx="8" fill="#e3f2fd" stroke="#3498db" stroke-width="2"/>
+                        <text x="175" y="60" text-anchor="middle" fill="#2c3e50" font-weight="bold">数据采集层</text>
+                        
+                        <circle cx="70" cy="55" r="15" fill="#3498db"/>
+                        <text x="70" y="60" text-anchor="middle" fill="white" font-size="10">CPU</text>
+                        
+                        <circle cx="120" cy="55" r="15" fill="#f39c12"/>
+                        <text x="120" y="60" text-anchor="middle" fill="white" font-size="10">内存</text>
+                        
+                        <circle cx="170" cy="55" r="15" fill="#2ecc71"/>
+                        <text x="170" y="60" text-anchor="middle" fill="white" font-size="10">任务</text>
+                        
+                        <circle cx="220" cy="55" r="15" fill="#9b59b6"/>
+                        <text x="220" y="60" text-anchor="middle" fill="white" font-size="10">队列</text>
+                        
+                        <circle cx="270" cy="55" r="15" fill="#e74c3c"/>
+                        <text x="270" y="60" text-anchor="middle" fill="white" font-size="10">时间</text>
+                        
+                        <!-- 数据处理层 -->
+                        <rect x="20" y="110" width="310" height="50" rx="8" fill="#fff3e0" stroke="#f39c12" stroke-width="2"/>
+                        <text x="175" y="140" text-anchor="middle" fill="#2c3e50" font-weight="bold">数据处理层</text>
+                        <text x="175" y="155" text-anchor="middle" fill="#666" font-size="10">统计、分析、告警判断</text>
+                        
+                        <!-- 数据输出层 -->
+                        <rect x="20" y="190" width="310" height="50" rx="8" fill="#e8f5e9" stroke="#2ecc71" stroke-width="2"/>
+                        <text x="175" y="220" text-anchor="middle" fill="#2c3e50" font-weight="bold">数据输出层</text>
+                        
+                        <rect x="80" y="195" width="60" height="20" rx="4" fill="#2ecc71" opacity="0.8"/>
+                        <text x="110" y="208" text-anchor="middle" fill="white" font-size="9">串口输出</text>
+                        
+                        <rect x="150" y="195" width="60" height="20" rx="4" fill="#3498db" opacity="0.8"/>
+                        <text x="180" y="208" text-anchor="middle" fill="white" font-size="9">LCD显示</text>
+                        
+                        <rect x="220" y="195" width="60" height="20" rx="4" fill="#9b59b6" opacity="0.8"/>
+                        <text x="250" y="208" text-anchor="middle" fill="white" font-size="9">文件存储</text>
+                        
+                        <!-- 连接线 -->
+                        <line x1="70" y1="80" x2="70" y2="110" stroke="#666" stroke-width="1" stroke-dasharray="3,3"/>
+                        <line x1="120" y1="80" x2="120" y2="110" stroke="#666" stroke-width="1" stroke-dasharray="3,3"/>
+                        <line x1="170" y1="80" x2="170" y2="110" stroke="#666" stroke-width="1" stroke-dasharray="3,3"/>
+                        <line x1="220" y1="80" x2="220" y2="110" stroke="#666" stroke-width="1" stroke-dasharray="3,3"/>
+                        <line x1="270" y1="80" x2="270" y2="110" stroke="#666" stroke-width="1" stroke-dasharray="3,3"/>
+                        
+                        <line x1="175" y1="160" x2="175" y2="190" stroke="#666" stroke-width="1" stroke-dasharray="3,3"/>
+                    </svg>
+                </div>
+            </div>
+            
+            <h3>关键监控指标与API</h3>
+<pre>
+// 系统监控任务示例
+void vSystemMonitorTask(void *pvParameters) {
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+    const TickType_t xFrequency = pdMS_TO_TICKS(5000); // 5秒监控一次
+    
+    while(1) {
+        // 1. CPU使用率
+        #if (configUSE_TRACE_FACILITY == 1)
+        TaskStatus_t *pxTaskStatusArray;
+        uint32_t ulTotalRunTime;
+        UBaseType_t uxArraySize = uxTaskGetNumberOfTasks();
+        
+        pxTaskStatusArray = pvPortMalloc(uxArraySize * sizeof(TaskStatus_t));
+        if(pxTaskStatusArray != NULL) {
+            uxArraySize = uxTaskGetSystemState(pxTaskStatusArray, 
+                                              uxArraySize, 
+                                              &ulTotalRunTime);
+            
+            for(int i = 0; i < uxArraySize; i++) {
+                uint32_t ulTaskUsage = pxTaskStatusArray[i].ulRunTimeCounter * 100UL / ulTotalRunTime;
+                printf("任务: %s, CPU使用率: %lu%%\n", 
+                       pxTaskStatusArray[i].pcTaskName, ulTaskUsage);
+            }
+            vPortFree(pxTaskStatusArray);
+        }
+        #endif
+        
+        // 2. 内存使用情况
+        size_t xFreeHeapSize = xPortGetFreeHeapSize();
+        size_t xMinimumEverFreeHeapSize = xPortGetMinimumEverFreeHeapSize();
+        printf("当前空闲堆内存: %u 字节\n", xFreeHeapSize);
+        printf("历史最小空闲堆: %u 字节\n", xMinimumEverFreeHeapSize);
+        
+        // 3. 任务状态统计
+        printf("当前任务数: %u\n", uxTaskGetNumberOfTasks());
+        
+        // 4. 队列状态监控（示例）
+        UBaseType_t uxMessagesWaiting = uxQueueMessagesWaiting(xQueueHandle);
+        printf("队列中消息数: %u\n", uxMessagesWaiting);
+        
+        vTaskDelayUntil(&xLastWakeTime, xFrequency);
+    }
+}
+</pre>
+            
+            <h3>监控数据可视化建议</h3>
+            <ul>
+                <li><strong>串口命令行</strong>：实现CLI命令查看系统状态</li>
+                <li><strong>LCD界面</strong>：实时显示CPU、内存使用率曲线</li>
+                <li><strong>日志文件</strong>：SD卡存储历史数据，便于分析</li>
+                <li><strong>网络上报</strong>：通过以太网/Wi-Fi上传到服务器</li>
+            </ul>
+        </section>
+    </main>
+
+    <div class="architecture">
+        <h3>安全性与可靠性综合设计总结</h3>
+        <div class="svg-container">
+            <svg width="400" height="200" viewBox="0 0 400 200">
+                <rect x="50" y="30" width="100" height="60" rx="8" fill="#3498db" opacity="0.9"/>
+                <text x="100" y="60" text-anchor="middle" fill="white">栈监控</text>
+                <text x="100" y="75" text-anchor="middle" fill="white" font-size="10">预防溢出</text>
+                
+                <rect x="180" y="30" width="100" height="60" rx="8" fill="#f39c12" opacity="0.9"/>
+                <text x="230" y="60" text-anchor="middle" fill="white">看门狗</text>
+                <text x="230" y="75" text-anchor="middle" fill="white" font-size="10">死锁恢复</text>
+                
+                <rect x="310" y="30" width="100" height="60" rx="8" fill="#2ecc71" opacity="0.9"/>
+                <text x="360" y="60" text-anchor="middle" fill="white">断言</text>
+                <text x="360" y="75" text-anchor="middle" fill="white" font-size="10">逻辑检查</text>
+                
+                <rect x="115" y="120" width="220" height="60" rx="8" fill="#9b59b6" opacity="0.9"/>
+                <text x="225" y="150" text-anchor="middle" fill="white">系统监控</text>
+                <text x="225" y="165" text-anchor="middle" fill="white" font-size="10">性能分析</text>
+                
+                <line x1="100" y1="90" x2="100" y2="120" stroke="#2c3e50" stroke-width="2"/>
+                <line x1="230" y1="90" x2="230" y2="120" stroke="#2c3e50" stroke-width="2"/>
+                <line x1="360" y1="90" x2="360" y2="120" stroke="#2c3e50" stroke-width="2"/>
+                
+                <line x1="100" y1="120" x2="225" y2="120" stroke="#2c3e50" stroke-width="2"/>
+                <line x1="360" y1="120" x2="225" y2="120" stroke="#2c3e50" stroke-width="2"/>
+                
+                <circle cx="225" cy="120" r="8" fill="#2c3e50"/>
+            </svg>
+        </div>
+        <p>嵌入式系统的安全性与可靠性需要多层次、全方位的保障：</p>
+        <ol>
+            <li><strong>预防为主</strong>：通过合理的栈大小设置和断言检查，预防错误发生</li>
+            <li><strong>检测为辅</strong>：利用栈溢出检测和看门狗机制，及时发现异常</li>
+            <li><strong>恢复为保</strong>：设计完善的异常恢复机制，确保系统持续运行</li>
+            <li><strong>监控为优</strong>：通过系统监控持续优化性能，提前发现潜在问题</li>
+        </ol>
+        <div class="tip">
+            <strong>最佳实践：</strong>在项目初期就建立完整的安全可靠性框架，随着项目进展逐步完善。开发阶段严格检查，生产环境适度放松但保留关键保护。
+        </div>
+    </div>
+
+    <footer>
+        <p>© 2023 蓝海资料掘金营 - FreeRTOS从入门到实战课程</p>
+        <p>安全性与可靠性是嵌入式系统的生命线，精心设计，严格测试，方得始终。</p>
+    </footer>
+</body>
+</html>

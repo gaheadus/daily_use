@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS任务管理50问 - 任务句柄的作用</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #f9fbe7 50%, #e8f5e9 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px dashed #4db6ac;
+        }
+        
+        .header h1 {
+            color: #00695c;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header .subtitle {
+            color: #00796b;
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h2 {
+            color: #00796b;
+            border-left: 5px solid #4db6ac;
+            padding-left: 15px;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        
+        .card h3 {
+            color: #004d40;
+            margin: 15px 0 10px;
+            font-size: 1.2rem;
+        }
+        
+        ul, ol {
+            padding-left: 25px;
+            margin: 15px 0;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        th {
+            background-color: #4db6ac;
+            color: white;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0f2f1;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f1f8e9;
+        }
+        
+        tr:hover {
+            background-color: #e0f2f1;
+        }
+        
+        pre {
+            background-color: #f5f5f5;
+            border-left: 4px solid #4db6ac;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        
+        code {
+            background-color: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+        
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 25px 0;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px dashed #4db6ac;
+            color: #00796b;
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+        
+        .highlight {
+            background-color: #e8f5e9;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 5px solid #4caf50;
+        }
+        
+        .note {
+            background-color: #fffde7;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 5px solid #ffd600;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>FreeRTOS任务管理50问</h1>
+            <div class="subtitle">第12问：任务句柄的作用 - 任务句柄在任务管理中的应用</div>
+        </div>
+        
+        <div class="content">
+            <div class="card">
+                <h2>什么是任务句柄</h2>
+                <p>在FreeRTOS中，任务句柄（Task Handle）是一个指向任务控制块（TCB）的指针，它是操作系统中标识和管理任务的关键数据结构。</p>
+                
+                <div class="svg-container">
+                    <svg width="300" height="150" viewBox="0 0 300 150">
+                        <rect x="10" y="20" width="120" height="40" fill="#4db6ac" rx="5" />
+                        <text x="70" y="45" text-anchor="middle" fill="white" font-weight="bold">任务句柄</text>
+                        <path d="M130 40 L160 40" stroke="#00796b" stroke-width="2" />
+                        <polygon points="160,40 155,35 155,45 160,40" fill="#00796b" />
+                        <rect x="160" y="20" width="120" height="40" fill="#00796b" rx="5" />
+                        <text x="220" y="45" text-anchor="middle" fill="white" font-weight="bold">任务控制块(TCB)</text>
+                    </svg>
+                </div>
+                
+                <p>任务句柄的数据类型是<code>TaskHandle_t</code>，在FreeRTOS中定义如下：</p>
+                <pre>typedef void * TaskHandle_t;</pre>
+                
+                <div class="highlight">
+                    <p><strong>关键点：</strong>任务句柄是FreeRTOS中引用和操作任务的唯一标识符，类似于文件系统中的文件句柄。</p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>任务句柄的主要作用</h2>
+                <ul>
+                    <li><strong>任务标识</strong>：唯一标识系统中的每个任务</li>
+                    <li><strong>任务操作</strong>：通过句柄对任务进行各种操作</li>
+                    <li><strong>任务通信</strong>：在任务间通信中指定目标任务</li>
+                    <li><strong>任务状态查询</strong>：获取任务的状态信息</li>
+                    <li><strong>任务删除</strong>：安全地删除指定任务</li>
+                </ul>
+                
+                <h3>任务句柄的应用场景</h3>
+                <table>
+                    <tr>
+                        <th>应用场景</th>
+                        <th>相关API函数</th>
+                    </tr>
+                    <tr>
+                        <td>任务创建</td>
+                        <td>xTaskCreate()</td>
+                    </tr>
+                    <tr>
+                        <td>任务删除</td>
+                        <td>vTaskDelete()</td>
+                    </tr>
+                    <tr>
+                        <td>任务挂起</td>
+                        <td>vTaskSuspend()</td>
+                    </tr>
+                    <tr>
+                        <td>任务恢复</td>
+                        <td>vTaskResume()</td>
+                    </tr>
+                    <tr>
+                        <td>任务优先级设置</td>
+                        <td>vTaskPrioritySet()</td>
+                    </tr>
+                    <tr>
+                        <td>任务通知</td>
+                        <td>xTaskNotify()</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div class="card">
+                <h2>任务句柄的使用示例</h2>
+                <h3>任务创建与句柄获取</h3>
+                <pre>// 定义任务句柄
+TaskHandle_t xTaskHandle = NULL;
+
+// 创建任务并获取句柄
+BaseType_t xReturn = xTaskCreate(
+    vTaskFunction,      // 任务函数
+    "MyTask",           // 任务名称
+    configMINIMAL_STACK_SIZE, // 堆栈大小
+    NULL,               // 任务参数
+    tskIDLE_PRIORITY + 1, // 任务优先级
+    &xTaskHandle        // 任务句柄指针
+);
+
+if(xReturn == pdPASS) {
+    // 任务创建成功，xTaskHandle现在指向新创建的任务
+}</pre>
+                
+                <h3>使用句柄操作任务</h3>
+                <pre>// 挂起指定任务
+vTaskSuspend(xTaskHandle);
+
+// 恢复指定任务
+vTaskResume(xTaskHandle);
+
+// 删除指定任务
+vTaskDelete(xTaskHandle);
+
+// 设置任务优先级
+vTaskPrioritySet(xTaskHandle, uxNewPriority);</pre>
+            </div>
+            
+            <div class="card">
+                <h2>任务句柄管理最佳实践</h2>
+                <ol>
+                    <li><strong>及时保存句柄</strong>：在创建任务后立即保存任务句柄</li>
+                    <li><strong>合理作用域</strong>：根据需要在全局或模块级定义任务句柄</li>
+                    <li><strong>NULL检查</strong>：在使用任务句柄前检查其有效性</li>
+                    <li><strong>资源释放</strong>：删除任务后及时将句柄置为NULL</li>
+                    <li><strong>文档记录</strong>：为每个任务句柄添加清晰的注释说明</li>
+                </ol>
+                
+                <div class="note">
+                    <p><strong>注意：</strong>任务句柄在任务删除后变为无效，继续使用可能导致系统崩溃。</p>
+                </div>
+                
+                <h3>任务句柄生命周期管理</h3>
+                <div class="svg-container">
+                    <svg width="350" height="200" viewBox="0 0 350 200">
+                        <rect x="20" y="30" width="80" height="40" fill="#81c784" rx="5" />
+                        <text x="60" y="55" text-anchor="middle" fill="white">任务创建</text>
+                        <path d="M100 50 L140 50" stroke="#4caf50" stroke-width="2" />
+                        <polygon points="140,50 135,45 135,55 140,50" fill="#4caf50" />
+                        
+                        <rect x="140" y="30" width="80" height="40" fill="#4caf50" rx="5" />
+                        <text x="180" y="55" text-anchor="middle" fill="white">句柄有效</text>
+                        <path d="M220 50 L260 50" stroke="#4caf50" stroke-width="2" />
+                        <polygon points="260,50 255,45 255,55 260,50" fill="#4caf50" />
+                        
+                        <rect x="260" y="30" width="80" height="40" fill="#f44336" rx="5" />
+                        <text x="300" y="55" text-anchor="middle" fill="white">任务删除</text>
+                        
+                        <rect x="140" y="100" width="80" height="40" fill="#ff9800" rx="5" />
+                        <text x="180" y="125" text-anchor="middle" fill="white">句柄无效</text>
+                        <path d="M100 120 L140 120" stroke="#ff9800" stroke-width="2" />
+                        <polygon points="140,120 135,115 135,125 140,120" fill="#ff9800" />
+                        <path d="M220 120 L260 120" stroke="#ff9800" stroke-width="2" />
+                        <polygon points="260,120 255,115 255,125 260,120" fill="#ff9800" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+        
+        <div class="highlight">
+            <h2>总结</h2>
+            <p>任务句柄是FreeRTOS任务管理的核心概念，它提供了对任务进行各种操作的入口点。正确理解和使用任务句柄对于开发稳定、高效的嵌入式系统至关重要。通过任务句柄，开发者可以精确控制系统中每个任务的行为，实现复杂的任务间协作和资源管理。</p>
+        </div>
+        
+        <div class="footer">
+            蓝海资料掘金营
+        </div>
+    </div>
+</body>
+</html>

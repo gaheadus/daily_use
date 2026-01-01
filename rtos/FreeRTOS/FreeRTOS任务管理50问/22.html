@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS任务钩子函数详解</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #f9fbe7 50%, #e8f5e9 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px dashed #4db6ac;
+        }
+
+        .header h1 {
+            color: #00695c;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .header p {
+            color: #00796b;
+            font-size: 1.2rem;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .section:hover {
+            transform: translateY(-5px);
+        }
+
+        .section h2 {
+            color: #004d40;
+            border-left: 5px solid #4db6ac;
+            padding-left: 15px;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .section p, .section li {
+            margin-bottom: 10px;
+            color: #455a64;
+        }
+
+        .section ul, .section ol {
+            padding-left: 20px;
+        }
+
+        .section li {
+            margin-bottom: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        th {
+            background-color: #4db6ac;
+            color: white;
+            padding: 12px 15px;
+            text-align: left;
+        }
+
+        td {
+            padding: 10px 15px;
+            border-bottom: 1px solid #e0f2f1;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f1f8e9;
+        }
+
+        tr:hover {
+            background-color: #e0f2f1;
+        }
+
+        pre {
+            background: #f5f5f5;
+            border-left: 4px solid #4db6ac;
+            padding: 15px;
+            overflow-x: auto;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            color: #37474f;
+        }
+
+        code {
+            background: #f5f5f5;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #00695c;
+        }
+
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .svg-container svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .note {
+            background: #fff9c4;
+            border-left: 4px solid #ffd600;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .warning {
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px dashed #4db6ac;
+            color: #00796b;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>FreeRTOS任务钩子函数详解</h1>
+            <p>第22课：如何使用任务钩子函数进行任务监控和调试</p>
+        </div>
+
+        <div class="content">
+            <div class="section">
+                <h2>什么是任务钩子函数</h2>
+                <p>任务钩子函数（Task Hook Function）是FreeRTOS提供的一种回调机制，允许用户在任务切换、任务创建、任务删除等关键事件发生时执行自定义代码。</p>
+                
+                <div class="svg-container">
+                    <svg width="400" height="200" viewBox="0 0 400 200">
+                        <rect x="50" y="30" width="100" height="40" fill="#4db6ac" rx="5" />
+                        <text x="100" y="55" text-anchor="middle" fill="white" font-weight="bold">任务创建</text>
+                        
+                        <rect x="50" y="90" width="100" height="40" fill="#4db6ac" rx="5" />
+                        <text x="100" y="115" text-anchor="middle" fill="white" font-weight="bold">任务切换</text>
+                        
+                        <rect x="50" y="150" width="100" height="40" fill="#4db6ac" rx="5" />
+                        <text x="100" y="175" text-anchor="middle" fill="white" font-weight="bold">任务删除</text>
+                        
+                        <path d="M 150 50 L 250 50 L 250 100 L 150 100 Z" fill="#ffb74d" rx="5" />
+                        <text x="200" y="75" text-anchor="middle" fill="white" font-weight="bold">钩子函数</text>
+                        
+                        <path d="M 150 110 L 250 110 L 250 160 L 150 160 Z" fill="#ffb74d" rx="5" />
+                        <text x="200" y="135" text-anchor="middle" fill="white" font-weight="bold">钩子函数</text>
+                        
+                        <path d="M 150 170 L 250 170 L 250 220 L 150 220 Z" fill="#ffb74d" rx="5" />
+                        <text x="200" y="195" text-anchor="middle" fill="white" font-weight="bold">钩子函数</text>
+                        
+                        <line x1="150" y1="50" x2="150" y2="100" stroke="#4db6ac" stroke-width="2" />
+                        <line x1="150" y1="110" x2="150" y2="160" stroke="#4db6ac" stroke-width="2" />
+                        <line x1="150" y1="170" x2="150" y2="220" stroke="#4db6ac" stroke-width="2" />
+                    </svg>
+                </div>
+                
+                <p>钩子函数的主要用途包括：</p>
+                <ul>
+                    <li>任务执行时间统计</li>
+                    <li>堆栈使用情况监控</li>
+                    <li>任务调度分析</li>
+                    <li>系统调试和性能分析</li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2>钩子函数类型</h2>
+                <p>FreeRTOS提供了多种类型的钩子函数，用于不同的事件：</p>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>钩子类型</th>
+                            <th>触发时机</th>
+                            <th>配置宏</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>任务切换钩子</td>
+                            <td>任务切换发生时</td>
+                            <td>configUSE_TASK_SWITCH_HOOK</td>
+                        </tr>
+                        <tr>
+                            <td>空闲任务钩子</td>
+                            <td>空闲任务运行时</td>
+                            <td>configUSE_IDLE_HOOK</td>
+                        </tr>
+                        <tr>
+                            <td>滴答钩子</td>
+                            <td>系统滴答中断时</td>
+                            <td>configUSE_TICK_HOOK</td>
+                        </tr>
+                        <tr>
+                            <td>任务创建钩子</td>
+                            <td>任务创建完成时</td>
+                            <td>configUSE_TASK_CREATE_HOOK</td>
+                        </tr>
+                        <tr>
+                            <td>任务删除钩子</td>
+                            <td>任务删除前</td>
+                            <td>configUSE_TASK_DELETE_HOOK</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="note">
+                    <p><strong>注意：</strong>使用钩子函数前需要在FreeRTOSConfig.h中启用相应的配置宏。</p>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>配置钩子函数</h2>
+                <p>要使用任务钩子函数，首先需要在FreeRTOSConfig.h中启用相应的配置：</p>
+                
+                <pre><code>/* FreeRTOSConfig.h */
+#define configUSE_TASK_SWITCH_HOOK    1
+#define configUSE_IDLE_HOOK          1
+#define configUSE_TICK_HOOK          0
+#define configUSE_TASK_CREATE_HOOK   1
+#define configUSE_TASK_DELETE_HOOK   1</code></pre>
+                
+                <p>然后实现相应的钩子函数：</p>
+                
+                <pre><code>/* 任务切换钩子函数 */
+void vApplicationTaskSwitchHook(void)
+{
+    /* 记录任务切换信息 */
+    static TaskHandle_t pxPreviousTask = NULL;
+    TaskHandle_t pxCurrentTask = xTaskGetCurrentTaskHandle();
+    
+    if(pxPreviousTask != pxCurrentTask)
+    {
+        /* 执行自定义操作 */
+        traceTASK_SWITCHED_IN();
+        pxPreviousTask = pxCurrentTask;
+    }
+}
+
+/* 空闲任务钩子函数 */
+void vApplicationIdleHook(void)
+{
+    /* 在空闲任务中执行低优先级操作 */
+    /* 注意：不能调用可能导致阻塞的API */
+}
+
+/* 任务创建钩子函数 */
+void vApplicationTaskCreateHook(TaskHandle_t pxCreatedTask)
+{
+    /* 新任务创建时的处理 */
+    printf("Task created: %s\n", pcTaskGetName(pxCreatedTask));
+}
+
+/* 任务删除钩子函数 */
+void vApplicationTaskDeleteHook(TaskHandle_t pxTaskToDelete)
+{
+    /* 任务删除前的清理工作 */
+    printf("Task deleted: %s\n", pcTaskGetName(pxTaskToDelete));
+}</code></pre>
+            </div>
+
+            <div class="section">
+                <h2>钩子函数应用实例</h2>
+                <p>下面是一个使用任务钩子函数进行任务执行时间统计的完整示例：</p>
+                
+                <pre><code>#include "FreeRTOS.h"
+#include "task.h"
+#include "timers.h"
+
+/* 任务执行时间统计结构 */
+typedef struct
+{
+    TaskHandle_t xTaskHandle;
+    char *pcTaskName;
+    uint32_t ulRunTimeCounter;
+} TaskRuntimeStats_t;
+
+/* 任务统计数组 */
+static TaskRuntimeStats_t xTaskStats[3];
+static uint32_t ulLastTickCount = 0;
+
+void vApplicationTaskSwitchHook(void)
+{
+    TaskHandle_t xCurrentTask = xTaskGetCurrentTaskHandle();
+    uint32_t ulCurrentTickCount = xTaskGetTickCount();
+    uint32_t ulElapsedTicks = ulCurrentTickCount - ulLastTickCount;
+    
+    /* 更新上一个任务的运行时间 */
+    for(int i = 0; i < 3; i++)
+    {
+        if(xTaskStats[i].xTaskHandle == xTaskGetCurrentTaskHandle())
+        {
+            xTaskStats[i].ulRunTimeCounter += ulElapsedTicks;
+            break;
+        }
+    }
+    
+    ulLastTickCount = ulCurrentTickCount;
+}
+
+void vApplicationTaskCreateHook(TaskHandle_t pxCreatedTask)
+{
+    /* 初始化任务统计信息 */
+    static int iTaskCount = 0;
+    if(iTaskCount < 3)
+    {
+        xTaskStats[iTaskCount].xTaskHandle = pxCreatedTask;
+        xTaskStats[iTaskCount].pcTaskName = (char *)pcTaskGetName(pxCreatedTask);
+        xTaskStats[iTaskCount].ulRunTimeCounter = 0;
+        iTaskCount++;
+    }
+}
+
+/* 打印任务统计信息 */
+void vPrintTaskRuntimeStats(void)
+{
+    printf("\n=== Task Runtime Statistics ===\n");
+    for(int i = 0; i < 3; i++)
+    {
+        printf("Task: %s, Runtime: %lu ticks\n", 
+               xTaskStats[i].pcTaskName, 
+               xTaskStats[i].ulRunTimeCounter);
+    }
+    printf("==============================\n");
+}</code></pre>
+            </div>
+
+            <div class="section">
+                <h2>钩子函数使用注意事项</h2>
+                
+                <div class="warning">
+                    <p><strong>警告：</strong>钩子函数执行时间应尽可能短，避免影响系统实时性。</p>
+                </div>
+                
+                <ul>
+                    <li><strong>执行时间限制：</strong>钩子函数应保持简短，避免长时间执行</li>
+                    <li><strong>API调用限制：</strong>某些钩子函数中不能调用可能导致阻塞的FreeRTOS API</li>
+                    <li><strong>中断安全：</strong>确保钩子函数的实现是中断安全的</li>
+                    <li><strong>堆栈使用：</strong>监控钩子函数的堆栈使用情况</li>
+                    <li><strong>性能影响：</strong>评估钩子函数对系统性能的影响</li>
+                </ul>
+                
+                <div class="svg-container">
+                    <svg width="350" height="200" viewBox="0 0 350 200">
+                        <rect x="50" y="30" width="250" height="140" fill="#f5f5f5" stroke="#4db6ac" stroke-width="2" rx="10" />
+                        
+                        <circle cx="100" cy="80" r="30" fill="#ffb74d" />
+                        <text x="100" y="85" text-anchor="middle" fill="white" font-weight="bold">快</text>
+                        
+                        <circle cx="175" cy="80" r="30" fill="#4db6ac" />
+                        <text x="175" y="85" text-anchor="middle" fill="white" font-weight="bold">短</text>
+                        
+                        <circle cx="250" cy="80" r="30" fill="#81c784" />
+                        <text x="250" y="85" text-anchor="middle" fill="white" font-weight="bold">简</text>
+                        
+                        <text x="175" y="150" text-anchor="middle" fill="#00695c" font-weight="bold">钩子函数设计原则</text>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>钩子函数调试技巧</h2>
+                <p>使用钩子函数进行系统调试时的一些实用技巧：</p>
+                
+                <ol>
+                    <li><strong>任务堆栈监控：</strong>使用任务创建钩子记录初始堆栈信息，通过定期检查监控堆栈使用</li>
+                    <li><strong>执行轨迹跟踪：</strong>在任务切换钩子中记录任务执行序列，分析任务调度行为</li>
+                    <li><strong>性能分析：</strong>使用滴答钩子统计CPU利用率，识别性能瓶颈</li>
+                    <li><strong>内存泄漏检测：</strong>在任务创建和删除钩子中跟踪资源分配和释放</li>
+                    <li><strong>死锁检测：</strong>通过监控任务状态转换检测可能的死锁情况</li>
+                </ol>
+                
+                <pre><code>/* 堆栈使用监控示例 */
+void vApplicationTaskCreateHook(TaskHandle_t pxCreatedTask)
+{
+    /* 记录任务创建时的堆栈信息 */
+    UBaseType_t uxHighWaterMark = uxTaskGetStackHighWaterMark(pxCreatedTask);
+    printf("Task %s created, stack high water mark: %d\n", 
+           pcTaskGetName(pxCreatedTask), uxHighWaterMark);
+}
+
+/* 定期检查堆栈使用 */
+void vCheckTaskStacks(void)
+{
+    /* 遍历所有任务检查堆栈使用情况 */
+    TaskHandle_t pxTask = NULL;
+    while((pxTask = pvTaskGetNext(pxTask)) != NULL)
+    {
+        UBaseType_t uxHighWaterMark = uxTaskGetStackHighWaterMark(pxTask);
+        if(uxHighWaterMark < 50)  /* 堆栈剩余较少时警告 */
+        {
+            printf("WARNING: Task %s stack low: %d\n", 
+                   pcTaskGetName(pxTask), uxHighWaterMark);
+        }
+    }
+}</code></pre>
+            </div>
+        </div>
+
+        <div class="footer">
+            蓝海资料掘金营
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS从入门到实战 - 软件定时器</title>
+    <style>
+        :root {
+            --tech-blue: #4A90E2;
+            --vitality-orange: #FF8C42;
+            --fresh-green: #7BC043;
+            --light-bg: #F0F8FF;
+            --dark-text: #333333;
+            --light-text: #666666;
+            --card-bg: #FFFFFF;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, var(--light-bg) 0%, #E6F7FF 100%);
+            color: var(--dark-text);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            padding: 30px 20px;
+            background: linear-gradient(to right, var(--tech-blue), var(--fresh-green));
+            color: white;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 20px var(--shadow);
+        }
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        main {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+        }
+        section {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 5px 15px var(--shadow);
+            border-left: 5px solid var(--tech-blue);
+            transition: transform 0.3s ease;
+        }
+        section:hover {
+            transform: translateY(-5px);
+        }
+        h2 {
+            color: var(--tech-blue);
+            border-bottom: 2px dashed var(--vitality-orange);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+        h3 {
+            color: var(--fresh-green);
+            margin: 15px 0 10px;
+        }
+        p {
+            margin-bottom: 15px;
+            color: var(--light-text);
+        }
+        ul, ol {
+            padding-left: 25px;
+            margin-bottom: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 3px 8px var(--shadow);
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: var(--tech-blue);
+            color: white;
+            font-weight: 600;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f7ff;
+        }
+        .code-block {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            border-left: 4px solid var(--vitality-orange);
+        }
+        .arch-svg {
+            width: 100%;
+            height: 300px;
+            background-color: #f9fdfe;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 1px solid #cce7ff;
+        }
+        .highlight {
+            background-color: #fff9e6;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--vitality-orange);
+            margin: 20px 0;
+        }
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 25px;
+            background: linear-gradient(to right, var(--tech-blue), var(--fresh-green));
+            color: white;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            box-shadow: 0 5px 15px var(--shadow);
+        }
+        .keyword {
+            color: var(--tech-blue);
+            font-weight: bold;
+        }
+        .func {
+            color: var(--fresh-green);
+            font-weight: bold;
+        }
+        .note {
+            background-color: #e6f7ff;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>FreeRTOS从入门到实战</h1>
+        <p class="subtitle">第11章：软件定时器（Software Timers）</p>
+        <p>概念、单次与周期定时器、创建、启动、停止、回调函数设计</p>
+    </header>
+
+    <main>
+        <section>
+            <h2>一、软件定时器概念</h2>
+            <p><span class="keyword">软件定时器</span>是FreeRTOS提供的一种基于系统节拍（Tick）的定时服务，它允许开发者创建、启动、停止和删除定时器，并在定时器到期时执行预定义的回调函数。</p>
+            <p>与硬件定时器不同，软件定时器由RTOS内核管理，不依赖特定的硬件外设，更加灵活且易于移植。</p>
+            
+            <div class="highlight">
+                <strong>核心特点：</strong>
+                <ul>
+                    <li>由FreeRTOS内核调度，在<span class="keyword">守护任务（Timer Daemon Task）</span>中执行。</li>
+                    <li>定时精度受系统节拍周期影响。</li>
+                    <li>可以创建多个定时器，共享同一个守护任务。</li>
+                    <li>支持单次（One-shot）和周期（Auto-reload）两种模式。</li>
+                </ul>
+            </div>
+
+            <svg class="arch-svg" viewBox="0 0 800 200" xmlns="http://www.w3.org/2000/svg">
+                <rect x="50" y="80" width="120" height="60" rx="5" fill="#4A90E2" opacity="0.8"/>
+                <text x="110" y="115" text-anchor="middle" fill="white" font-weight="bold">应用任务</text>
+                <rect x="250" y="80" width="120" height="60" rx="5" fill="#FF8C42" opacity="0.8"/>
+                <text x="310" y="115" text-anchor="middle" fill="white" font-weight="bold">定时器API</text>
+                <rect x="450" y="80" width="120" height="60" rx="5" fill="#7BC043" opacity="0.8"/>
+                <text x="510" y="115" text-anchor="middle" fill="white" font-weight="bold">守护任务</text>
+                <rect x="650" y="80" width="120" height="60" rx="5" fill="#4A90E2" opacity="0.8"/>
+                <text x="710" y="115" text-anchor="middle" fill="white" font-weight="bold">回调函数</text>
+                
+                <polyline points="170,110 250,110" stroke="#333" stroke-width="2" fill="none"/>
+                <polyline points="370,110 450,110" stroke="#333" stroke-width="2" fill="none"/>
+                <polyline points="570,110 650,110" stroke="#333" stroke-width="2" fill="none"/>
+                
+                <polygon points="250,110 240,105 240,115" fill="#333"/>
+                <polygon points="450,110 440,105 440,115" fill="#333"/>
+                <polygon points="650,110 640,105 640,115" fill="#333"/>
+                
+                <text x="210" y="50" text-anchor="middle" fill="#4A90E2" font-weight="bold">创建/启动</text>
+                <text x="410" y="50" text-anchor="middle" fill="#FF8C42" font-weight="bold">命令队列</text>
+                <text x="610" y="50" text-anchor="middle" fill="#7BC043" font-weight="bold">到期执行</text>
+            </svg>
+        </section>
+
+        <section>
+            <h2>二、单次与周期定时器</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>类型</th>
+                        <th>特点</th>
+                        <th>适用场景</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>单次定时器（One-shot）</strong></td>
+                        <td>定时器到期后自动停止，不会重新启动。需要手动重新启动才能再次计时。</td>
+                        <td>延时操作、超时检测、一次性事件触发。</td>
+                    </tr>
+                    <tr>
+                        <td><strong>周期定时器（Auto-reload）</strong></td>
+                        <td>定时器到期后自动重新加载定时值并再次启动，周期性地执行。</td>
+                        <td>心跳包发送、数据采样、状态轮询、LED闪烁。</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="note">
+                <strong>注意：</strong> 软件定时器的回调函数在守护任务上下文中执行，因此不应执行耗时操作或阻塞调用，以免影响其他定时器的执行。
+            </div>
+        </section>
+
+        <section>
+            <h2>三、软件定时器API详解</h2>
+            
+            <h3>1. 创建定时器</h3>
+            <p>使用 <span class="func">xTimerCreate()</span> 函数创建定时器，需要指定定时器名称、周期、类型和回调函数。</p>
+            <div class="code-block">
+<pre>
+TimerHandle_t xTimerCreate(
+    const char * const pcTimerName,      /* 定时器名称，用于调试 */
+    const TickType_t xTimerPeriod,       /* 定时周期（Tick数） */
+    const UBaseType_t uxAutoReload,      /* 类型：pdTRUE为周期，pdFALSE为单次 */
+    void * const pvTimerID,              /* 定时器ID，用于区分多个定时器 */
+    TimerCallbackFunction_t pxCallbackFunction /* 回调函数指针 */
+);
+</pre>
+            </div>
+
+            <h3>2. 启动定时器</h3>
+            <p>启动定时器可以使用以下函数，区别在于阻塞行为：</p>
+            <ul>
+                <li><span class="func">xTimerStart()</span> / <span class="func">xTimerStartFromISR()</span>：在任务或中断中启动。</li>
+                <li><span class="func">xTimerReset()</span> / <span class="func">xTimerResetFromISR()</span>：重置并启动定时器。</li>
+            </ul>
+            <div class="code-block">
+<pre>
+BaseType_t xTimerStart( TimerHandle_t xTimer, TickType_t xTicksToWait );
+/* xTicksToWait：命令发送到守护任务队列的最大等待时间 */
+</pre>
+            </div>
+
+            <h3>3. 停止与删除定时器</h3>
+            <ul>
+                <li><span class="func">xTimerStop()</span>：停止正在运行的定时器。</li>
+                <li><span class="func">xTimerDelete()</span>：删除定时器，释放资源。</li>
+            </ul>
+            <div class="code-block">
+<pre>
+BaseType_t xTimerStop( TimerHandle_t xTimer, TickType_t xTicksToWait );
+BaseType_t xTimerDelete( TimerHandle_t xTimer, TickType_t xTicksToWait );
+</pre>
+            </div>
+        </section>
+
+        <section>
+            <h2>四、回调函数设计</h2>
+            <p>回调函数是定时器到期时执行的用户代码，其函数原型如下：</p>
+            <div class="code-block">
+<pre>
+void TimerCallback( TimerHandle_t xTimer );
+</pre>
+            </div>
+            
+            <h3>设计要点：</h3>
+            <ol>
+                <li><strong>快速执行</strong>：避免长时间阻塞，影响其他定时器。</li>
+                <li><strong>使用ID区分定时器</strong>：多个定时器可共用同一个回调函数，通过 <span class="func">pvTimerGetTimerID()</span> 获取ID进行区分。</li>
+                <li><strong>避免在回调中调用阻塞API</strong>：如 <span class="func">vTaskDelay()</span>。</li>
+                <li><strong>注意重入问题</strong>：如果回调函数访问共享资源，需使用信号量、互斥锁等同步机制。</li>
+            </ol>
+            
+            <h3>示例：多定时器共用回调</h3>
+            <div class="code-block">
+<pre>
+#define TIMER_ID_LED     ( (void *) 1 )
+#define TIMER_ID_SENSOR  ( (void *) 2 )
+
+void vTimerCallback( TimerHandle_t xTimer )
+{
+    uint32_t timerID = (uint32_t) pvTimerGetTimerID( xTimer );
+    
+    switch( timerID )
+    {
+        case (uint32_t)TIMER_ID_LED:
+            /* 翻转LED */
+            HAL_GPIO_TogglePin( LED_GPIO_Port, LED_Pin );
+            break;
+            
+        case (uint32_t)TIMER_ID_SENSOR:
+            /* 读取传感器数据 */
+            ReadSensorData();
+            break;
+            
+        default:
+            break;
+    }
+}
+</pre>
+            </div>
+        </section>
+
+        <section>
+            <h2>五、实战示例：创建并管理定时器</h2>
+            <p>以下完整示例展示如何创建单次和周期定时器，并控制其启动与停止。</p>
+            <div class="code-block">
+<pre>
+#include "FreeRTOS.h"
+#include "timers.h"
+
+/* 定时器句柄 */
+TimerHandle_t xOneShotTimer = NULL;
+TimerHandle_t xAutoReloadTimer = NULL;
+
+/* 定时器ID枚举 */
+typedef enum {
+    TIMER_ID_ONE_SHOT = 1,
+    TIMER_ID_AUTO_RELOAD
+} TimerID_t;
+
+/* 回调函数 */
+void vTimerCallback( TimerHandle_t xTimer )
+{
+    uint32_t id = (uint32_t) pvTimerGetTimerID( xTimer );
+    
+    if( id == TIMER_ID_ONE_SHOT )
+    {
+        printf("单次定时器到期！\r\n");
+    }
+    else if( id == TIMER_ID_AUTO_RELOAD )
+    {
+        static int count = 0;
+        printf("周期定时器执行第 %d 次\r\n", ++count);
+    }
+}
+
+void main( void )
+{
+    /* 创建单次定时器，周期为1000 ticks */
+    xOneShotTimer = xTimerCreate(
+        "OneShotTimer",
+        pdMS_TO_TICKS( 1000 ),
+        pdFALSE,
+        (void *) TIMER_ID_ONE_SHOT,
+        vTimerCallback
+    );
+    
+    /* 创建周期定时器，周期为500 ticks */
+    xAutoReloadTimer = xTimerCreate(
+        "AutoReloadTimer",
+        pdMS_TO_TICKS( 500 ),
+        pdTRUE,
+        (void *) TIMER_ID_AUTO_RELOAD,
+        vTimerCallback
+    );
+    
+    if( xOneShotTimer != NULL && xAutoReloadTimer != NULL )
+    {
+        /* 启动定时器，等待10 ticks确保命令发送成功 */
+        xTimerStart( xOneShotTimer, 10 );
+        xTimerStart( xAutoReloadTimer, 10 );
+    }
+    
+    vTaskStartScheduler();
+    
+    while(1);
+}
+</pre>
+            </div>
+            
+            <div class="highlight">
+                <strong>关键步骤总结：</strong>
+                <ol>
+                    <li>包含头文件 <span class="keyword">timers.h</span>。</li>
+                    <li>定义定时器句柄和ID。</li>
+                    <li>编写回调函数，通过ID区分不同定时器。</li>
+                    <li>使用 <span class="func">xTimerCreate()</span> 创建定时器。</li>
+                    <li>使用 <span class="func">xTimerStart()</span> 启动定时器。</li>
+                    <li>确保FreeRTOS调度器已启动。</li>
+                </ol>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        蓝海资料掘金营
+    </footer>
+</body>
+</html>

@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS从入门到实战 - 第一章：RTOS与FreeRTOS概述</title>
+    <style>
+        :root {
+            --tech-blue: #3498db;
+            --vitality-orange: #f39c12;
+            --fresh-green: #2ecc71;
+            --light-bg: #f8f9fa;
+            --dark-text: #2c3e50;
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            color: var(--dark-text);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            padding: 30px 20px;
+            background: linear-gradient(90deg, var(--tech-blue), var(--fresh-green));
+            color: white;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            box-shadow: var(--card-shadow);
+        }
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        main {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+        section {
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            border-left: 6px solid var(--tech-blue);
+            transition: transform 0.3s ease;
+        }
+        section:hover {
+            transform: translateY(-5px);
+        }
+        h2 {
+            color: var(--tech-blue);
+            border-bottom: 3px solid var(--vitality-orange);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        h2 svg {
+            width: 28px;
+            height: 28px;
+            fill: currentColor;
+        }
+        h3 {
+            color: var(--fresh-green);
+            margin: 20px 0 10px;
+        }
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        ul, ol {
+            padding-left: 25px;
+            margin-bottom: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+        th {
+            background-color: var(--tech-blue);
+            color: white;
+            padding: 15px;
+            text-align: left;
+        }
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #e8f4fc;
+        }
+        .code-block {
+            background: #2d3a4b;
+            color: #e6e6e6;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            border-left: 5px solid var(--vitality-orange);
+        }
+        .arch-diagram {
+            width: 100%;
+            height: 300px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin: 25px 0;
+            padding: 20px;
+        }
+        .highlight {
+            background-color: #fff9e6;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: #d35400;
+        }
+        .comparison-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-top: 20px;
+        }
+        .comparison-card {
+            background: #f0f7ff;
+            padding: 25px;
+            border-radius: 12px;
+            border-top: 5px solid var(--fresh-green);
+        }
+        .comparison-card:nth-child(2) {
+            border-top-color: var(--vitality-orange);
+        }
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 25px;
+            color: white;
+            background: linear-gradient(90deg, var(--tech-blue), #2980b9);
+            border-radius: 16px;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            box-shadow: var(--card-shadow);
+        }
+        @media (max-width: 768px) {
+            .comparison-container {
+                grid-template-columns: 1fr;
+            }
+            h1 {
+                font-size: 2.2rem;
+            }
+            section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>FreeRTOS从入门到实战</h1>
+        <div class="subtitle">第一章：RTOS与FreeRTOS概述</div>
+        <p>实时操作系统概念、FreeRTOS发展史、特点、应用场景、与裸机编程对比</p>
+    </header>
+
+    <main>
+        <section id="rtos-concept">
+            <h2>
+                <svg viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6Z"/></svg>
+                实时操作系统（RTOS）概念
+            </h2>
+            <p><span class="highlight">实时操作系统（Real-Time Operating System, RTOS）</span>是一种专门为实时应用设计的操作系统。其核心特征是能够在<span class="highlight">确定的时间限制内</span>对外部事件做出响应和处理。“实时”并不意味着“速度快”，而是指系统的行为在时间上是<span class="highlight">可预测和可保证的</span>。</p>
+            
+            <h3>RTOS的关键特性：</h3>
+            <ul>
+                <li><strong>确定性：</strong>任务执行、中断响应的时间是可预测的。</li>
+                <li><strong>任务调度：</strong>基于优先级，采用抢占式或时间片轮转等算法管理多个任务。</li>
+                <li><strong>内核服务：</strong>提供任务管理、时间管理、同步（信号量、互斥量）、通信（队列、邮箱）等基础服务。</li>
+                <li><strong>资源管理：</strong>高效管理CPU、内存、外设等共享资源。</li>
+                <li><strong>可裁剪性：</strong>内核可根据应用需求进行裁剪，以适应资源受限的嵌入式环境。</li>
+            </ul>
+
+            <h3>RTOS分类：</h3>
+            <table>
+                <thead>
+                    <tr><th>类型</th><th>特点</th><th>典型应用</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>硬实时（Hard Real-Time）</strong></td><td>必须在绝对严格的时间内完成响应，超时即意味着系统失败。</td><td>汽车ABS、航空电传飞控、医疗起搏器。</td></tr>
+                    <tr><td><strong>软实时（Soft Real-Time）</strong></td><td>期望在时间内响应，偶尔超时可以容忍，只影响性能。</td><td>多媒体播放、网络数据包处理、用户界面交互。</td></tr>
+                    <tr><td><strong>固实时（Firm Real-Time）</strong></td><td>介于硬实时和软实时之间，超时可能导致服务质量下降，但不会造成灾难。</td><td>工业过程控制、视频监控系统。</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="freertos-history">
+            <h2>
+                <svg viewBox="0 0 24 24"><path d="M12,8H4A2,2 0 0,0 2,10V14A2,2 0 0,0 4,16H5V20A1,1 0 0,0 6,21H8A1,1 0 0,0 9,20V16H12L17,20V4L12,8M21.5,12C21.5,13.71 20.54,15.26 19,16V8C20.53,8.75 21.5,10.3 21.5,12Z"/></svg>
+                FreeRTOS发展史
+            </h2>
+            <p>FreeRTOS是一个迷你的、开源免费的实时操作系统内核，由<span class="highlight">Richard Barry</span>于2003年创建，并随后由他的公司Real Time Engineers Ltd.维护和发展。</p>
+            <ol>
+                <li><strong>2003年：</strong>项目启动，最初针对Atmel AVR架构。</li>
+                <li><strong>2004-2008年：</strong>迅速扩展到ARM7、ARM Cortex-M、PIC、AVR32等多种流行MCU架构。</li>
+                <li><strong>2010年：</strong>获得广泛认可，成为嵌入式领域最流行的RTOS之一。</li>
+                <li><strong>2017年：</strong>亚马逊AWS宣布将FreeRTOS纳入其物联网平台，并推出<span class="highlight">Amazon FreeRTOS</span>（现为AWS FreeRTOS），增加了云端连接、安全等高级库。</li>
+                <li><strong>至今：</strong>已成为嵌入式物联网设备的<span class="highlight">事实标准</span>，拥有庞大的社区和丰富的生态，被数以亿计的设备所采用。</li>
+            </ol>
+            <div class="arch-diagram">
+                <svg viewBox="0 0 800 250" width="100%" height="100%">
+                    <rect x="50" y="50" width="700" height="150" rx="10" fill="#e8f4fc" stroke="#3498db" stroke-width="2"/>
+                    <text x="400" y="90" text-anchor="middle" font-size="18" font-weight="bold" fill="#2c3e50">FreeRTOS 软件架构</text>
+                    <rect x="100" y="120" width="120" height="40" rx="5" fill="#2ecc71" stroke="#27ae60"/>
+                    <text x="160" y="145" text-anchor="middle" font-size="14" fill="white">应用层</text>
+                    <rect x="250" y="120" width="120" height="40" rx="5" fill="#3498db" stroke="#2980b9"/>
+                    <text x="310" y="145" text-anchor="middle" font-size="14" fill="white">中间件</text>
+                    <rect x="400" y="120" width="120" height="40" rx="5" fill="#9b59b6" stroke="#8e44ad"/>
+                    <text x="460" y="145" text-anchor="middle" font-size="14" fill="white">FreeRTOS内核</text>
+                    <rect x="550" y="120" width="120" height="40" rx="5" fill="#e74c3c" stroke="#c0392b"/>
+                    <text x="610" y="145" text-anchor="middle" font-size="14" fill="white">硬件抽象层</text>
+                    <line x1="220" y1="140" x2="250" y2="140" stroke="#7f8c8d" stroke-width="2"/>
+                    <line x1="370" y1="140" x2="400" y2="140" stroke="#7f8c8d" stroke-width="2"/>
+                    <line x1="520" y1="140" x2="550" y2="140" stroke="#7f8c8d" stroke-width="2"/>
+                    <text x="400" y="190" text-anchor="middle" font-size="14" fill="#7f8c8d">(任务、队列、信号量、调度器、内存管理...)</text>
+                </svg>
+            </div>
+        </section>
+
+        <section id="freertos-features">
+            <h2>
+                <svg viewBox="0 0 24 24"><path d="M9,22A1,1 0 0,1 8,21V18H4A2,2 0 0,1 2,16V4C2,2.89 2.9,2 4,2H20A2,2 0 0,1 22,4V16A2,2 0 0,1 20,18H13.9L10.2,21.71C10,21.9 9.75,22 9.5,22V22H9Z"/></svg>
+                FreeRTOS主要特点
+            </h2>
+            <ul>
+                <li><strong>免费与开源：</strong>采用MIT许可证，商业应用无需公开源代码，无版权费。</li>
+                <li><strong>轻量高效：</strong>内核非常精简，ROM/RAM占用极小（最小内核仅几KB），适合资源受限的MCU。</li>
+                <li><strong>可移植性强：</strong>绝大部分代码由C语言编写，与架构相关的部分集中在少数几个文件中，已支持40+种处理器架构。</li>
+                <li><strong>实时性强：</strong>提供确定性的、抢占式的任务调度，支持硬实时应用。</li>
+                <li><strong>组件丰富：</strong>除了核心调度器，还提供队列、信号量、互斥量、事件组、软件定时器、流缓冲区、消息缓冲区等丰富组件。</li>
+                <li><strong>强大的社区与生态：</strong>拥有全球最大的嵌入式RTOS社区，资料、教程、第三方组件极其丰富。</li>
+                <li><strong>与云无缝集成：</strong>通过AWS FreeRTOS，可轻松安全地连接至AWS IoT Core等云服务。</li>
+            </ul>
+            <div class="code-block">
+<pre>
+// FreeRTOS 创建任务的简单示例
+#include "FreeRTOS.h"
+#include "task.h"
+
+void vTaskFunction( void *pvParameters ) {
+    const char *pcTaskName = (const char *)pvParameters;
+    for( ;; ) {
+        vTaskDelay( 1000 / portTICK_PERIOD_MS ); // 延时1秒
+        printf("%s is running.\n", pcTaskName);
+    }
+}
+
+int main( void ) {
+    // 创建第一个任务
+    xTaskCreate( vTaskFunction, "Task1", 128, "Hello from Task1", 1, NULL );
+    // 创建第二个任务
+    xTaskCreate( vTaskFunction, "Task2", 128, "Hello from Task2", 1, NULL );
+    // 启动调度器
+    vTaskStartScheduler();
+    // 调度器启动后不会返回
+    for( ;; );
+}
+</pre>
+            </div>
+        </section>
+
+        <section id="application-scenarios">
+            <h2>
+                <svg viewBox="0 0 24 24"><path d="M21,16.5C21,16.88 20.79,17.21 20.47,17.38L12.57,21.82C12.41,21.94 12.21,22 12,22C11.79,22 11.59,21.94 11.43,21.82L3.53,17.38C3.21,17.21 3,16.88 3,16.5V7.5C3,7.12 3.21,6.79 3.53,6.62L11.43,2.18C11.59,2.06 11.79,2 12,2C12.21,2 12.41,2.06 12.57,2.18L20.47,6.62C20.79,6.79 21,7.12 21,7.5V16.5M12,4.15L5,8.09V15.91L12,19.85L19,15.91V8.09L12,4.15Z"/></svg>
+                典型应用场景
+            </h2>
+            <div class="comparison-container">
+                <div class="comparison-card">
+                    <h3>消费电子</h3>
+                    <ul>
+                        <li>智能手表/手环</li>
+                        <li>家用电器（智能空调、洗衣机）</li>
+                        <li>无人机飞控</li>
+                        <li>游戏外设</li>
+                    </ul>
+                </div>
+                <div class="comparison-card">
+                    <h3>工业控制</h3>
+                    <ul>
+                        <li>PLC可编程逻辑控制器</li>
+                        <li>传感器数据采集网络</li>
+                        <li>电机驱动与控制</li>
+                        <li>工业HMI人机界面</li>
+                    </ul>
+                </div>
+                <div class="comparison-card">
+                    <h3>汽车电子</h3>
+                    <ul>
+                        <li>车身控制模块（BCM）</li>
+                        <li>电池管理系统（BMS）</li>
+                        <li>车载信息娱乐系统（IVI）</li>
+                        <li>高级驾驶辅助系统（ADAS）传感器处理</li>
+                    </ul>
+                </div>
+                <div class="comparison-card">
+                    <h3>物联网（IoT）</h3>
+                    <ul>
+                        <li>智能家居网关与节点</li>
+                        <li>无线传感器网络（WSN）</li>
+                        <li>资产追踪器</li>
+                        <li>连接AWS/Aliyun等云平台的边缘设备</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="vs-baremetal">
+            <h2>
+                <svg viewBox="0 0 24 24"><path d="M9,5V9H21V5M9,19H21V15H9M9,14H21V10H9M4,9H8V5H4M4,19H8V15H4M4,14H8V10H4V14Z"/></svg>
+                RTOS（FreeRTOS）与裸机编程对比
+            </h2>
+            <table>
+                <thead>
+                    <tr><th>对比维度</th><th>裸机编程（前后台系统）</th><th>RTOS（以FreeRTOS为例）</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>编程模型</strong></td><td>超级循环（main loop） + 中断服务程序（ISR）。程序流程线性。</td><td>多任务（线程）模型。每个任务是一个独立的、无限循环的函数。</td></tr>
+                    <tr><td><strong>并发处理</strong></td><td>伪并发，靠状态机和中断实现，逻辑复杂时难以维护。</td><td>真并发，由内核调度多个任务，逻辑清晰，更符合人类思维。</td></tr>
+                    <tr><td><strong>实时性</strong></td><td>中断响应快，但低优先级任务可能被高优先级任务长时间阻塞（在循环中）。</td><td>基于优先级的抢占式调度，高优先级任务可立即获得CPU，响应确定。</td></tr>
+                    <tr><td><strong>系统复杂度</strong></td><td>简单应用时结构简单。复杂应用时状态爆炸，难以调试和维护。</td><td>引入内核开销，但为复杂应用提供了清晰的结构和丰富的同步通信机制。</td></tr>
+                    <tr><td><strong>资源占用</strong></td><td>极小，无额外内核开销。</td><td>需要额外的ROM/RAM存放内核代码和数据（通常几KB到几十KB）。</td></tr>
+                    <tr><td><strong>开发效率</strong></td><td>适合简单、功能固定的项目。功能复杂后效率急剧下降。</td><td>适合中大型复杂项目，模块化好，易于团队协作和功能扩展。</td></tr>
+                    <tr><td><strong>调试与维护</strong></td><td>逻辑交织，一处改动可能影响全局，调试困难。</td><td>任务相对独立，耦合度低，便于定位问题和维护。</td></tr>
+                    <tr><td><strong>适用场景</strong></td><td>资源极度紧张、功能简单、对成本敏感的微型单片机应用。</td><td>功能复杂、需要多任务管理、联网、文件系统、GUI等的中高端嵌入式及物联网应用。</td></tr>
+                </tbody>
+            </table>
+            <p><strong>总结：</strong>选择裸机还是RTOS，取决于项目复杂度、实时性要求、团队经验和硬件资源。随着MCU性能提升和成本下降，<span class="highlight">RTOS正成为复杂嵌入式开发的主流选择</span>，而FreeRTOS因其轻量、免费和生态完善，是入门和商用的绝佳起点。</p>
+        </section>
+    </main>
+
+    <footer>
+        蓝海资料掘金营
+    </footer>
+</body>
+</html>

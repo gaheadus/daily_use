@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS从入门到实战 - 调试与性能分析</title>
+    <style>
+        :root {
+            --tech-blue: #4A90E2;
+            --vitality-orange: #FF8C42;
+            --fresh-green: #7BC043;
+            --light-gray: #F5F7FA;
+            --dark-gray: #2C3E50;
+            --white: #FFFFFF;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, var(--light-gray) 0%, #E3F2FD 100%);
+            color: var(--dark-gray);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            background: linear-gradient(to right, var(--tech-blue), #2A6EBB);
+            color: var(--white);
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(42, 110, 187, 0.2);
+        }
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        main {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+        section {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border-left: 6px solid var(--tech-blue);
+            transition: transform 0.3s ease;
+        }
+        section:hover {
+            transform: translateY(-5px);
+        }
+        h2 {
+            color: var(--tech-blue);
+            border-bottom: 3px solid var(--vitality-orange);
+            padding-bottom: 0.7rem;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+        }
+        h2 svg {
+            margin-right: 10px;
+            width: 30px;
+            height: 30px;
+        }
+        h3 {
+            color: var(--fresh-green);
+            margin: 1.5rem 0 1rem 0;
+            font-size: 1.4rem;
+        }
+        p {
+            margin-bottom: 1rem;
+            text-align: justify;
+        }
+        ul, ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        li {
+            margin-bottom: 0.5rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        }
+        th {
+            background-color: var(--tech-blue);
+            color: white;
+            padding: 1rem;
+            text-align: left;
+        }
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+        pre {
+            background: #f0f4f8;
+            border-left: 4px solid var(--vitality-orange);
+            padding: 1.2rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        code {
+            background: #eef5ff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+            color: #d63384;
+        }
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+        .tool-card {
+            background: linear-gradient(145deg, #f0f9ff, #e1f5fe);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            border: 1px dashed var(--tech-blue);
+        }
+        footer {
+            margin-top: 3rem;
+            text-align: center;
+            padding: 2rem;
+            background: var(--dark-gray);
+            color: var(--white);
+            border-radius: 15px;
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+        }
+        .highlight {
+            background-color: #fff9e6;
+            padding: 1.5rem;
+            border-radius: 10px;
+            border-left: 5px solid var(--vitality-orange);
+            margin: 1.5rem 0;
+        }
+        .tip {
+            background-color: #e8f7ef;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border-left: 5px solid var(--fresh-green);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>FreeRTOS从入门到实战</h1>
+        <div class="subtitle">第20讲：调试与性能分析 - 常见调试技巧与Trace工具简介</div>
+    </header>
+
+    <main>
+        <section>
+            <h2>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6Z"/>
+                </svg>
+                调试与性能分析概述
+            </h2>
+            <p>在嵌入式实时操作系统中，调试与性能分析是确保系统稳定、高效运行的关键环节。FreeRTOS提供了多种内置机制和可配置选项，帮助开发者诊断问题、优化性能。本讲将重点介绍三种核心调试技巧以及两款强大的可视化跟踪工具。</p>
+            <div class="svg-container">
+                <svg width="600" height="200" viewBox="0 0 600 200">
+                    <rect x="50" y="80" width="120" height="60" rx="10" fill="var(--tech-blue)" opacity="0.8"/>
+                    <text x="110" y="115" text-anchor="middle" fill="white" font-weight="bold">栈溢出检测</text>
+                    <rect x="220" y="80" width="120" height="60" rx="10" fill="var(--vitality-orange)" opacity="0.8"/>
+                    <text x="280" y="115" text-anchor="middle" fill="white" font-weight="bold">运行时间统计</text>
+                    <rect x="390" y="80" width="120" height="60" rx="10" fill="var(--fresh-green)" opacity="0.8"/>
+                    <text x="450" y="115" text-anchor="middle" fill="white" font-weight="bold">跟踪宏</text>
+                    <line x1="170" y1="110" x2="220" y2="110" stroke="var(--dark-gray)" stroke-width="2" marker-end="url(#arrow)"/>
+                    <line x1="340" y1="110" x2="390" y2="110" stroke="var(--dark-gray)" stroke-width="2" marker-end="url(#arrow)"/>
+                    <defs>
+                        <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                            <path d="M0,0 L0,6 L9,3 z" fill="var(--dark-gray)"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+        </section>
+
+        <section>
+            <h2>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M9,3V18H12V3H9M12,5L16,18L19,17L15,4L12,5M5,5V18H8V5H5M3,19V21H21V19H3Z"/>
+                </svg>
+                常见调试技巧
+            </h2>
+
+            <h3>1. 栈溢出检测（Stack Overflow Detection）</h3>
+            <p>栈溢出是RTOS中常见且严重的问题，FreeRTOS提供了两种检测方法：</p>
+            <ul>
+                <li><strong>方法1（v1）：</strong>在任务创建时，用已知模式（如0xA5）填充栈空间。调度器会检查栈末尾的几个字节是否被修改。</li>
+                <li><strong>方法2（v2）：</strong>使用栈指针寄存器（如MSP/PSP）与栈边界进行比较。更高效，但需要硬件支持。</li>
+            </ul>
+            <div class="highlight">
+                <strong>配置方法（FreeRTOSConfig.h）：</strong>
+                <pre>#define configCHECK_FOR_STACK_OVERFLOW 2  // 0:禁用, 1:方法1, 2:方法2
+
+// 钩子函数实现（在任务栈溢出时被调用）
+void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName) {
+    // 记录错误、触发断言、系统复位等
+    printf("栈溢出！任务名: %s\n", pcTaskName);
+    while(1); // 死循环或系统复位
+}</pre>
+            </div>
+
+            <h3>2. 任务运行时间统计（Run Time Stats）</h3>
+            <p>用于分析每个任务占用CPU的时间百分比，帮助识别CPU瓶颈和优化任务优先级。</p>
+            <table>
+                <thead>
+                    <tr><th>配置宏</th><th>说明</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>configGENERATE_RUN_TIME_STATS</td><td>设置为1以启用统计功能</td></tr>
+                    <tr><td>portCONFIGURE_TIMER_FOR_RUN_TIME_STATS()</td><td>初始化高精度定时器</td></tr>
+                    <tr><td>portGET_RUN_TIME_COUNTER_VALUE()</td><td>获取当前定时器计数值</td></tr>
+                </tbody>
+            </table>
+            <pre>// 示例：打印任务运行时间统计信息
+void printRunTimeStats(void) {
+    char pcWriteBuffer[512];
+    // 获取统计信息字符串
+    vTaskGetRunTimeStats(pcWriteBuffer);
+    // 通过串口或其他方式输出
+    printf("%s\n", pcWriteBuffer);
+}
+// 输出示例：
+// 任务名     运行计数    使用率%
+// IDLE       1200000     30.5%
+// Task1      800000      20.3%
+// Task2      1900000     48.2%</pre>
+
+            <h3>3. 跟踪宏（Trace Macros）</h3>
+            <p>FreeRTOS内置了大量可配置的跟踪宏，用于在关键位置插入用户自定义的调试代码，而不影响内核源码。</p>
+            <div class="tip">
+                <strong>常用跟踪宏：</strong> traceTASK_CREATE, traceTASK_SWITCHED_IN, traceQUEUE_SEND, traceBLOCKING_ON_QUEUE_RECEIVE 等。
+            </div>
+            <pre>// 在FreeRTOSConfig.h中启用并定义
+#define configUSE_TRACE_FACILITY 1
+// 自定义一个跟踪宏示例
+#define traceTASK_SWITCHED_IN() \
+    do { \
+        extern uint32_t ulTaskSwitchedInTime; \
+        ulTaskSwitchedInTime = getSystemTick(); \
+        logEvent("任务切入", pxCurrentTCB->pcTaskName); \
+    } while(0)</pre>
+        </section>
+
+        <section>
+            <h2>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M21,16.5C21,16.88 20.79,17.21 20.47,17.38L12.57,21.82C12.41,21.94 12.21,22 12,22C11.79,22 11.59,21.94 11.43,21.82L3.53,17.38C3.21,17.21 3,16.88 3,16.5V7.5C3,7.12 3.21,6.79 3.53,6.62L11.43,2.18C11.59,2.06 11.79,2 12,2C12.21,2 12.41,2.06 12.57,2.18L20.47,6.62C20.79,6.79 21,7.12 21,7.5V16.5M12,4.15L5,8.09V15.91L12,19.85L19,15.91V8.09L12,4.15Z"/>
+                </svg>
+                可视化跟踪工具简介
+            </h2>
+            <p>为了更直观地理解系统运行状态，推荐使用专业的可视化跟踪工具。它们通过捕获RTOS内核事件，生成时间线图表。</p>
+
+            <div class="tool-card">
+                <h3>FreeRTOS+Trace</h3>
+                <p><strong>简介：</strong> FreeRTOS官方提供的免费跟踪库，需要与第三方前端工具（如Tracealyzer）配合使用。</p>
+                <p><strong>工作流程：</strong></p>
+                <ol>
+                    <li>在工程中集成Trace源码（通常为trcKernelPort.c和trcRecorder.c）。</li>
+                    <li>配置记录器（选择记录模式：流模式或快照模式）。</li>
+                    <li>通过J-Link、串口或文件系统输出跟踪数据。</li>
+                    <li>使用前端工具加载和分析数据。</li>
+                </ol>
+                <div class="svg-container">
+                    <svg width="500" height="150" viewBox="0 0 500 150">
+                        <rect x="20" y="50" width="100" height="50" rx="5" fill="var(--tech-blue)" opacity="0.7"/>
+                        <text x="70" y="80" text-anchor="middle" fill="white">嵌入式设备</text>
+                        <rect x="150" y="50" width="100" height="50" rx="5" fill="var(--vitality-orange)" opacity="0.7"/>
+                        <text x="200" y="80" text-anchor="middle" fill="white">Trace库</text>
+                        <rect x="280" y="50" width="100" height="50" rx="5" fill="var(--fresh-green)" opacity="0.7"/>
+                        <text x="330" y="80" text-anchor="middle" fill="white">数据流</text>
+                        <rect x="380" y="50" width="100" height="50" rx="5" fill="#9B59B6" opacity="0.7"/>
+                        <text x="430" y="80" text-anchor="middle" fill="white">PC分析工具</text>
+                        <polyline points="120,75 150,75 280,75 380,75" stroke="gray" stroke-width="2" fill="none" marker-mid="url(#arrow2)"/>
+                        <defs>
+                            <marker id="arrow2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+                                <path d="M0,0 L0,6 L9,3 z" fill="gray"/>
+                            </marker>
+                        </defs>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="tool-card">
+                <h3>Percepio Tracealyzer</h3>
+                <p><strong>简介：</strong> 功能强大、用户友好的商业可视化工具，支持FreeRTOS、Linux等多种系统。</p>
+                <p><strong>核心视图：</strong></p>
+                <ul>
+                    <li><strong>主时间线视图：</strong> 显示任务、中断、内核对象随时间的变化。</li>
+                    <li><strong>CPU负载图：</strong> 直观展示CPU使用率和各任务占比。</li>
+                    <li><strong>响应时间分析：</strong> 测量中断到任务响应的延迟。</li>
+                    <li><strong>对象历史视图：</strong> 查看队列、信号量等对象的详细操作记录。</li>
+                </ul>
+                <div class="tip">
+                    <strong>使用建议：</strong> 在项目初期就集成Tracealyzer，便于早期发现设计缺陷，如优先级反转、死锁、意外的任务阻塞等。
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M13,9H18.5L13,3.5V9M6,2H14L20,8V20A2,2 0 0,1 18,22H6C4.89,22 4,21.1 4,20V4C4,2.89 4.89,2 6,2M15,18V16H6V18H15M18,14V12H6V14H18Z"/>
+                </svg>
+                总结与实践建议
+            </h2>
+            <table>
+                <thead>
+                    <tr><th>调试手段</th><th>主要目的</th><th>推荐使用场景</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><strong>栈溢出检测</strong></td><td>防止因栈溢出导致的系统崩溃或数据损坏</td><td>所有项目，尤其是任务栈空间紧张时</td></tr>
+                    <tr><td><strong>运行时间统计</strong></td><td>分析CPU使用率，优化任务划分与优先级</td><td>性能调优、评估系统负载</td></tr>
+                    <tr><td><strong>跟踪宏</strong></td><td>自定义日志，记录内核事件</td><td>深度调试、行为分析</td></tr>
+                    <tr><td><strong>Tracealyzer</strong></td><td>可视化系统行为，诊断复杂问题</td><td>系统集成、排查偶发性故障、性能分析</td></tr>
+                </tbody>
+            </table>
+            <div class="highlight">
+                <p><strong>最佳实践路线图：</strong></p>
+                <ol>
+                    <li>在开发初期，在<code>FreeRTOSConfig.h</code>中启用栈溢出检测（方法2）和断言。</li>
+                    <li>在关键任务中集成运行时间统计，定期检查CPU负载。</li>
+                    <li>针对复杂同步问题（如死锁），使用Tracealyzer的快照模式记录问题现场。</li>
+                    <li>在系统长期运行测试中，使用Tracealyzer的流模式持续监控系统健康状态。</li>
+                </ol>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        蓝海资料掘金营
+    </footer>
+</body>
+</html>

@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS任务运行时间统计</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #bbdefb 50%, #b2ebf2 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            border: 2px solid #4fc3f7;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px dashed #4db6ac;
+        }
+
+        h1 {
+            color: #00695c;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #00796b;
+            font-size: 1.8rem;
+            margin: 25px 0 15px;
+            padding-left: 10px;
+            border-left: 5px solid #4db6ac;
+        }
+
+        h3 {
+            color: #00897b;
+            font-size: 1.4rem;
+            margin: 20px 0 10px;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        .highlight-box {
+            background-color: #e1f5fe;
+            border-left: 4px solid #0288d1;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .code-block {
+            background-color: #f5f5f5;
+            border: 1px solid #bdbdbd;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background-color: #4db6ac;
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f1f8e9;
+        }
+
+        tr:hover {
+            background-color: #e0f2f1;
+        }
+
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 25px 0;
+        }
+
+        .step-box {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin: 20px 0;
+        }
+
+        .step {
+            flex-basis: 30%;
+            background-color: #e8f5e9;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 2px solid #81c784;
+        }
+
+        .step-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background-color: #4caf50;
+            color: white;
+            border-radius: 50%;
+            line-height: 30px;
+            margin-bottom: 10px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px dashed #4db6ac;
+            color: #00695c;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .note {
+            background-color: #fff9c4;
+            border-left: 4px solid #ffd600;
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 0 5px 5px 0;
+        }
+
+        .tip {
+            background-color: #c8e6c9;
+            border-left: 4px solid #4caf50;
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 0 5px 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>FreeRTOS任务运行时间统计</h1>
+            <p>如何获取任务运行时间信息</p>
+        </header>
+
+        <section>
+            <h2>概述</h2>
+            <p>在嵌入式系统开发中，了解任务的运行时间对于性能分析和系统优化至关重要。FreeRTOS提供了任务运行时间统计功能，可以帮助开发者获取每个任务占用CPU的时间信息，从而进行系统性能分析和优化。</p>
+            
+            <div class="svg-container">
+                <svg width="400" height="200" viewBox="0 0 400 200">
+                    <rect x="50" y="50" width="300" height="100" rx="10" ry="10" fill="#bbdefb" stroke="#1e88e5" stroke-width="2"/>
+                    <text x="200" y="80" text-anchor="middle" fill="#0d47a1" font-size="16" font-weight="bold">FreeRTOS内核</text>
+                    <rect x="80" y="90" width="80" height="40" rx="5" ry="5" fill="#c8e6c9" stroke="#4caf50" stroke-width="2"/>
+                    <text x="120" y="115" text-anchor="middle" fill="#1b5e20" font-size="12">任务1</text>
+                    <rect x="180" y="90" width="80" height="40" rx="5" ry="5" fill="#ffecb3" stroke="#ffc107" stroke-width="2"/>
+                    <text x="220" y="115" text-anchor="middle" fill="#ff6f00" font-size="12">任务2</text>
+                    <rect x="280" y="90" width="80" height="40" rx="5" ry="5" fill="#ffcdd2" stroke="#f44336" stroke-width="2"/>
+                    <text x="320" y="115" text-anchor="middle" fill="#b71c1c" font-size="12">任务3</text>
+                    <text x="200" y="160" text-anchor="middle" fill="#00695c" font-size="14" font-weight="bold">任务运行时间统计</text>
+                </svg>
+            </div>
+        </section>
+
+        <section>
+            <h2>启用任务运行时间统计</h2>
+            <p>要使用FreeRTOS的任务运行时间统计功能，需要在FreeRTOSConfig.h配置文件中启用相关宏定义：</p>
+            
+            <div class="code-block">
+<pre>#define configUSE_TRACE_FACILITY 1
+#define configGENERATE_RUN_TIME_STATS 1
+#define configUSE_STATS_FORMATTING_FUNCTIONS 1
+#define portCONFIGURE_TIMER_FOR_RUN_TIME_STATS() configureTimerForRunTimeStats()
+#define portGET_RUN_TIME_COUNTER_VALUE() getRunTimeCounterValue()</pre>
+            </div>
+            
+            <div class="note">
+                <p><strong>注意：</strong>需要提供一个高精度的定时器来统计运行时间，定时器的精度决定了统计的准确性。</p>
+            </div>
+        </section>
+
+        <section>
+            <h2>获取任务运行时间信息</h2>
+            <p>FreeRTOS提供了多种API函数来获取任务的运行时间信息：</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>函数名称</th>
+                        <th>功能描述</th>
+                        <th>参数说明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>vTaskGetRunTimeStats()</td>
+                        <td>获取所有任务的运行时间统计信息</td>
+                        <td>pcWriteBuffer - 输出缓冲区</td>
+                    </tr>
+                    <tr>
+                        <td>uxTaskGetSystemState()</td>
+                        <td>获取系统状态，包括任务运行时间</td>
+                        <td>pxTaskStatusArray - 任务状态数组</td>
+                    </tr>
+                    <tr>
+                        <td>vTaskGetInfo()</td>
+                        <td>获取指定任务的详细信息</td>
+                        <td>xTask - 任务句柄，pxTaskStatus - 任务状态结构体</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>使用示例</h3>
+            <div class="code-block">
+<pre>#include "FreeRTOS.h"
+#include "task.h"
+#include "timers.h"
+
+// 定义缓冲区用于存储统计信息
+char pcWriteBuffer[512];
+
+void vTaskGetRunTimeStatsExample(void)
+{
+    // 获取任务运行时间统计
+    vTaskGetRunTimeStats(pcWriteBuffer);
+    
+    // 输出统计信息（可通过串口打印）
+    // printf("%s", pcWriteBuffer);
+}
+
+void uxTaskGetSystemStateExample(void)
+{
+    TaskStatus_t *pxTaskStatusArray;
+    UBaseType_t uxArraySize, x;
+    uint32_t ulTotalRunTime;
+    
+    // 获取当前任务数量
+    uxArraySize = uxTaskGetNumberOfTasks();
+    
+    // 分配内存存储任务状态
+    pxTaskStatusArray = pvPortMalloc(uxArraySize * sizeof(TaskStatus_t));
+    
+    if(pxTaskStatusArray != NULL)
+    {
+        // 获取系统状态
+        uxArraySize = uxTaskGetSystemState(pxTaskStatusArray, uxArraySize, &ulTotalRunTime);
+        
+        // 处理每个任务的信息
+        for(x = 0; x < uxArraySize; x++)
+        {
+            // 打印任务名称和运行时间
+            // printf("Task: %s, Run Time: %lu\n", 
+            //        pxTaskStatusArray[x].pcTaskName,
+            //        pxTaskStatusArray[x].ulRunTimeCounter);
+        }
+        
+        // 释放内存
+        vPortFree(pxTaskStatusArray);
+    }
+}</pre>
+            </div>
+        </section>
+
+        <section>
+            <h2>实现步骤</h2>
+            <div class="step-box">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>配置FreeRTOS</h3>
+                    <p>在FreeRTOSConfig.h中启用运行时间统计相关宏</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>实现定时器</h3>
+                    <p>提供高精度定时器函数用于时间统计</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>调用API</h3>
+                    <p>在适当的位置调用运行时间统计API</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h3>分析结果</h3>
+                    <p>解析并分析获取到的运行时间数据</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">5</div>
+                    <h3>优化系统</h3>
+                    <p>根据统计结果进行系统性能优化</p>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>定时器实现示例</h2>
+            <p>下面是一个基于SysTick定时器的运行时间统计实现示例：</p>
+            
+            <div class="code-block">
+<pre>// 运行时间计数器
+volatile uint32_t ulHighFrequencyTimerTicks = 0;
+
+// 配置定时器用于运行时间统计
+void configureTimerForRunTimeStats(void)
+{
+    // 配置一个高精度定时器，例如SysTick
+    // 具体实现取决于硬件平台
+}
+
+// 获取运行时间计数器值
+unsigned long getRunTimeCounterValue(void)
+{
+    return ulHighFrequencyTimerTicks;
+}
+
+// 定时器中断服务函数
+void SysTick_Handler(void)
+{
+    if(xTaskGetSchedulerState() != taskSCHEDULER_NOT_STARTED)
+    {
+        xPortSysTickHandler();
+    }
+    
+    // 递增运行时间计数器
+    ulHighFrequencyTimerTicks++;
+}</pre>
+            </div>
+        </section>
+
+        <section>
+            <h2>运行时间统计输出格式</h2>
+            <p>vTaskGetRunTimeStats()函数输出的统计信息通常包含以下内容：</p>
+            
+            <div class="code-block">
+<pre>Task Name      Run Time    Percentage
+Task1          123456      25%
+Task2          98765       20%
+IDLE           234567      48%
+Timer Service  12345       2%</pre>
+            </div>
+            
+            <div class="tip">
+                <p><strong>提示：</strong>运行时间百分比是相对于总运行时间计算的，可以帮助识别CPU使用率高的任务。</p>
+            </div>
+        </section>
+
+        <section>
+            <h2>注意事项</h2>
+            <ul>
+                <li>运行时间统计会增加系统开销，在最终产品中可能需要禁用</li>
+                <li>定时器的精度直接影响统计结果的准确性</li>
+                <li>运行时间统计不包括任务在阻塞状态的时间</li>
+                <li>在多核系统中，需要为每个核心单独实现运行时间统计</li>
+                <li>注意计数器溢出的问题，确保使用足够位宽的计数器</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>应用场景</h2>
+            <div class="svg-container">
+                <svg width="500" height="200" viewBox="0 0 500 200">
+                    <rect x="50" y="30" width="120" height="40" rx="5" ry="5" fill="#c8e6c9" stroke="#4caf50" stroke-width="2"/>
+                    <text x="110" y="55" text-anchor="middle" fill="#1b5e20" font-size="12">性能分析</text>
+                    
+                    <rect x="190" y="30" width="120" height="40" rx="5" ry="5" fill="#bbdefb" stroke="#2196f3" stroke-width="2"/>
+                    <text x="250" y="55" text-anchor="middle" fill="#0d47a1" font-size="12">负载均衡</text>
+                    
+                    <rect x="330" y="30" width="120" height="40" rx="5" ry="5" fill="#ffecb3" stroke="#ffc107" stroke-width="2"/>
+                    <text x="390" y="55" text-anchor="middle" fill="#ff6f00" font-size="12">调试优化</text>
+                    
+                    <rect x="50" y="100" width="120" height="40" rx="5" ry="5" fill="#e1bee7" stroke="#9c27b0" stroke-width="2"/>
+                    <text x="110" y="125" text-anchor="middle" fill="#4a148c" font-size="12">功耗管理</text>
+                    
+                    <rect x="190" y="100" width="120" height="40" rx="5" ry="5" fill="#ffcdd2" stroke="#f44336" stroke-width="2"/>
+                    <text x="250" y="125" text-anchor="middle" fill="#b71c1c" font-size="12">实时监控</text>
+                    
+                    <rect x="330" y="100" width="120" height="40" rx="5" ry="5" fill="#b2dfdb" stroke="#009688" stroke-width="2"/>
+                    <text x="390" y="125" text-anchor="middle" fill="#004d40" font-size="12">系统调优</text>
+                </svg>
+            </div>
+        </section>
+
+        <footer>
+            <p>蓝海资料掘金营</p>
+        </footer>
+    </div>
+</body>
+</html>

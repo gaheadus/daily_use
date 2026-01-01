@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS从入门到实战 - 队列实战：生产者-消费者模型</title>
+    <style>
+        :root {
+            --tech-blue: #3498db;
+            --vitality-orange: #f39c12;
+            --fresh-green: #2ecc71;
+            --light-bg: #f8f9fa;
+            --dark-text: #2c3e50;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            color: var(--dark-text);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            background: linear-gradient(to right, var(--tech-blue), var(--fresh-green));
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 20px var(--shadow);
+        }
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        main {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+        section {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px var(--shadow);
+            border-left: 6px solid var(--vitality-orange);
+        }
+        h2 {
+            color: var(--tech-blue);
+            border-bottom: 3px solid var(--fresh-green);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            display: inline-block;
+        }
+        h3 {
+            color: var(--vitality-orange);
+            margin: 1.2rem 0 0.8rem;
+        }
+        ul, ol {
+            padding-left: 1.8rem;
+            margin: 1rem 0;
+        }
+        li {
+            margin-bottom: 0.5rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px var(--shadow);
+        }
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: var(--tech-blue);
+            color: white;
+            font-weight: 600;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: #e3f2fd;
+        }
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 1.5rem;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            font-family: 'Courier New', monospace;
+            border-left: 5px solid var(--vitality-orange);
+        }
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+        svg {
+            max-width: 100%;
+            height: auto;
+        }
+        .architecture {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 10px;
+            border: 2px dashed var(--tech-blue);
+        }
+        .highlight {
+            background-color: #fff9c4;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 2rem;
+            background: linear-gradient(to right, var(--tech-blue), var(--fresh-green));
+            color: white;
+            border-radius: 15px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            box-shadow: 0 -5px 15px var(--shadow);
+        }
+        .tip-box {
+            background: #e8f4fc;
+            border-left: 5px solid var(--tech-blue);
+            padding: 1.2rem;
+            margin: 1.5rem 0;
+            border-radius: 0 10px 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>FreeRTOS从入门到实战</h1>
+        <p class="subtitle">第8章：队列实战 - 多任务数据传递：生产者-消费者模型</p>
+    </header>
+
+    <main>
+        <section>
+            <h2>本章目标</h2>
+            <p>掌握使用FreeRTOS队列在多个任务之间安全、高效地传递数据。通过设计一个<strong>生产者-消费者模型</strong>，模拟嵌入式系统中常见的传感器数据采集与处理场景，或控制命令的传递与执行。</p>
+            <div class="tip-box">
+                <strong>核心要点：</strong> 理解队列作为任务间通信（IPC）核心机制的原理，并能够将其应用于实际项目，解决数据共享与同步问题。
+            </div>
+        </section>
+
+        <section>
+            <h2>1. 队列（Queue）核心概念</h2>
+            <p>队列是FreeRTOS中实现<strong>任务间通信（IPC）</strong>和<strong>同步</strong>的主要机制。它遵循<strong>先进先出（FIFO）</strong>原则，但也支持后进先出（LIFO）模式。</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>特性</th>
+                        <th>说明</th>
+                        <th>优势</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>数据安全</strong></td>
+                        <td>队列操作是线程安全的，内置互斥保护。</td>
+                        <td>无需开发者额外处理竞态条件。</td>
+                    </tr>
+                    <tr>
+                        <td><strong>阻塞机制</strong></td>
+                        <td>任务在队列空/满时可选择阻塞等待。</td>
+                        <td>高效利用CPU，简化任务调度。</td>
+                    </tr>
+                    <tr>
+                        <td><strong>传递任意数据</strong></td>
+                        <td>可以传递值（如整数）或指针（指向结构体、缓冲区）。</td>
+                        <td>灵活适应各种数据传递需求。</td>
+                    </tr>
+                    <tr>
+                        <td><strong>多任务访问</strong></td>
+                        <td>允许多个任务读写同一个队列。</td>
+                        <td>实现一对多、多对一通信模型。</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section>
+            <h2>2. 生产者-消费者模型架构</h2>
+            <p>这是嵌入式系统中解耦数据采集与处理的经典设计模式。</p>
+            <div class="svg-container">
+                <svg width="800" height="300" viewBox="0 0 800 300">
+                    <defs>
+                        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#3498db;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#2ecc71;stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#f39c12;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#e74c3c;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <rect x="50" y="100" width="200" height="80" rx="15" ry="15" fill="url(#grad1)" stroke="#2c3e50" stroke-width="2"/>
+                    <text x="150" y="145" text-anchor="middle" fill="white" font-size="18" font-weight="bold">生产者任务</text>
+                    <text x="150" y="170" text-anchor="middle" fill="white" font-size="14">(如：传感器采样)</text>
+
+                    <rect x="550" y="100" width="200" height="80" rx="15" ry="15" fill="url(#grad2)" stroke="#2c3e50" stroke-width="2"/>
+                    <text x="650" y="145" text-anchor="middle" fill="white" font-size="18" font-weight="bold">消费者任务</text>
+                    <text x="650" y="170" text-anchor="middle" fill="white" font-size="14">(如：数据处理/执行)</text>
+
+                    <rect x="300" y="90" width="200" height="100" rx="10" ry="10" fill="#f1c40f" stroke="#d35400" stroke-width="2"/>
+                    <text x="400" y="130" text-anchor="middle" fill="#2c3e50" font-size="20" font-weight="bold">FreeRTOS队列</text>
+                    <text x="400" y="160" text-anchor="middle" fill="#2c3e50" font-size="16">数据缓冲区</text>
+
+                    <path d="M250 140 L300 140" stroke="#3498db" stroke-width="4" marker-end="url(#arrowhead)"/>
+                    <path d="M500 140 L550 140" stroke="#e74c3c" stroke-width="4" marker-end="url(#arrowhead)"/>
+                    <text x="375" y="125" text-anchor="middle" fill="#3498db" font-size="16" font-weight="bold">发送 (xQueueSend)</text>
+                    <text x="375" y="200" text-anchor="middle" fill="#e74c3c" font-size="16" font-weight="bold">接收 (xQueueReceive)</text>
+
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#3498db"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+            <div class="architecture">
+                <h3>工作流程</h3>
+                <ol>
+                    <li><strong>生产者任务</strong>（如传感器采样）周期性地采集数据，并将数据封装成消息。</li>
+                    <li>生产者调用 <span class="highlight">xQueueSend()</span> 将消息发送到队列。如果队列已满，任务可选择阻塞等待。</li>
+                    <li><strong>队列</strong>作为缓冲区，暂存消息，实现生产与消费的速度解耦。</li>
+                    <li><strong>消费者任务</strong>（如数据处理）调用 <span class="highlight">xQueueReceive()</span> 从队列获取消息。如果队列为空，任务可选择阻塞等待新数据。</li>
+                    <li>消费者处理接收到的数据或执行相应的控制命令。</li>
+                </ol>
+            </div>
+        </section>
+
+        <section>
+            <h2>3. 实战代码示例：传感器数据传递</h2>
+            <p>模拟一个温度传感器采样任务（生产者）和一个数据显示/报警任务（消费者）。</p>
+            <div class="code-block">
+                <pre><code>#include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
+#include "stdio.h"
+
+/* 定义消息结构体 */
+typedef struct {
+    TickType_t timestamp; // 时间戳
+    float temperature;    // 温度值
+    uint8_t sensor_id;    // 传感器ID
+} SensorData_t;
+
+/* 队列句柄 */
+QueueHandle_t xSensorQueue;
+
+/* 生产者任务：模拟温度采样 */
+void vTemperatureSensorTask(void *pvParameters) {
+    SensorData_t xData;
+    const TickType_t xDelay = pdMS_TO_TICKS(1000); // 1秒采样一次
+
+    for (;;) {
+        /* 模拟采集数据 (实际应读取ADC) */
+        xData.timestamp = xTaskGetTickCount();
+        xData.temperature = 25.0 + (rand() % 100) / 10.0; // 25.0~35.0°C
+        xData.sensor_id = 1;
+
+        /* 发送数据到队列，等待10个Tick如果队列满 */
+        if (xQueueSend(xSensorQueue, &xData, pdMS_TO_TICKS(10)) == pdPASS) {
+            printf("[生产者] 发送数据: 时间=%lu, 温度=%.2f°C\n",
+                   xData.timestamp, xData.temperature);
+        } else {
+            printf("[生产者] 错误：队列已满，数据丢弃！\n");
+        }
+
+        vTaskDelay(xDelay);
+    }
+}
+
+/* 消费者任务：处理显示与报警 */
+void vDataProcessorTask(void *pvParameters) {
+    SensorData_t xReceivedData;
+    BaseType_t xStatus;
+
+    for (;;) {
+        /* 从队列接收数据，无限期等待 */
+        xStatus = xQueueReceive(xSensorQueue, &xReceivedData, portMAX_DELAY);
+
+        if (xStatus == pdPASS) {
+            printf("[消费者] 收到数据: ID=%d, 温度=%.2f°C\n",
+                   xReceivedData.sensor_id, xReceivedData.temperature);
+
+            /* 简单的阈值报警 */
+            if (xReceivedData.temperature > 30.0) {
+                printf("[消费者] 警告：温度过高！\n");
+                // 此处可以触发LED、蜂鸣器等
+            }
+        }
+    }
+}
+
+/* 主函数 */
+int main(void) {
+    /* 创建队列，可容纳10个SensorData_t元素 */
+    xSensorQueue = xQueueCreate(10, sizeof(SensorData_t));
+
+    if (xSensorQueue != NULL) {
+        /* 创建生产者与消费者任务 */
+        xTaskCreate(vTemperatureSensorTask, "Sensor", 256, NULL, 2, NULL);
+        xTaskCreate(vDataProcessorTask, "Processor", 256, NULL, 1, NULL);
+
+        /* 启动调度器 */
+        vTaskStartScheduler();
+    } else {
+        printf("错误：队列创建失败！\n");
+    }
+
+    for (;;);
+    return 0;
+}</code></pre>
+            </div>
+        </section>
+
+        <section>
+            <h2>4. 关键API函数详解</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>函数</th>
+                        <th>功能</th>
+                        <th>重要参数</th>
+                        <th>返回值</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>xQueueCreate()</strong></td>
+                        <td>动态创建队列</td>
+                        <td>uxQueueLength: 队列长度<br>uxItemSize: 每个项目大小</td>
+                        <td>队列句柄（失败返回NULL）</td>
+                    </tr>
+                    <tr>
+                        <td><strong>xQueueSend()</strong></td>
+                        <td>发送数据到队列尾（FIFO）</td>
+                        <td>xQueue: 队列句柄<br>pvItemToQueue: 数据指针<br>xTicksToWait: 阻塞超时时间</td>
+                        <td>pdPASS/pdFAIL</td>
+                    </tr>
+                    <tr>
+                        <td><strong>xQueueSendToFront()</strong></td>
+                        <td>发送数据到队列头（LIFO）</td>
+                        <td>同上</td>
+                        <td>pdPASS/pdFAIL</td>
+                    </tr>
+                    <tr>
+                        <td><strong>xQueueReceive()</strong></td>
+                        <td>从队列接收数据</td>
+                        <td>xQueue: 队列句柄<br>pvBuffer: 接收缓冲区<br>xTicksToWait: 阻塞超时时间</td>
+                        <td>pdPASS/pdFAIL</td>
+                    </tr>
+                    <tr>
+                        <td><strong>uxQueueMessagesWaiting()</strong></td>
+                        <td>查询队列中当前消息数量</td>
+                        <td>xQueue: 队列句柄</td>
+                        <td>消息数量</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section>
+            <h2>5. 设计要点与最佳实践</h2>
+            <ul>
+                <li><strong>队列深度设计</strong>：根据生产与消费的最大速度差，合理设置队列长度，避免数据丢失或内存浪费。</li>
+                <li><strong>消息结构设计</strong>：使用结构体封装相关数据，提高可读性和扩展性。可包含时间戳、数据类型、校验和等字段。</li>
+                <li><strong>阻塞超时设置</strong>：
+                    <ul>
+                        <li>生产者：通常设置较短超时（如10ms），队列满时可选择丢弃、等待或触发错误处理。</li>
+                        <li>消费者：根据实际需求，可选择无限等待（<code>portMAX_DELAY</code>）或轮询。</li>
+                    </ul>
+                </li>
+                <li><strong>优先级考虑</strong>：高优先级消费者能及时处理关键数据，但要防止生产者“饿死”。</li>
+                <li><strong>错误处理</strong>：始终检查队列创建、发送、接收的返回值，增强系统鲁棒性。</li>
+                <li><strong>性能优化</strong>：传递指针（指向动态分配的内存）而非大结构体，但需自行管理内存生命周期。</li>
+            </ul>
+            <div class="tip-box">
+                <strong>扩展挑战：</strong> 尝试设计一个“多生产者-单消费者”模型，让多个传感器（如温度、湿度、光照）向同一个队列发送数据，消费者根据消息类型进行不同处理。
+            </div>
+        </section>
+
+        <section>
+            <h2>6. 本章总结</h2>
+            <p>队列是FreeRTOS多任务编程的“血管”，负责安全、有序地传递数据“血液”。掌握生产者-消费者模型，你就能设计出<strong>解耦、高效、可扩展</strong>的嵌入式系统架构。关键在于：</p>
+            <ol>
+                <li>理解队列的<strong>阻塞机制</strong>与<strong>线程安全</strong>特性。</li>
+                <li>合理设计<strong>消息格式</strong>与<strong>队列深度</strong>。</li>
+                <li>根据场景选择<strong>发送/接收策略</strong>（阻塞、超时、非阻塞）。</li>
+            </ol>
+            <p>通过本章实战，你已具备使用队列解决复杂任务通信问题的能力，为构建更复杂的实时系统打下坚实基础。</p>
+        </section>
+    </main>
+
+    <footer>
+        蓝海资料掘金营
+    </footer>
+</body>
+</html>

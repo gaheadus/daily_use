@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS从入门到实战 - 信号量与互斥量</title>
+    <style>
+        :root {
+            --tech-blue: #3498db;
+            --vitality-orange: #f39c12;
+            --fresh-green: #2ecc71;
+            --light-gray: #f5f7fa;
+            --dark-gray: #2c3e50;
+            --text-color: #333;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, var(--light-gray) 0%, #e3f2fd 100%);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            background: linear-gradient(to right, var(--tech-blue), #2980b9);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(52, 152, 219, 0.2);
+        }
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 0.5rem;
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        main {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+        section {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border-left: 6px solid var(--tech-blue);
+            transition: transform 0.3s ease;
+        }
+        section:hover {
+            transform: translateY(-5px);
+        }
+        h2 {
+            color: var(--tech-blue);
+            border-bottom: 3px solid var(--vitality-orange);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+        }
+        h3 {
+            color: var(--fresh-green);
+            margin: 1.2rem 0 0.8rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        }
+        th {
+            background-color: var(--tech-blue);
+            color: white;
+            padding: 1rem;
+            text-align: left;
+        }
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        ul, ol {
+            padding-left: 1.5rem;
+            margin: 1rem 0;
+        }
+        li {
+            margin-bottom: 0.5rem;
+        }
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 1.5rem;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            border-left: 4px solid var(--vitality-orange);
+        }
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+        svg {
+            max-width: 100%;
+            height: auto;
+        }
+        .highlight {
+            background-color: #fff9e6;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            font-weight: bold;
+            color: #e67e22;
+        }
+        .note {
+            background-color: #e8f6f3;
+            border-left: 4px solid var(--fresh-green);
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 2rem;
+            color: white;
+            background: linear-gradient(to right, var(--dark-gray), #34495e);
+            border-radius: 15px;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+        }
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border-top: 5px solid;
+        }
+        .card-binary {
+            border-top-color: var(--tech-blue);
+        }
+        .card-counting {
+            border-top-color: var(--vitality-orange);
+        }
+        .card-mutex {
+            border-top-color: var(--fresh-green);
+        }
+        .card h4 {
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+            color: var(--dark-gray);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>FreeRTOS从入门到实战</h1>
+        <p class="subtitle">第9讲：信号量（Semaphore）与互斥量（Mutex）</p>
+        <p>二值信号量、计数信号量、互斥量的概念与区别、创建与使用API、优先级继承机制</p>
+    </header>
+
+    <main>
+        <section>
+            <h2>一、核心概念与区别</h2>
+            <p>在FreeRTOS中，信号量和互斥量是任务间同步与互斥的关键机制。它们用于协调多个任务对共享资源的访问，确保系统的正确性和可靠性。</p>
+            
+            <div class="comparison-grid">
+                <div class="card card-binary">
+                    <h4>🔲 二值信号量</h4>
+                    <p>类似于一个开关，只有两个状态：可用（1）和不可用（0）。常用于任务同步，如通知某个事件已发生。</p>
+                    <ul>
+                        <li><strong>状态</strong>：0或1</li>
+                        <li><strong>典型用途</strong>：任务同步、事件通知</li>
+                        <li><strong>释放者</strong>：中断服务程序或任务</li>
+                    </ul>
+                </div>
+                <div class="card card-counting">
+                    <h4>🔢 计数信号量</h4>
+                    <p>可以拥有多个计数值，用于管理多个同类资源。计数值表示可用资源的数量。</p>
+                    <ul>
+                        <li><strong>状态</strong>：0到最大值</li>
+                        <li><strong>典型用途</strong>：资源池管理、流量控制</li>
+                        <li><strong>释放者</strong>：中断服务程序或任务</li>
+                    </ul>
+                </div>
+                <div class="card card-mutex">
+                    <h4>🔐 互斥量</h4>
+                    <p>特殊的二值信号量，具有<strong>优先级继承</strong>机制，用于保护共享资源，防止优先级反转。</p>
+                    <ul>
+                        <li><strong>状态</strong>：锁定或解锁</li>
+                        <li><strong>典型用途</strong>：共享资源保护</li>
+                        <li><strong>释放者</strong>：必须由获取它的任务释放</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="svg-container">
+                <svg width="800" height="300" viewBox="0 0 800 300">
+                    <defs>
+                        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#3498db;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#2ecc71;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <rect x="50" y="50" width="700" height="200" rx="10" fill="url(#grad1)" opacity="0.1" stroke="#3498db" stroke-width="2"/>
+                    <circle cx="150" cy="150" r="40" fill="#3498db" opacity="0.8"/>
+                    <text x="150" y="155" text-anchor="middle" fill="white" font-weight="bold">任务A</text>
+                    <circle cx="400" cy="150" r="60" fill="#f39c12" opacity="0.9"/>
+                    <text x="400" y="155" text-anchor="middle" fill="white" font-weight="bold">共享资源</text>
+                    <circle cx="650" cy="150" r="40" fill="#2ecc71" opacity="0.8"/>
+                    <text x="650" y="155" text-anchor="middle" fill="white" font-weight="bold">任务B</text>
+                    <path d="M190,150 L340,150" stroke="#e74c3c" stroke-width="3" marker-end="url(#arrow)"/>
+                    <path d="M460,150 L610,150" stroke="#e74c3c" stroke-width="3" marker-end="url(#arrow)"/>
+                    <text x="265" y="140" fill="#c0392b" font-size="14">获取互斥量</text>
+                    <text x="535" y="140" fill="#c0392b" font-size="14">等待互斥量</text>
+                    <defs>
+                        <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                            <path d="M0,0 L0,6 L9,3 z" fill="#e74c3c"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>特性</th>
+                        <th>二值信号量</th>
+                        <th>计数信号量</th>
+                        <th>互斥量</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>初始值</strong></td>
+                        <td>0或1</td>
+                        <td>0到最大值</td>
+                        <td>1（可用）</td>
+                    </tr>
+                    <tr>
+                        <td><strong>优先级继承</strong></td>
+                        <td>无</td>
+                        <td>无</td>
+                        <td><strong>有</strong></td>
+                    </tr>
+                    <tr>
+                        <td><strong>释放者限制</strong></td>
+                        <td>任意任务/中断</td>
+                        <td>任意任务/中断</td>
+                        <td>必须由获取任务释放</td>
+                    </tr>
+                    <tr>
+                        <td><strong>主要用途</strong></td>
+                        <td>任务同步、事件通知</td>
+                        <td>资源池管理</td>
+                        <td>共享资源保护</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section>
+            <h2>二、创建与使用API</h2>
+            
+            <h3>1. 二值信号量</h3>
+            <div class="code-block">
+<pre>
+// 动态创建二值信号量
+SemaphoreHandle_t xBinarySemaphore;
+xBinarySemaphore = xSemaphoreCreateBinary();
+
+// 静态创建二值信号量
+StaticSemaphore_t xSemaphoreBuffer;
+SemaphoreHandle_t xBinarySemaphore;
+xBinarySemaphore = xSemaphoreCreateBinaryStatic(&xSemaphoreBuffer);
+
+// 获取信号量（任务）
+if(xSemaphoreTake(xBinarySemaphore, pdMS_TO_TICKS(100)) == pdTRUE) {
+    // 成功获取信号量
+}
+
+// 释放信号量（任务或中断）
+xSemaphoreGive(xBinarySemaphore);          // 任务中
+xSemaphoreGiveFromISR(xBinarySemaphore, &xHigherPriorityTaskWoken); // 中断中
+</pre>
+            </div>
+
+            <h3>2. 计数信号量</h3>
+            <div class="code-block">
+<pre>
+// 动态创建计数信号量
+SemaphoreHandle_t xCountingSemaphore;
+// 参数：最大计数值，初始计数值
+xCountingSemaphore = xSemaphoreCreateCounting(10, 0);
+
+// 静态创建计数信号量
+StaticSemaphore_t xSemaphoreBuffer;
+SemaphoreHandle_t xCountingSemaphore;
+xCountingSemaphore = xSemaphoreCreateCountingStatic(10, 0, &xSemaphoreBuffer);
+
+// 使用方式与二值信号量相同
+xSemaphoreTake(xCountingSemaphore, portMAX_DELAY);
+xSemaphoreGive(xCountingSemaphore);
+</pre>
+            </div>
+
+            <h3>3. 互斥量</h3>
+            <div class="code-block">
+<pre>
+// 动态创建互斥量
+SemaphoreHandle_t xMutex;
+xMutex = xSemaphoreCreateMutex();
+
+// 静态创建互斥量
+StaticSemaphore_t xMutexBuffer;
+SemaphoreHandle_t xMutex;
+xMutex = xSemaphoreCreateMutexStatic(&xMutexBuffer);
+
+// 获取互斥量（只能由任务调用）
+if(xSemaphoreTake(xMutex, pdMS_TO_TICKS(1000)) == pdTRUE) {
+    // 访问共享资源
+    // ...
+    
+    // 释放互斥量
+    xSemaphoreGive(xMutex);
+}
+
+// 注意：互斥量不能在中断中使用！
+</pre>
+            </div>
+
+            <div class="note">
+                <strong>重要提示：</strong>互斥量具有优先级继承机制，而信号量没有。互斥量必须由获取它的任务释放，不能在中断中释放。信号量可以在中断中释放（使用FromISR版本）。
+            </div>
+        </section>
+
+        <section>
+            <h2>三、优先级继承机制</h2>
+            
+            <h3>什么是优先级反转？</h3>
+            <p>当低优先级任务持有共享资源，而高优先级任务需要该资源时，高优先级任务会被阻塞，等待低优先级任务释放资源。如果此时有中优先级任务抢占CPU，会导致高优先级任务长时间等待，这种现象称为<strong>优先级反转</strong>。</p>
+            
+            <div class="svg-container">
+                <svg width="800" height="400" viewBox="0 0 800 400">
+                    <!-- 优先级反转示意图 -->
+                    <rect x="50" y="50" width="700" height="300" rx="10" fill="#f8f9fa" stroke="#ddd" stroke-width="2"/>
+                    
+                    <!-- 时间线 -->
+                    <line x1="100" y1="100" x2="700" y2="100" stroke="#95a5a6" stroke-width="2" stroke-dasharray="5,5"/>
+                    <text x="80" y="95" fill="#7f8c8d">时间</text>
+                    
+                    <!-- 高优先级任务 -->
+                    <rect x="120" y="120" width="150" height="40" fill="#e74c3c" opacity="0.8"/>
+                    <text x="195" y="145" text-anchor="middle" fill="white" font-weight="bold">高优先级任务</text>
+                    <rect x="400" y="120" width="200" height="40" fill="#e74c3c" opacity="0.8"/>
+                    
+                    <!-- 中优先级任务 -->
+                    <rect x="300" y="180" width="250" height="40" fill="#f39c12" opacity="0.8"/>
+                    <text x="425" y="205" text-anchor="middle" fill="white" font-weight="bold">中优先级任务</text>
+                    
+                    <!-- 低优先级任务 -->
+                    <rect x="100" y="240" width="300" height="40" fill="#3498db" opacity="0.8"/>
+                    <text x="250" y="265" text-anchor="middle" fill="white" font-weight="bold">低优先级任务</text>
+                    
+                    <!-- 资源占用标记 -->
+                    <rect x="120" y="240" width="100" height="40" fill="#2c3e50" opacity="0.9"/>
+                    <text x="170" y="265" text-anchor="middle" fill="white" font-size="12">持有资源</text>
+                    
+                    <!-- 说明文字 -->
+                    <text x="400" y="350" text-anchor="middle" fill="#c0392b" font-size="16" font-weight="bold">
+                        优先级反转问题：高优先级任务被中优先级任务阻塞
+                    </text>
+                    
+                    <!-- 箭头指示 -->
+                    <line x1="220" y1="160" x2="220" y2="240" stroke="#c0392b" stroke-width="2" marker-end="url(#arrow2)"/>
+                    <text x="240" y="200" fill="#c0392b" font-size="12">等待资源</text>
+                </svg>
+            </div>
+
+            <h3>优先级继承如何解决问题？</h3>
+            <p>当高优先级任务等待低优先级任务持有的互斥量时，系统会<strong>临时提升低优先级任务的优先级</strong>到与高优先级任务相同，使其能尽快执行并释放资源，从而避免被中优先级任务抢占。</p>
+            
+            <ol>
+                <li>低优先级任务获取互斥量</li>
+                <li>高优先级任务请求同一互斥量，被阻塞</li>
+                <li>系统临时提升低优先级任务的优先级到与高优先级任务相同</li>
+                <li>低优先级任务继续执行，释放互斥量</li>
+                <li>低优先级任务优先级恢复原状，高优先级任务获取互斥量并执行</li>
+            </ol>
+
+            <div class="code-block">
+<pre>
+// FreeRTOS配置优先级继承
+// 在FreeRTOSConfig.h中确保以下配置：
+#define configUSE_MUTEXES                    1    // 启用互斥量
+#define configUSE_PRIORITY_INHERITANCE       1    // 启用优先级继承
+
+// 优先级继承是自动进行的，无需额外代码
+// 当使用xSemaphoreCreateMutex()创建的互斥量时，
+// 系统会自动处理优先级继承
+</pre>
+            </div>
+
+            <div class="note">
+                <strong>最佳实践：</strong>对于共享资源的保护，优先使用互斥量而非二值信号量，因为互斥量具有优先级继承机制，可以避免优先级反转问题。只有在不需要优先级继承的同步场景中，才使用二值信号量。
+            </div>
+        </section>
+
+        <section>
+            <h2>四、实战应用场景</h2>
+            
+            <h3>场景1：串口数据接收通知（二值信号量）</h3>
+            <div class="code-block">
+<pre>
+// 串口中断收到数据后通知处理任务
+SemaphoreHandle_t xUartRxSemaphore;
+
+void UART_IRQHandler(void) {
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    
+    // 处理接收数据...
+    
+    // 释放信号量通知任务
+    xSemaphoreGiveFromISR(xUartRxSemaphore, &xHigherPriorityTaskWoken);
+    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+}
+
+void vUartProcessTask(void *pvParameters) {
+    for(;;) {
+        // 等待串口数据通知
+        if(xSemaphoreTake(xUartRxSemaphore, portMAX_DELAY) == pdTRUE) {
+            // 处理接收到的数据
+            processUartData();
+        }
+    }
+}
+</pre>
+            </div>
+
+            <h3>场景2：共享缓冲区保护（互斥量）</h3>
+            <div class="code-block">
+<pre>
+// 多个任务共享一个数据缓冲区
+SemaphoreHandle_t xBufferMutex;
+uint8_t sharedBuffer[256];
+
+void vTask1(void *pvParameters) {
+    for(;;) {
+        // 获取互斥量访问共享缓冲区
+        if(xSemaphoreTake(xBufferMutex, pdMS_TO_TICKS(100)) == pdTRUE) {
+            // 安全地访问sharedBuffer
+            writeToBuffer(sharedBuffer, data1, size1);
+            
+            // 释放互斥量
+            xSemaphoreGive(xBufferMutex);
+        }
+        vTaskDelay(pdMS_TO_TICKS(10));
+    }
+}
+
+void vTask2(void *pvParameters) {
+    for(;;) {
+        if(xSemaphoreTake(xBufferMutex, pdMS_TO_TICKS(100)) == pdTRUE) {
+            // 安全地访问sharedBuffer
+            readFromBuffer(sharedBuffer, output, size2);
+            
+            xSemaphoreGive(xBufferMutex);
+        }
+        vTaskDelay(pdMS_TO_TICKS(15));
+    }
+}
+</pre>
+            </div>
+
+            <h3>场景3：资源池管理（计数信号量）</h3>
+            <div class="code-block">
+<pre>
+// 管理有限数量的网络连接
+#define MAX_CONNECTIONS 5
+SemaphoreHandle_t xConnectionSemaphore;
+Connection_t connectionPool[MAX_CONNECTIONS];
+
+void initConnectionPool(void) {
+    // 初始时所有连接都可用
+    xConnectionSemaphore = xSemaphoreCreateCounting(MAX_CONNECTIONS, MAX_CONNECTIONS);
+}
+
+Connection_t* acquireConnection(void) {
+    // 等待可用连接
+    if(xSemaphoreTake(xConnectionSemaphore, pdMS_TO_TICKS(5000)) == pdTRUE) {
+        // 查找并返回一个空闲连接
+        for(int i = 0; i < MAX_CONNECTIONS; i++) {
+            if(!connectionPool[i].inUse) {
+                connectionPool[i].inUse = pdTRUE;
+                return &connectionPool[i];
+            }
+        }
+        // 不应该执行到这里
+        xSemaphoreGive(xConnectionSemaphore);
+    }
+    return NULL;
+}
+
+void releaseConnection(Connection_t* conn) {
+    conn->inUse = pdFALSE;
+    // 释放一个连接资源
+    xSemaphoreGive(xConnectionSemaphore);
+}
+</pre>
+            </div>
+        </section>
+
+        <section>
+            <h2>五、常见问题与注意事项</h2>
+            
+            <h3>❌ 常见错误</h3>
+            <ul>
+                <li><span class="highlight">错误1：</span>在中断中尝试获取互斥量（互斥量不能在中断中使用）</li>
+                <li><span class="highlight">错误2：</span>忘记释放互斥量或信号量，导致资源泄漏</li>
+                <li><span class="highlight">错误3：</span>使用二值信号量保护共享资源，导致优先级反转</li>
+                <li><span class="highlight">错误4：</span>在获取信号量时使用过短的超时时间，导致任务频繁唤醒</li>
+                <li><span class="highlight">错误5：</span>多个任务以不同顺序获取多个互斥量，导致死锁</li>
+            </ul>
+
+            <h3>✅ 最佳实践</h3>
+            <ol>
+                <li><strong>明确用途：</strong>同步用信号量，互斥用互斥量</li>
+                <li><strong>超时设置：</strong>合理设置超时时间，避免任务永久阻塞</li>
+                <li><strong>释放匹配：</strong>确保每次获取都有对应的释放</li>
+                <li><strong>顺序一致：</strong>多个互斥量按固定顺序获取，避免死锁</li>
+                <li><strong>中断安全：</strong>在中断中只使用FromISR版本的API</li>
+                <li><strong>资源清理：</strong>任务删除前释放所有持有的信号量/互斥量</li>
+            </ol>
+
+            <h3>🔧 调试技巧</h3>
+            <div class="code-block">
+<pre>
+// 使用FreeRTOS跟踪功能调试信号量
+// 在FreeRTOSConfig.h中启用：
+#define configUSE_TRACE_FACILITY           1
+#define configUSE_STATS_FORMATTING_FUNCTIONS 1
+
+// 在代码中查看信号量状态：
+void printSemaphoreInfo(SemaphoreHandle_t xSemaphore) {
+    printf("信号量句柄: %p\n", (void*)xSemaphore);
+    
+    // 获取等待该信号量的任务列表
+    UBaseType_t uxArraySize = uxTaskGetNumberOfTasks();
+    TaskStatus_t *pxTaskStatusArray = pvPortMalloc(uxArraySize * sizeof(TaskStatus_t));
+    
+    if(pxTaskStatusArray != NULL) {
+        uxArraySize = uxTaskGetSystemState(pxTaskStatusArray, uxArraySize, NULL);
+        
+        // 分析任务状态...
+        
+        vPortFree(pxTaskStatusArray);
+    }
+}
+</pre>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        蓝海资料掘金营
+    </footer>
+</body>
+</html>

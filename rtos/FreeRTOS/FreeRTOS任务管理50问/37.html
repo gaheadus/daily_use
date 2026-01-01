@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS任务管理50问 - 任务就绪列表工作原理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #f9fbe7 50%, #e8f5e9 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px dashed #4db6ac;
+        }
+
+        .header h1 {
+            color: #00695c;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h2 {
+            color: #00796b;
+            font-size: 1.8rem;
+            font-weight: normal;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h3 {
+            color: #00796b;
+            border-left: 5px solid #4db6ac;
+            padding-left: 15px;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .card p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        .card ul, .card ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .card li {
+            margin-bottom: 8px;
+        }
+
+        .code-block {
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background-color: #4db6ac;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f1f8e9;
+        }
+
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #4db6ac;
+            color: #00796b;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .highlight {
+            background-color: #e8f5e9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .note {
+            background-color: #fffde7;
+            border-left: 4px solid #ffd54f;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .header h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>FreeRTOS任务管理50问</h1>
+            <h2>37、任务就绪列表：任务就绪列表的工作原理</h2>
+        </div>
+
+        <div class="content">
+            <div class="card">
+                <h3>什么是任务就绪列表？</h3>
+                <p>任务就绪列表是FreeRTOS内核中用于管理所有处于就绪状态任务的数据结构。它按照任务的优先级组织任务，确保调度器能够快速找到最高优先级的就绪任务来运行。</p>
+                
+                <p>在FreeRTOS中，任务就绪列表使用以下关键数据结构：</p>
+                <ul>
+                    <li><span class="highlight">pxReadyTasksLists</span>：一个任务列表数组，每个优先级对应一个列表</li>
+                    <li><span class="highlight">uxTopReadyPriority</span>：记录当前最高就绪优先级</li>
+                    <li><span class="highlight">uxCurrentNumberOfTasks</span>：当前就绪任务数量</li>
+                </ul>
+                
+                <div class="note">
+                    <strong>注意：</strong>FreeRTOS支持多优先级，相同优先级的任务采用时间片轮转调度。
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>就绪列表的数据结构</h3>
+                <p>FreeRTOS使用位图和链表相结合的方式实现高效的就绪列表管理：</p>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>数据结构</th>
+                            <th>作用</th>
+                            <th>类型</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>pxReadyTasksLists</td>
+                            <td>按优先级存储就绪任务链表</td>
+                            <td>List_t[]</td>
+                        </tr>
+                        <tr>
+                            <td>uxTopReadyPriority</td>
+                            <td>记录最高就绪优先级</td>
+                            <td>UBaseType_t</td>
+                        </tr>
+                        <tr>
+                            <td>pxCurrentTCB</td>
+                            <td>指向当前运行任务的TCB</td>
+                            <td>TCB_t*</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <p>关键代码定义：</p>
+                <div class="code-block">
+<pre>
+/* 在tasks.c中定义 */
+static List_t pxReadyTasksLists[ configMAX_PRIORITIES ];
+static volatile UBaseType_t uxTopReadyPriority = tskIDLE_PRIORITY;
+</pre>
+                </div>
+            </div>
+
+            <div class="card full-width">
+                <h3>任务就绪列表工作原理</h3>
+                
+                <div class="svg-container">
+                    <svg width="800" height="300" viewBox="0 0 800 300">
+                        <!-- 背景 -->
+                        <rect x="0" y="0" width="800" height="300" fill="#f1f8e9" rx="10"/>
+                        
+                        <!-- 标题 -->
+                        <text x="400" y="30" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold" fill="#00796b">FreeRTOS任务就绪列表工作原理</text>
+                        
+                        <!-- 位图部分 -->
+                        <rect x="50" y="60" width="700" height="60" fill="#4db6ac" rx="5"/>
+                        <text x="400" y="85" text-anchor="middle" font-family="Arial" font-size="14" fill="white">优先级位图 (uxTopReadyPriority)</text>
+                        
+                        <!-- 优先级指示 -->
+                        <rect x="100" y="130" width="600" height="30" fill="#e0f2f1" rx="3"/>
+                        <text x="400" y="150" text-anchor="middle" font-family="Arial" font-size="12" fill="#00695c">优先级: 0 (空闲) | 1 | 2 | 3 | 4 | 5 (最高)</text>
+                        
+                        <!-- 就绪列表 -->
+                        <rect x="50" y="180" width="700" height="100" fill="#80cbc4" rx="5"/>
+                        <text x="400" y="200" text-anchor="middle" font-family="Arial" font-size="14" fill="white">就绪任务列表 (pxReadyTasksLists)</text>
+                        
+                        <!-- 任务节点 -->
+                        <circle cx="150" cy="240" r="15" fill="#e57373"/>
+                        <text x="150" y="244" text-anchor="middle" font-family="Arial" font-size="10" fill="white">T1</text>
+                        
+                        <circle cx="200" cy="240" r="15" fill="#64b5f6"/>
+                        <text x="200" y="244" text-anchor="middle" font-family="Arial" font-size="10" fill="white">T2</text>
+                        
+                        <circle cx="250" cy="240" r="15" fill="#81c784"/>
+                        <text x="250" y="244" text-anchor="middle" font-family="Arial" font-size="10" fill="white">T3</text>
+                        
+                        <circle cx="400" cy="240" r="15" fill="#ffb74d"/>
+                        <text x="400" y="244" text-anchor="middle" font-family="Arial" font-size="10" fill="white">T4</text>
+                        
+                        <circle cx="550" cy="240" r="15" fill="#ba68c8"/>
+                        <text x="550" y="244" text-anchor="middle" font-family="Arial" font-size="10" fill="white">T5</text>
+                        
+                        <circle cx="600" cy="240" r="15" fill="#4db6ac"/>
+                        <text x="600" y="244" text-anchor="middle" font-family="Arial" font-size="10" fill="white">T6</text>
+                        
+                        <!-- 连接线 -->
+                        <line x1="150" y1="255" x2="165" y2="255" stroke="#00695c" stroke-width="2"/>
+                        <line x1="200" y1="255" x2="215" y2="255" stroke="#00695c" stroke-width="2"/>
+                        <line x1="250" y1="255" x2="265" y2="255" stroke="#00695c" stroke-width="2"/>
+                        <line x1="400" y1="255" x2="415" y2="255" stroke="#00695c" stroke-width="2"/>
+                        <line x1="550" y1="255" x2="565" y2="255" stroke="#00695c" stroke-width="2"/>
+                        <line x1="600" y1="255" x2="615" y2="255" stroke="#00695c" stroke-width="2"/>
+                        
+                        <!-- 箭头 -->
+                        <polygon points="620,255 630,250 630,260" fill="#00695c"/>
+                    </svg>
+                </div>
+                
+                <p>任务就绪列表的工作流程：</p>
+                <ol>
+                    <li>当任务创建或从阻塞状态恢复时，被添加到对应优先级的就绪列表</li>
+                    <li>系统更新<code>uxTopReadyPriority</code>以反映当前最高就绪优先级</li>
+                    <li>调度器通过查找位图快速确定最高优先级</li>
+                    <li>从该优先级的就绪列表中选择下一个要运行的任务</li>
+                    <li>如果使用时间片轮转，相同优先级任务按顺序执行</li>
+                </ol>
+            </div>
+
+            <div class="card">
+                <h3>关键操作函数</h3>
+                <p>FreeRTOS提供了一系列函数来操作任务就绪列表：</p>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>函数</th>
+                            <th>功能</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>prvAddTaskToReadyList()</td>
+                            <td>将任务添加到就绪列表</td>
+                        </tr>
+                        <tr>
+                            <td>prvRemoveTaskFromReadyList()</td>
+                            <td>从就绪列表移除任务</td>
+                        </tr>
+                        <tr>
+                            <td>taskSELECT_HIGHEST_PRIORITY_TASK()</td>
+                            <td>选择最高优先级任务</td>
+                        </tr>
+                        <tr>
+                            <td>uxTaskPriorityGet()</td>
+                            <td>获取任务优先级</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <p>示例代码：添加任务到就绪列表</p>
+                <div class="code-block">
+<pre>
+void prvAddTaskToReadyList( TCB_t * const pxTCB )
+{
+    /* 将任务添加到对应优先级的就绪列表 */
+    vListInsertEnd( &( pxReadyTasksLists[ pxTCB->uxPriority ] ), 
+                    &( pxTCB->xStateListItem ) );
+    
+    /* 更新最高就绪优先级 */
+    if( pxTCB->uxPriority > uxTopReadyPriority )
+    {
+        uxTopReadyPriority = pxTCB->uxPriority;
+    }
+}
+</pre>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>调度器选择算法</h3>
+                <p>FreeRTOS调度器使用高效的算法从就绪列表中选择任务：</p>
+                
+                <ul>
+                    <li><strong>查找最高优先级</strong>：通过<code>uxTopReadyPriority</code>快速定位</li>
+                    <li><strong>选择任务</strong>：从该优先级的就绪列表中选择任务</li>
+                    <li><strong>时间片轮转</strong>：相同优先级任务轮流执行</li>
+                    <li><strong>上下文切换</strong>：保存当前任务状态，恢复新任务状态</li>
+                </ul>
+                
+                <p>调度器核心代码逻辑：</p>
+                <div class="code-block">
+<pre>
+void vTaskSwitchContext( void )
+{
+    /* 查找最高优先级就绪任务 */
+    taskSELECT_HIGHEST_PRIORITY_TASK();
+    
+    /* 更新当前任务指针 */
+    pxCurrentTCB = &pxReadyTasksLists[ uxTopReadyPriority ];
+    
+    /* 执行上下文切换 */
+    portSWITCH_CONTEXT();
+}
+</pre>
+                </div>
+                
+                <div class="note">
+                    <strong>性能提示：</strong>FreeRTOS使用位图算法快速查找最高优先级，时间复杂度为O(1)，确保实时性。
+                </div>
+            </div>
+
+            <div class="card full-width">
+                <h3>实际应用场景</h3>
+                
+                <div class="svg-container">
+                    <svg width="800" height="200" viewBox="0 0 800 200">
+                        <!-- 背景 -->
+                        <rect x="0" y="0" width="800" height="200" fill="#e3f2fd" rx="10"/>
+                        
+                        <!-- 标题 -->
+                        <text x="400" y="30" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold" fill="#1565c0">任务就绪列表应用场景</text>
+                        
+                        <!-- 场景1 -->
+                        <rect x="50" y="50" width="200" height="120" fill="#bbdefb" rx="5"/>
+                        <text x="150" y="80" text-anchor="middle" font-family="Arial" font-size="12" fill="#0d47a1">高优先级任务</text>
+                        <text x="150" y="100" text-anchor="middle" font-family="Arial" font-size="10" fill="#0d47a1">(紧急事件处理)</text>
+                        <circle cx="150" cy="130" r="8" fill="#e53935"/>
+                        
+                        <!-- 场景2 -->
+                        <rect x="300" y="50" width="200" height="120" fill="#90caf9" rx="5"/>
+                        <text x="400" y="80" text-anchor="middle" font-family="Arial" font-size="12" fill="#0d47a1">中等优先级任务</text>
+                        <text x="400" y="100" text-anchor="middle" font-family="Arial" font-size="10" fill="#0d47a1">(数据处理)</text>
+                        <circle cx="400" cy="130" r="8" fill="#fb8c00"/>
+                        
+                        <!-- 场景3 -->
+                        <rect x="550" y="50" width="200" height="120" fill="#64b5f6" rx="5"/>
+                        <text x="650" y="80" text-anchor="middle" font-family="Arial" font-size="12" fill="#0d47a1">低优先级任务</text>
+                        <text x="650" y="100" text-anchor="middle" font-family="Arial" font-size="10" fill="#0d47a1">(后台任务)</text>
+                        <circle cx="650" cy="130" r="8" fill="#43a047"/>
+                    </svg>
+                </div>
+                
+                <p>任务就绪列表在嵌入式系统中的典型应用：</p>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>应用场景</th>
+                            <th>优先级安排</th>
+                            <th>说明</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>实时控制系统</td>
+                            <td>高优先级</td>
+                            <td>紧急事件处理、安全监控</td>
+                        </tr>
+                        <tr>
+                            <td>数据处理系统</td>
+                            <td>中等优先级</td>
+                            <td>数据采集、算法计算</td>
+                        </tr>
+                        <tr>
+                            <td>用户界面系统</td>
+                            <td>低优先级</td>
+                            <td>界面更新、日志记录</td>
+                        </tr>
+                        <tr>
+                            <td>通信系统</td>
+                            <td>多优先级</td>
+                            <td>不同协议栈分层处理</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="footer">
+            蓝海资料掘金营
+        </div>
+    </div>
+</body>
+</html>

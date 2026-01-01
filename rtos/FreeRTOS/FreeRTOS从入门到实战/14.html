@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS任务通知 - 从入门到实战</title>
+    <style>
+        :root {
+            --tech-blue: #3498db;
+            --vital-orange: #f39c12;
+            --fresh-green: #2ecc71;
+            --light-bg: #f8f9fa;
+            --dark-text: #2c3e50;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            color: var(--dark-text);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(90deg, var(--tech-blue), var(--fresh-green));
+            color: white;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+        }
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        h2 {
+            color: var(--tech-blue);
+            border-left: 6px solid var(--vital-orange);
+            padding-left: 15px;
+            margin: 30px 0 15px;
+        }
+        h3 {
+            color: var(--fresh-green);
+            margin: 20px 0 10px;
+        }
+        .container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .highlight {
+            background: linear-gradient(120deg, #ffecb3 0%, #ffccbc 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            border-left: 5px solid var(--vital-orange);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: var(--tech-blue);
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        pre {
+            background: #2d3a4b;
+            color: #e0e0e0;
+            padding: 20px;
+            border-radius: 12px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            border-left: 5px solid var(--fresh-green);
+        }
+        code {
+            background: #f1f8ff;
+            color: #d63384;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+        ul, ol {
+            padding-left: 25px;
+            margin: 15px 0;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        .svg-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        svg {
+            max-width: 100%;
+            height: auto;
+        }
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 25px;
+            background: linear-gradient(90deg, var(--tech-blue), #2980b9);
+            color: white;
+            border-radius: 16px;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            box-shadow: var(--shadow);
+        }
+        .comparison {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .comparison-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            border-top: 6px solid;
+        }
+        .comparison-card:nth-child(1) {
+            border-color: var(--tech-blue);
+        }
+        .comparison-card:nth-child(2) {
+            border-color: var(--vital-orange);
+        }
+        .comparison-card:nth-child(3) {
+            border-color: var(--fresh-green);
+        }
+        .function-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+        .func-item {
+            background: linear-gradient(135deg, #e1f5fe, #f1f8e9);
+            padding: 15px;
+            border-radius: 10px;
+            flex: 1 1 200px;
+            text-align: center;
+            border: 2px dashed var(--tech-blue);
+        }
+        .func-item h4 {
+            color: var(--tech-blue);
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>FreeRTOS任务通知</h1>
+        <p>轻量级通信与同步机制、优势与限制、核心函数实战</p>
+        <p style="margin-top:15px;font-size:1.1rem;">《FreeRTOS从入门到实战》第14课</p>
+    </header>
+
+    <div class="container">
+        <section class="card">
+            <h2>一、任务通知（Task Notifications）概述</h2>
+            <p>任务通知是FreeRTOS提供的一种<strong>轻量级、高效率</strong>的任务间通信与同步机制。每个任务都有一个32位的通知值（notification value），可以直接向任务发送通知，而无需创建额外的队列、信号量或事件组对象。</p>
+            
+            <div class="svg-container">
+                <svg viewBox="0 0 800 300" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="50" y="50" width="200" height="80" rx="10" fill="var(--tech-blue)" opacity="0.8"/>
+                    <text x="150" y="95" text-anchor="middle" fill="white" font-size="18" font-weight="bold">任务A</text>
+                    <rect x="550" y="50" width="200" height="80" rx="10" fill="var(--fresh-green)" opacity="0.8"/>
+                    <text x="650" y="95" text-anchor="middle" fill="white" font-size="18" font-weight="bold">任务B</text>
+                    <path d="M250 90 L550 90" stroke="var(--vital-orange)" stroke-width="3" stroke-dasharray="5,5"/>
+                    <polygon points="550,90 540,85 540,95" fill="var(--vital-orange)"/>
+                    <text x="400" y="85" text-anchor="middle" fill="var(--dark-text)" font-size="16">任务通知</text>
+                    <rect x="300" y="150" width="200" height="60" rx="8" fill="#ffcc80"/>
+                    <text x="400" y="185" text-anchor="middle" fill="#333" font-size="14">32位通知值</text>
+                    <ellipse cx="400" cy="250" rx="350" ry="30" fill="#e3f2fd" opacity="0.7"/>
+                    <text x="400" y="255" text-anchor="middle" fill="#1565c0" font-size="14">无需额外通信对象，直接通过任务控制块(TCB)传递</text>
+                </svg>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>二、任务通知的优势与限制</h2>
+            <div class="comparison">
+                <div class="comparison-card">
+                    <h3>✅ 优势</h3>
+                    <ul>
+                        <li><strong>速度快</strong>：比队列、信号量快45%以上</li>
+                        <li><strong>内存占用小</strong>：无需额外分配通信对象</li>
+                        <li><strong>使用简单</strong>：API简洁，减少代码复杂度</li>
+                        <li><strong>灵活性强</strong>：可模拟二值信号量、计数信号量、事件组、轻量队列</li>
+                        <li><strong>直接通知</strong>：直接发送到指定任务，无需中间对象</li>
+                    </ul>
+                </div>
+                <div class="comparison-card">
+                    <h3>❌ 限制</h3>
+                    <ul>
+                        <li><strong>单接收者</strong>：只能由一个任务接收通知</li>
+                        <li><strong>数据容量小</strong>：只能传递一个32位值</li>
+                        <li><strong>无广播功能</strong>：不能同时通知多个任务</li>
+                        <li><strong>状态易丢失</strong>：通知值会被覆盖（取决于模式）</li>
+                        <li><strong>依赖任务句柄</strong>：必须知道接收任务的句柄</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="highlight">
+                <p><strong>适用场景</strong>：替代简单的二值/计数信号量、轻量级事件标志、任务状态同步、低延迟通信等。</p>
+                <p><strong>不适用场景</strong>：多对多通信、大数据传输、需要广播通知、复杂生产者-消费者模型。</p>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>三、核心API函数详解</h2>
+            <div class="function-list">
+                <div class="func-item">
+                    <h4>xTaskNotifyGive()</h4>
+                    <p>直接增加接收任务的通知值（+1），用于模拟二值/计数信号量。</p>
+                </div>
+                <div class="func-item">
+                    <h4>ulTaskNotifyTake()</h4>
+                    <p>等待通知并减少通知值，可设置超时和清除方式。</p>
+                </div>
+                <div class="func-item">
+                    <h4>xTaskNotify()</h4>
+                    <p>功能最丰富的通知函数，支持多种操作模式。</p>
+                </div>
+                <div class="func-item">
+                    <h4>xTaskNotifyWait()</h4>
+                    <p>等待通知并获取通知值，支持位清除和超时。</p>
+                </div>
+            </div>
+
+            <h3>函数对比表</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>函数</th>
+                        <th>主要用途</th>
+                        <th>返回值</th>
+                        <th>常用场景</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>xTaskNotifyGive()</code></td>
+                        <td>发送通知（增加计数值）</td>
+                        <td>总是返回pdPASS</td>
+                        <td>轻量信号量give操作</td>
+                    </tr>
+                    <tr>
+                        <td><code>ulTaskNotifyTake()</code></td>
+                        <td>等待并获取通知</td>
+                        <td>获取前的通知值</td>
+                        <td>轻量信号量take操作</td>
+                    </tr>
+                    <tr>
+                        <td><code>xTaskNotify()</code></td>
+                        <td>发送通知（多种模式）</td>
+                        <td>pdPASS/pdFAIL</td>
+                        <td>复杂通知传递</td>
+                    </tr>
+                    <tr>
+                        <td><code>xTaskNotifyWait()</code></td>
+                        <td>等待通知（多种模式）</td>
+                        <td>pdTRUE/pdFALSE</td>
+                        <td>等待特定通知值</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="card">
+            <h2>四、实战代码示例</h2>
+            
+            <h3>示例1：模拟二值信号量（任务同步）</h3>
+            <pre><code>// 发送任务（生产者）
+void vSenderTask(void *pvParameters) {
+    TaskHandle_t xReceiverHandle = (TaskHandle_t)pvParameters;
+    
+    for(;;) {
+        // 模拟工作
+        vTaskDelay(pdMS_TO_TICKS(1000));
+        
+        // 发送通知（相当于give信号量）
+        xTaskNotifyGive(xReceiverHandle);
+        printf("通知已发送！\n");
+    }
+}
+
+// 接收任务（消费者）
+void vReceiverTask(void *pvParameters) {
+    uint32_t ulNotificationValue;
+    
+    for(;;) {
+        // 等待通知（相当于take信号量），无限等待
+        ulNotificationValue = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+        
+        printf("收到通知，开始处理... 通知值：%lu\n", ulNotificationValue);
+        // 执行处理工作
+        vTaskDelay(pdMS_TO_TICKS(500));
+    }
+}</code></pre>
+
+            <h3>示例2：使用xTaskNotifyWait等待特定通知</h3>
+            <pre><code>// 发送任务
+void vNotifierTask(void *pvParameters) {
+    TaskHandle_t xTargetTask = (TaskHandle_t)pvParameters;
+    BaseType_t xResult;
+    
+    // 发送通知，设置位0（eSetBits模式）
+    xResult = xTaskNotify(xTargetTask, 0x01, eSetBits);
+    
+    // 发送通知，增加值（eIncrement模式）
+    xResult = xTaskNotify(xTargetTask, 0, eIncrement);
+    
+    // 发送通知，覆盖原有值（eSetValueWithOverwrite）
+    xResult = xTaskNotify(xTargetTask, 0xABCD, eSetValueWithOverwrite);
+}
+
+// 接收任务
+void vWaiterTask(void *pvParameters) {
+    uint32_t ulNotifiedValue;
+    BaseType_t xResult;
+    
+    for(;;) {
+        // 等待通知，清除所有位
+        xResult = xTaskNotifyWait(0x00, 0xFFFFFFFF, &ulNotifiedValue, portMAX_DELAY);
+        
+        if(xResult == pdTRUE) {
+            printf("收到通知值：0x%08lX\n", ulNotifiedValue);
+            
+            // 检查特定位
+            if((ulNotifiedValue & 0x01) != 0) {
+                printf("位0被设置，执行操作A\n");
+            }
+        }
+    }
+}</code></pre>
+        </section>
+
+        <section class="card">
+            <h2>五、软件架构示意图</h2>
+            <div class="svg-container">
+                <svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+                    <!-- 应用层 -->
+                    <rect x="100" y="30" width="600" height="60" rx="10" fill="var(--fresh-green)" opacity="0.8"/>
+                    <text x="400" y="65" text-anchor="middle" fill="white" font-size="18" font-weight="bold">应用层（用户任务）</text>
+                    
+                    <!-- FreeRTOS API层 -->
+                    <rect x="150" y="120" width="500" height="60" rx="10" fill="var(--tech-blue)" opacity="0.8"/>
+                    <text x="400" y="155" text-anchor="middle" fill="white" font-size="18" font-weight="bold">FreeRTOS任务通知API</text>
+                    
+                    <!-- 函数连接 -->
+                    <g id="functions">
+                        <rect x="180" y="200" width="120" height="40" rx="5" fill="#ffb74d"/>
+                        <text x="240" y="225" text-anchor="middle" fill="#333" font-size="12">xTaskNotifyGive</text>
+                        
+                        <rect x="330" y="200" width="120" height="40" rx="5" fill="#ffb74d"/>
+                        <text x="390" y="225" text-anchor="middle" fill="#333" font-size="12">ulTaskNotifyTake</text>
+                        
+                        <rect x="480" y="200" width="120" height="40" rx="5" fill="#ffb74d"/>
+                        <text x="540" y="225" text-anchor="middle" fill="#333" font-size="12">xTaskNotify</text>
+                    </g>
+                    
+                    <!-- 内核层 -->
+                    <rect x="200" y="280" width="400" height="60" rx="10" fill="#78909c" opacity="0.8"/>
+                    <text x="400" y="315" text-anchor="middle" fill="white" font-size="18" font-weight="bold">FreeRTOS内核</text>
+                    
+                    <!-- TCB -->
+                    <rect x="250" y="370" width="300" height="80" rx="10" fill="#8d6e63" opacity="0.8"/>
+                    <text x="400" y="395" text-anchor="middle" fill="white" font-size="16" font-weight="bold">任务控制块(TCB)</text>
+                    <text x="400" y="420" text-anchor="middle" fill="#ffcc80" font-size="14">uint32_t ulNotifiedValue</text>
+                    
+                    <!-- 连接线 -->
+                    <path d="M400 90 L400 120" stroke="#666" stroke-width="2"/>
+                    <path d="M400 180 L400 200" stroke="#666" stroke-width="2"/>
+                    <path d="M240 240 L240 280" stroke="#666" stroke-width="2" stroke-dasharray="5,3"/>
+                    <path d="M390 240 L390 280" stroke="#666" stroke-width="2" stroke-dasharray="5,3"/>
+                    <path d="M540 240 L540 280" stroke="#666" stroke-width="2" stroke-dasharray="5,3"/>
+                    <path d="M400 340 L400 370" stroke="#666" stroke-width="2"/>
+                    
+                    <!-- 箭头 -->
+                    <polygon points="400,120 395,110 405,110" fill="#666"/>
+                    <polygon points="400,200 395,190 405,190" fill="#666"/>
+                    <polygon points="240,280 235,270 245,270" fill="#666"/>
+                    <polygon points="390,280 385,270 395,270" fill="#666"/>
+                    <polygon points="540,280 535,270 545,270" fill="#666"/>
+                    <polygon points="400,370 395,360 405,360" fill="#666"/>
+                </svg>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>六、使用注意事项与最佳实践</h2>
+            <div class="highlight">
+                <p><strong>重要提醒：</strong>任务通知虽然高效，但必须正确理解其行为模式，避免误用导致系统异常。</p>
+            </div>
+            
+            <h3>注意事项：</h3>
+            <ol>
+                <li><strong>通知值初始化</strong>：任务创建时通知值默认为0，但最好显式初始化。</li>
+                <li><strong>模式选择</strong>：根据需求选择合适的通知模式（eSetBits, eIncrement, eSetValueWithOverwrite, eSetValueWithoutOverwrite）。</li>
+                <li><strong>超时处理</strong>：合理设置超时时间，避免任务永久阻塞。</li>
+                <li><strong>优先级考虑</strong>：高优先级任务可能"饿死"低优先级任务，需合理设计。</li>
+                <li><strong>调试支持</strong>：FreeRTOS的跟踪功能可以监控通知状态，善用此功能调试。</li>
+            </ol>
+            
+            <h3>最佳实践：</h3>
+            <ul>
+                <li>用<code>xTaskNotifyGive()</code>/<code>ulTaskNotifyTake()</code>替代简单的二值/计数信号量</li>
+                <li>用<code>xTaskNotify()</code>的eSetBits模式模拟事件组</li>
+                <li>在中断服务程序中使用<code>vTaskNotifyGiveFromISR()</code>或<code>xTaskNotifyFromISR()</code></li>
+                <li>对于一次性通知，考虑使用eSetValueWithoutOverwrite模式避免丢失数据</li>
+                <li>在任务删除前，确保没有其他任务等待其通知</li>
+            </ul>
+        </section>
+    </div>
+
+    <footer>
+        蓝海资料掘金营
+    </footer>
+</body>
+</html>

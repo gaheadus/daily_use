@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS任务管理50问 - 任务阻塞机制</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #bbdefb 50%, #b3e5fc 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            padding: 30px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 30px 0;
+            background: linear-gradient(120deg, #4fc3f7 0%, #29b6f6 100%);
+            margin: -30px -30px 30px -30px;
+            border-radius: 20px 20px 0 0;
+            color: white;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h2 {
+            color: #0288d1;
+            border-bottom: 2px solid #b3e5fc;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        
+        .card h3 {
+            color: #0277bd;
+            margin: 15px 0 10px 0;
+        }
+        
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e1f5fe;
+        }
+        
+        th {
+            background-color: #4fc3f7;
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f8fdff;
+        }
+        
+        tr:hover {
+            background-color: #e1f5fe;
+        }
+        
+        pre {
+            background: #f5f5f5;
+            border-left: 4px solid #4fc3f7;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        
+        code {
+            background: #f0f8ff;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            color: #d32f2f;
+        }
+        
+        .diagram {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .diagram h3 {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #0288d1;
+        }
+        
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+            border-top: 2px solid #b3e5fc;
+            color: #0277bd;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .note {
+            background: #e1f5fe;
+            border-left: 4px solid #0288d1;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>FreeRTOS任务管理50问</h1>
+            <p class="subtitle">第38问：任务阻塞机制 - 任务如何进入阻塞状态</p>
+        </header>
+        
+        <div class="content">
+            <div class="card">
+                <h2>什么是任务阻塞状态</h2>
+                <p>在FreeRTOS中，<strong>任务阻塞状态</strong>是指任务暂时无法继续执行，等待某个事件发生或资源可用的状态。处于阻塞状态的任务不会占用CPU时间，直到等待的条件满足后才会重新进入就绪状态。</p>
+                
+                <div class="note">
+                    <strong>注意：</strong>任务阻塞是FreeRTOS实现多任务协作的关键机制，它允许低优先级任务在等待期间让出CPU资源。
+                </div>
+                
+                <h3>任务状态转换</h3>
+                <div class="svg-container">
+                    <svg width="400" height="300" viewBox="0 0 400 300">
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+                                    refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#0288d1"/>
+                            </marker>
+                        </defs>
+                        
+                        <!-- 状态框 -->
+                        <rect x="50" y="50" width="100" height="60" rx="10" ry="10" 
+                              fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                        <text x="100" y="85" text-anchor="middle" fill="white" font-weight="bold">运行状态</text>
+                        
+                        <rect x="200" y="50" width="100" height="60" rx="10" ry="10" 
+                              fill="#81d4fa" stroke="#0288d1" stroke-width="2"/>
+                        <text x="250" y="85" text-anchor="middle" fill="white" font-weight="bold">就绪状态</text>
+                        
+                        <rect x="125" y="150" width="100" height="60" rx="10" ry="10" 
+                              fill="#b3e5fc" stroke="#0288d1" stroke-width="2"/>
+                        <text x="175" y="185" text-anchor="middle" fill="#01579b" font-weight="bold">阻塞状态</text>
+                        
+                        <rect x="125" y="240" width="100" height="60" rx="10" ry="10" 
+                              fill="#e1f5fe" stroke="#0288d1" stroke-width="2"/>
+                        <text x="175" y="275" text-anchor="middle" fill="#01579b" font-weight="bold">挂起状态</text>
+                        
+                        <!-- 箭头 -->
+                        <line x1="150" y1="110" x2="150" y2="150" stroke="#0288d1" stroke-width="2" marker-end="url(#arrowhead)"/>
+                        <line x1="175" y1="210" x2="175" y2="240" stroke="#0288d1" stroke-width="2" marker-end="url(#arrowhead)"/>
+                        <line x1="200" y1="110" x2="250" y2="85" stroke="#0288d1" stroke-width="2" marker-end="url(#arrowhead)"/>
+                        <line x1="250" y1="85" x2="200" y2="85" stroke="#0288d1" stroke-width="2" marker-end="url(#arrowhead)"/>
+                        
+                        <!-- 标签 -->
+                        <text x="130" y="135" text-anchor="middle" fill="#0288d1" font-size="12">等待事件</text>
+                        <text x="175" y="230" text-anchor="middle" fill="#0288d1" font-size="12">vTaskSuspend</text>
+                        <text x="225" y="100" text-anchor="middle" fill="#0288d1" font-size="12">时间片结束</text>
+                        <text x="225" y="70" text-anchor="middle" fill="#0288d1" font-size="12">更高优先级任务</text>
+                    </svg>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>任务进入阻塞状态的方式</h2>
+                
+                <h3>1. 延时阻塞</h3>
+                <p>使用 <code>vTaskDelay()</code> 或 <code>vTaskDelayUntil()</code> 函数使任务进入阻塞状态指定时间。</p>
+                
+                <pre>// 延时500ms
+void vTaskFunction(void *pvParameters)
+{
+    for(;;)
+    {
+        // 任务工作代码
+        vTaskDelay(pdMS_TO_TICKS(500)); // 阻塞500ms
+    }
+}</pre>
+                
+                <h3>2. 事件阻塞</h3>
+                <p>等待队列、信号量、事件组等内核对象的事件。</p>
+                
+                <pre>// 等待队列数据
+void vTaskFunction(void *pvParameters)
+{
+    QueueHandle_t xQueue = (QueueHandle_t)pvParameters;
+    int32_t lReceivedValue;
+    
+    for(;;)
+    {
+        // 无限期等待队列数据
+        if(xQueueReceive(xQueue, &lReceivedValue, portMAX_DELAY) == pdPASS)
+        {
+            // 处理接收到的数据
+        }
+    }
+}</pre>
+                
+                <h3>3. 资源等待阻塞</h3>
+                <p>等待互斥量、二进制信号量等资源可用。</p>
+                
+                <pre>// 等待互斥量
+void vTaskFunction(void *pvParameters)
+{
+    SemaphoreHandle_t xMutex = (SemaphoreHandle_t)pvParameters;
+    
+    for(;;)
+    {
+        // 等待获取互斥量
+        if(xSemaphoreTake(xMutex, portMAX_DELAY) == pdTRUE)
+        {
+            // 访问共享资源
+            xSemaphoreGive(xMutex); // 释放互斥量
+        }
+    }
+}</pre>
+            </div>
+            
+            <div class="card">
+                <h2>阻塞状态的优势</h2>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>优势</th>
+                            <th>说明</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>提高CPU利用率</td>
+                            <td>阻塞的任务不占用CPU时间，让其他任务可以执行</td>
+                        </tr>
+                        <tr>
+                            <td>降低功耗</td>
+                            <td>在低功耗应用中，所有任务阻塞时可进入低功耗模式</td>
+                        </tr>
+                        <tr>
+                            <td>简化程序设计</td>
+                            <td>无需轮询检查条件，由内核自动管理状态转换</td>
+                        </tr>
+                        <tr>
+                            <td>提高响应性</td>
+                            <td>高优先级任务可以立即获得CPU时间</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="card">
+                <h2>阻塞超时机制</h2>
+                
+                <p>FreeRTOS提供了灵活的阻塞超时机制，可以设置不同的等待时间：</p>
+                
+                <ul>
+                    <li><strong>portMAX_DELAY</strong>：无限期等待，直到条件满足</li>
+                    <li><strong>0</strong>：不等待，立即返回</li>
+                    <li><strong>指定tick数</strong>：等待指定的系统节拍数</li>
+                </ul>
+                
+                <h3>超时参数示例</h3>
+                <pre>// 不同的阻塞超时设置示例
+xQueueReceive(xQueue, &data, 0);           // 不阻塞，立即返回
+xQueueReceive(xQueue, &data, 100);         // 最多阻塞100个tick
+xQueueReceive(xQueue, &data, portMAX_DELAY); // 无限期阻塞，直到有数据</pre>
+                
+                <div class="note">
+                    <strong>提示：</strong>使用 <code>pdMS_TO_TICKS()</code> 宏可以将毫秒时间转换为tick数，提高代码可读性。
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>任务阻塞的底层实现</h2>
+                
+                <h3>阻塞列表管理</h3>
+                <p>FreeRTOS使用阻塞列表来管理所有处于阻塞状态的任务：</p>
+                
+                <div class="svg-container">
+                    <svg width="400" height="250" viewBox="0 0 400 250">
+                        <rect x="50" y="30" width="300" height="60" rx="5" ry="5" 
+                              fill="#e1f5fe" stroke="#0288d1" stroke-width="2"/>
+                        <text x="200" y="50" text-anchor="middle" fill="#0288d1" font-weight="bold">就绪列表</text>
+                        <text x="200" y="70" text-anchor="middle" fill="#0288d1" font-size="14">(Ready List)</text>
+                        
+                        <rect x="50" y="110" width="300" height="60" rx="5" ry="5" 
+                              fill="#b3e5fc" stroke="#0288d1" stroke-width="2"/>
+                        <text x="200" y="130" text-anchor="middle" fill="#01579b" font-weight="bold">阻塞列表</text>
+                        <text x="200" y="150" text-anchor="middle" fill="#01579b" font-size="14">(Blocked List)</text>
+                        
+                        <rect x="50" y="190" width="300" height="60" rx="5" ry="5" 
+                              fill="#81d4fa" stroke="#0288d1" stroke-width="2"/>
+                        <text x="200" y="210" text-anchor="middle" fill="#01579b" font-weight="bold">挂起列表</text>
+                        <text x="200" y="230" text-anchor="middle" fill="#01579b" font-size="14">(Suspended List)</text>
+                        
+                        <!-- 箭头 -->
+                        <line x1="200" y1="90" x2="200" y2="110" stroke="#0288d1" stroke-width="2" marker-end="url(#arrowhead)"/>
+                        <line x1="200" y1="170" x2="200" y2="190" stroke="#0288d1" stroke-width="2" marker-end="url(#arrowhead)"/>
+                        
+                        <text x="220" y="100" text-anchor="start" fill="#0288d1" font-size="12">任务阻塞</text>
+                        <text x="220" y="180" text-anchor="start" fill="#0288d1" font-size="12">任务挂起</text>
+                    </svg>
+                </div>
+                
+                <h3>任务控制块(TCB)相关字段</h3>
+                <pre>typedef struct tskTaskControlBlock
+{
+    // ... 其他字段
+    ListItem_t xStateListItem;    // 状态列表项（就绪/阻塞/挂起）
+    ListItem_t xEventListItem;    // 事件列表项
+    TickType_t xTicksToDelay;     // 剩余阻塞tick数
+    // ... 其他字段
+} tskTCB;</pre>
+            </div>
+            
+            <div class="card">
+                <h2>最佳实践与注意事项</h2>
+                
+                <h3>阻塞使用建议</h3>
+                <ol>
+                    <li>合理设置阻塞超时时间，避免任务永久阻塞</li>
+                    <li>在低功耗应用中，尽量使用阻塞代替忙等待</li>
+                    <li>注意优先级反转问题，特别是在使用互斥量时</li>
+                    <li>确保有任务能够触发阻塞任务等待的事件</li>
+                </ol>
+                
+                <h3>常见问题排查</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>问题现象</th>
+                            <th>可能原因</th>
+                            <th>解决方案</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>任务无法唤醒</td>
+                            <td>等待的事件永远不会发生</td>
+                            <td>检查事件触发逻辑，添加超时机制</td>
+                        </tr>
+                        <tr>
+                            <td>系统响应慢</td>
+                            <td>高优先级任务长时间阻塞</td>
+                            <td>优化阻塞时间，使用更短的超时</td>
+                        </tr>
+                        <tr>
+                            <td>内存泄漏</td>
+                            <td>动态创建的任务阻塞后未删除</td>
+                            <td>确保一次性任务正确删除自己</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="note">
+                    <strong>调试技巧：</strong>使用FreeRTOS的跟踪功能可以监控任务状态转换，帮助诊断阻塞相关的问题。
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            蓝海资料掘金营
+        </footer>
+    </div>
+</body>
+</html>

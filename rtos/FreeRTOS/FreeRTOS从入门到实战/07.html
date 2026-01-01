@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS从入门到实战 - 队列通信机制</title>
+    <style>
+        :root {
+            --tech-blue: #3498db;
+            --vital-orange: #f39c12;
+            --fresh-green: #2ecc71;
+            --light-bg: #f8f9fa;
+            --dark-text: #2c3e50;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            color: var(--dark-text);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            padding: 30px 20px;
+            background: linear-gradient(90deg, var(--tech-blue), var(--fresh-green));
+            color: white;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+        }
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        main {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+        section {
+            background: white;
+            border-radius: 18px;
+            padding: 25px;
+            box-shadow: var(--shadow);
+            border-left: 8px solid var(--tech-blue);
+            transition: transform 0.3s ease;
+        }
+        section:hover {
+            transform: translateY(-5px);
+        }
+        h2 {
+            color: var(--tech-blue);
+            border-bottom: 3px solid var(--vital-orange);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+        h3 {
+            color: var(--fresh-green);
+            margin: 15px 0 10px;
+        }
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        ul, ol {
+            padding-left: 25px;
+            margin-bottom: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: var(--tech-blue);
+            color: white;
+            font-weight: 600;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #e8f4fc;
+        }
+        .code-block {
+            background: #2d3a4b;
+            color: #e6e6e6;
+            padding: 20px;
+            border-radius: 12px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            overflow-x: auto;
+            margin: 20px 0;
+            border-left: 5px solid var(--vital-orange);
+        }
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 25px 0;
+        }
+        .arch-svg {
+            width: 100%;
+            max-width: 800px;
+            height: auto;
+        }
+        .highlight {
+            background-color: #fff9e6;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: #d35400;
+        }
+        .note {
+            background-color: #e8f6f3;
+            border-left: 5px solid var(--fresh-green);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 25px;
+            background: linear-gradient(90deg, var(--dark-text), #34495e);
+            color: white;
+            border-radius: 20px;
+            font-size: 1.3rem;
+            letter-spacing: 2px;
+            box-shadow: var(--shadow);
+        }
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>FreeRTOS从入门到实战</h1>
+        <div class="subtitle">第七章：队列（Queue）通信机制</div>
+    </header>
+
+    <main>
+        <section>
+            <h2>一、队列的概念与作用</h2>
+            <p>队列（Queue）是FreeRTOS中一种重要的<span class="highlight">任务间通信机制</span>，它允许任务以<span class="highlight">先进先出（FIFO）</span>的方式传递固定大小的数据项。队列就像一个管道，一端写入数据，另一端读取数据，实现了<span class="highlight">数据的安全共享</span>。</p>
+            <div class="svg-container">
+                <svg class="arch-svg" viewBox="0 0 800 200" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="50" y="80" width="120" height="60" rx="10" fill="var(--tech-blue)" opacity="0.8"/>
+                    <text x="110" y="115" text-anchor="middle" fill="white" font-size="16" font-weight="bold">任务A</text>
+                    <rect x="230" y="70" width="340" height="80" rx="15" fill="#f1c40f" stroke="#f39c12" stroke-width="3"/>
+                    <rect x="250" y="85" width="40" height="50" rx="5" fill="#2ecc71"/>
+                    <rect x="310" y="85" width="40" height="50" rx="5" fill="#2ecc71"/>
+                    <rect x="370" y="85" width="40" height="50" rx="5" fill="#2ecc71"/>
+                    <rect x="430" y="85" width="40" height="50" rx="5" fill="#2ecc71"/>
+                    <rect x="490" y="85" width="40" height="50" rx="5" fill="#2ecc71"/>
+                    <text x="420" y="50" text-anchor="middle" fill="var(--dark-text)" font-size="18" font-weight="bold">队列（FIFO缓冲区）</text>
+                    <rect x="630" y="80" width="120" height="60" rx="10" fill="var(--fresh-green)" opacity="0.8"/>
+                    <text x="690" y="115" text-anchor="middle" fill="white" font-size="16" font-weight="bold">任务B</text>
+                    <path d="M170 110 L230 110" stroke="var(--tech-blue)" stroke-width="3" marker-end="url(#arrowhead)"/>
+                    <path d="M570 110 L630 110" stroke="var(--fresh-green)" stroke-width="3" marker-end="url(#arrowhead)"/>
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="var(--vital-orange)"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+            <h3>队列的主要作用：</h3>
+            <ul>
+                <li><strong>任务间通信</strong>：允许不同任务之间安全地传递数据。</li>
+                <li><strong>数据缓冲</strong>：平衡生产者与消费者的速度差异。</li>
+                <li><strong>事件传递</strong>：可以传递事件标志或消息指针。</li>
+                <li><strong>中断与任务通信</strong>：中断服务程序（ISR）可以向队列发送数据，通知任务处理。</li>
+            </ul>
+            <div class="note">
+                <strong>注意：</strong>队列是复制传递，而非引用传递。写入队列时会将数据复制到队列存储区，读取时再从队列复制出来。这保证了数据的安全性，但会带来一定的内存和时间开销。
+            </div>
+        </section>
+
+        <section>
+            <h2>二、队列创建函数 xQueueCreate</h2>
+            <p><code>xQueueCreate()</code> 用于动态创建一个队列，并返回队列句柄。如果创建失败，返回 <code>NULL</code>。</p>
+            <h3>函数原型：</h3>
+            <div class="code-block">
+<pre>QueueHandle_t xQueueCreate(
+    UBaseType_t uxQueueLength,  // 队列长度（最多可存放的数据项数量）
+    UBaseType_t uxItemSize      // 每个数据项的大小（字节）
+);</pre>
+            </div>
+            <h3>参数说明：</h3>
+            <table>
+                <thead>
+                    <tr><th>参数</th><th>说明</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>uxQueueLength</td><td>队列长度，即队列最多可以存放的数据项个数。</td></tr>
+                    <tr><td>uxItemSize</td><td>每个数据项的大小（字节）。例如传递一个整数则为4字节。</td></tr>
+                </tbody>
+            </table>
+            <h3>示例代码：</h3>
+            <div class="code-block">
+<pre>#include "FreeRTOS.h"
+#include "queue.h"
+
+// 定义一个队列，用于传递整数
+QueueHandle_t xIntegerQueue;
+
+void vCreateQueueExample(void)
+{
+    // 创建队列，长度为10，每个数据项为4字节（一个int）
+    xIntegerQueue = xQueueCreate(10, sizeof(int32_t));
+    if (xIntegerQueue == NULL) {
+        // 队列创建失败，可能是内存不足
+        // 错误处理
+    } else {
+        // 队列创建成功，可以使用
+    }
+}</pre>
+            </div>
+        </section>
+
+        <section>
+            <h2>三、数据发送函数 xQueueSend</h2>
+            <p><code>xQueueSend()</code> 用于向队列尾部发送一个数据项。如果队列已满，任务可能会阻塞等待。</p>
+            <h3>函数原型：</h3>
+            <div class="code-block">
+<pre>BaseType_t xQueueSend(
+    QueueHandle_t xQueue,        // 队列句柄
+    const void * pvItemToQueue,  // 指向要发送数据的指针
+    TickType_t xTicksToWait      // 阻塞超时时间（单位：Tick）
+);</pre>
+            </div>
+            <h3>返回值：</h3>
+            <ul>
+                <li><code>pdPASS</code>：发送成功。</li>
+                <li><code>errQUEUE_FULL</code>：队列已满且超时时间内没有空间可用。</li>
+            </ul>
+            <h3>示例代码：</h3>
+            <div class="code-block">
+<pre>void vTaskSender(void *pvParameters)
+{
+    int32_t valueToSend = 100;
+    TickType_t xDelay = pdMS_TO_TICKS(1000); // 1000ms转换为Tick
+
+    for (;;) {
+        // 每隔1秒发送一个数据
+        if (xQueueSend(xIntegerQueue, &valueToSend, portMAX_DELAY) == pdPASS) {
+            // 发送成功
+            valueToSend++;
+        }
+        vTaskDelay(xDelay);
+    }
+}</pre>
+            </div>
+        </section>
+
+        <section>
+            <h2>四、数据接收函数 xQueueReceive</h2>
+            <p><code>xQueueReceive()</code> 用于从队列头部接收一个数据项，并将数据从队列中移除。如果队列为空，任务可能会阻塞等待。</p>
+            <h3>函数原型：</h3>
+            <div class="code-block">
+<pre>BaseType_t xQueueReceive(
+    QueueHandle_t xQueue,    // 队列句柄
+    void * pvBuffer,         // 指向接收数据缓冲区的指针
+    TickType_t xTicksToWait  // 阻塞超时时间
+);</pre>
+            </div>
+            <h3>返回值：</h3>
+            <ul>
+                <li><code>pdPASS</code>：接收成功。</li>
+                <li><code>errQUEUE_EMPTY</code>：队列为空且超时时间内没有数据可用。</li>
+            </ul>
+            <h3>示例代码：</h3>
+            <div class="code-block">
+<pre>void vTaskReceiver(void *pvParameters)
+{
+    int32_t receivedValue;
+    BaseType_t xStatus;
+
+    for (;;) {
+        // 等待接收数据，无限期等待
+        xStatus = xQueueReceive(xIntegerQueue, &receivedValue, portMAX_DELAY);
+        if (xStatus == pdPASS) {
+            // 成功接收到数据，进行处理
+            printf("Received: %d\n", receivedValue);
+        }
+    }
+}</pre>
+            </div>
+        </section>
+
+        <section>
+            <h2>五、队列阻塞机制</h2>
+            <p>队列操作中的阻塞机制是FreeRTOS实现任务同步的关键。当任务尝试操作队列但条件不满足时，任务可以进入阻塞状态，让出CPU给其他任务。</p>
+            <div class="svg-container">
+                <svg viewBox="0 0 800 300" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="100" y="50" width="200" height="60" rx="10" fill="var(--tech-blue)" opacity="0.9"/>
+                    <text x="200" y="85" text-anchor="middle" fill="white" font-size="16">任务尝试发送</text>
+                    <path d="M200 110 L200 150" stroke="var(--dark-text)" stroke-width="2" stroke-dasharray="5,5"/>
+                    <rect x="50" y="150" width="300" height="60" rx="10" fill="#f1c40f" stroke="#f39c12" stroke-width="2"/>
+                    <text x="200" y="185" text-anchor="middle" fill="var(--dark-text)" font-size="16">队列已满？</text>
+                    <path d="M200 210 L200 250" stroke="var(--dark-text)" stroke-width="2"/>
+                    <g>
+                        <rect x="100" y="250" width="200" height="60" rx="10" fill="var(--fresh-green)" opacity="0.9"/>
+                        <text x="200" y="285" text-anchor="middle" fill="white" font-size="16">发送成功，继续运行</text>
+                    </g>
+                    <g>
+                        <rect x="450" y="50" width="200" height="60" rx="10" fill="var(--tech-blue)" opacity="0.9"/>
+                        <text x="550" y="85" text-anchor="middle" fill="white" font-size="16">任务尝试接收</text>
+                        <path d="M550 110 L550 150" stroke="var(--dark-text)" stroke-width="2" stroke-dasharray="5,5"/>
+                        <rect x="400" y="150" width="300" height="60" rx="10" fill="#f1c40f" stroke="#f39c12" stroke-width="2"/>
+                        <text x="550" y="185" text-anchor="middle" fill="var(--dark-text)" font-size="16">队列为空？</text>
+                        <path d="M550 210 L550 250" stroke="var(--dark-text)" stroke-width="2"/>
+                        <rect x="450" y="250" width="200" height="60" rx="10" fill="var(--fresh-green)" opacity="0.9"/>
+                        <text x="550" y="285" text-anchor="middle" fill="white" font-size="16">接收成功，继续运行</text>
+                    </g>
+                    <path d="M350 180 L400 180" stroke="#e74c3c" stroke-width="3" marker-end="url(#redArrow)"/>
+                    <text x="375" y="170" text-anchor="middle" fill="#e74c3c" font-size="14">是</text>
+                    <path d="M200 180 L150 180 L150 350 L200 350" stroke="#e74c3c" stroke-width="3" marker-end="url(#redArrow)"/>
+                    <text x="125" y="265" text-anchor="middle" fill="#e74c3c" font-size="14">是</text>
+                    <path d="M550 180 L600 180 L600 350 L550 350" stroke="#e74c3c" stroke-width="3" marker-end="url(#redArrow)"/>
+                    <text x="575" y="265" text-anchor="middle" fill="#e74c3c" font-size="14">是</text>
+                    <defs>
+                        <marker id="redArrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#e74c3c"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+            <h3>阻塞场景：</h3>
+            <ol>
+                <li><strong>发送阻塞</strong>：当队列已满时，任务可以选择阻塞等待，直到队列有空间或超时。</li>
+                <li><strong>接收阻塞</strong>：当队列为空时，任务可以选择阻塞等待，直到队列有数据或超时。</li>
+                <li><strong>超时设置</strong>：
+                    <ul>
+                        <li><code>portMAX_DELAY</code>：无限期等待（需配置<code>INCLUDE_vTaskSuspend</code>为1）。</li>
+                        <li><code>0</code>：不等待，立即返回。</li>
+                        <li>具体Tick数：等待指定时间后返回。</li>
+                    </ul>
+                </li>
+            </ol>
+        </section>
+
+        <section>
+            <h2>六、数据发送与接收实战</h2>
+            <p>下面是一个完整的多任务队列通信示例：一个任务产生传感器数据，另一个任务处理数据。</p>
+            <div class="code-block">
+<pre>#include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
+#include &lt;stdio.h&gt;
+
+// 定义数据结构
+typedef struct {
+    uint32_t timestamp;
+    int16_t  temperature;
+    uint16_t humidity;
+} SensorData_t;
+
+QueueHandle_t xSensorQueue;
+
+// 传感器数据采集任务
+void vSensorTask(void *pvParameters)
+{
+    SensorData_t data;
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+
+    for (;;) {
+        // 模拟采集数据
+        data.timestamp = xTaskGetTickCount();
+        data.temperature = 25 + (rand() % 10); // 25-34°C
+        data.humidity = 50 + (rand() % 30);    // 50-79%
+
+        // 发送到队列，等待最多100ms
+        if (xQueueSend(xSensorQueue, &data, pdMS_TO_TICKS(100)) == pdPASS) {
+            printf("[Sensor] Sent: T=%d°C, H=%d%%\n", 
+                   data.temperature, data.humidity);
+        } else {
+            printf("[Sensor] Queue full, data lost!\n");
+        }
+
+        // 每隔500ms执行一次
+        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(500));
+    }
+}
+
+// 数据处理任务
+void vProcessTask(void *pvParameters)
+{
+    SensorData_t receivedData;
+    BaseType_t xStatus;
+
+    for (;;) {
+        // 等待数据，无限期等待
+        xStatus = xQueueReceive(xSensorQueue, &receivedData, portMAX_DELAY);
+        if (xStatus == pdPASS) {
+            // 模拟数据处理
+            printf("[Process] Received: T=%d°C, H=%d%% at tick %lu\n",
+                   receivedData.temperature,
+                   receivedData.humidity,
+                   receivedData.timestamp);
+            
+            // 这里可以添加实际处理逻辑，如存储、上传等
+        }
+    }
+}
+
+int main(void)
+{
+    // 创建队列，最多存储5个传感器数据
+    xSensorQueue = xQueueCreate(5, sizeof(SensorData_t));
+    if (xSensorQueue == NULL) {
+        printf("Failed to create queue!\n");
+        return 1;
+    }
+
+    // 创建任务
+    xTaskCreate(vSensorTask, "Sensor", 1024, NULL, 2, NULL);
+    xTaskCreate(vProcessTask, "Process", 1024, NULL, 1, NULL);
+
+    // 启动调度器
+    vTaskStartScheduler();
+
+    // 正常情况下不会到达这里
+    for (;;);
+    return 0;
+}</pre>
+            </div>
+            <div class="note">
+                <strong>实战要点：</strong>
+                <ul>
+                    <li>合理设置队列长度，平衡内存使用和缓冲需求。</li>
+                    <li>根据实际场景选择阻塞时间，避免任务永久阻塞。</li>
+                    <li>在中断服务程序中使用 <code>xQueueSendFromISR()</code> 和 <code>xQueueReceiveFromISR()</code>。</li>
+                    <li>队列传递结构体时，注意内存对齐和复制开销。</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        蓝海资料掘金营
+    </footer>
+</body>
+</html>

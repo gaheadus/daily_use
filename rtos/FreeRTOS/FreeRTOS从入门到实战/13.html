@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS从入门到实战 - 事件组实战：多条件任务触发</title>
+    <style>
+        :root {
+            --tech-blue: #4A90E2;
+            --vital-orange: #FF8C42;
+            --fresh-green: #7BC950;
+            --light-gray: #F5F7FA;
+            --dark-gray: #2C3E50;
+            --text-color: #333;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, var(--light-gray) 0%, #E3F2FD 100%);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            background: linear-gradient(to right, var(--tech-blue), #2A6DB0);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 20px rgba(42, 109, 176, 0.2);
+            text-align: center;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        main {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+        section {
+            background: white;
+            border-radius: 12px;
+            padding: 1.8rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border-left: 6px solid var(--tech-blue);
+        }
+        h2 {
+            color: var(--tech-blue);
+            border-bottom: 2px solid var(--fresh-green);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+        }
+        h2 svg, h3 svg {
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+            fill: currentColor;
+        }
+        h3 {
+            color: var(--vital-orange);
+            margin: 1.2rem 0 0.8rem;
+        }
+        p {
+            margin-bottom: 1rem;
+        }
+        ul, ol {
+            padding-left: 1.8rem;
+            margin-bottom: 1.2rem;
+        }
+        li {
+            margin-bottom: 0.5rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+        }
+        th {
+            background-color: var(--tech-blue);
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .code-block {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 1.2rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            border-left: 4px solid var(--vital-orange);
+        }
+        .architecture {
+            background: #f9f9f9;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+            text-align: center;
+            border: 2px dashed var(--fresh-green);
+        }
+        .highlight {
+            background-color: rgba(255, 140, 66, 0.1);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-weight: bold;
+            color: var(--vital-orange);
+        }
+        footer {
+            margin-top: 3rem;
+            text-align: center;
+            padding: 1.5rem;
+            color: white;
+            background: linear-gradient(to right, var(--dark-gray), #1a2530);
+            border-radius: 12px;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+        }
+        .note {
+            background-color: #E8F4FD;
+            border-left: 4px solid var(--tech-blue);
+            padding: 1rem;
+            margin: 1.2rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .steps {
+            counter-reset: step-counter;
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .steps li {
+            counter-increment: step-counter;
+            margin-bottom: 1.5rem;
+            padding-left: 3.5rem;
+            position: relative;
+        }
+        .steps li:before {
+            content: counter(step-counter);
+            background-color: var(--fresh-green);
+            color: white;
+            font-weight: bold;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>FreeRTOS从入门到实战</h1>
+        <div class="subtitle">第13讲：事件组实战 — 多条件任务触发</div>
+        <p>模拟一个需要多个传感器数据就绪后才执行的任务，使用事件组进行高效同步</p>
+    </header>
+
+    <main>
+        <section>
+            <h2>
+                <svg viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17V16H9V14H13V13H10A1,1 0 0,1 9,12V9A1,1 0 0,1 10,8H11V7H13V8H15V10H11V11H14A1,1 0 0,1 15,12V15A1,1 0 0,1 14,16H13V17H11Z"/></svg>
+                课程目标
+            </h2>
+            <p>掌握FreeRTOS事件组（Event Group）的核心概念，并能够运用事件位（Event Bits）实现<strong class="highlight">多条件任务同步</strong>。通过模拟一个需要温度、湿度和光照三个传感器数据都就绪后才执行数据融合任务的场景，深入理解事件组在嵌入式系统中的高效同步机制。</p>
+            <div class="note">
+                <strong>关键点：</strong> 事件组是一种轻量级的任务间通信机制，特别适合处理“与”、“或”等逻辑条件触发的场景，比多个信号量或队列的组合更高效。
+            </div>
+        </section>
+
+        <section>
+            <h2>
+                <svg viewBox="0 0 24 24"><path d="M19,3H5C3.89,3 3,3.89 3,5V19C3,20.1 3.9,21 5,21H19C20.1,21 21,20.1 21,19V5C21,3.89 20.1,3 19,3M11,17H9V10H11V17M13,17H15V10H13V17M12,8.5C11.17,8.5 10.5,7.83 10.5,7C10.5,6.17 11.17,5.5 12,5.5C12.83,5.5 13.5,6.17 13.5,7C13.5,7.83 12.83,8.5 12,8.5Z"/></svg>
+                事件组核心概念
+            </h2>
+            <p>事件组本质上是一个<strong class="highlight">无符号整数（通常为32位）</strong>，其中的每一位（bit）代表一个独立的事件。任务可以设置位、清除位，并等待一个或多个位的组合被设置。</p>
+            <table>
+                <thead>
+                    <tr><th>API函数</th><th>功能描述</th><th>典型应用</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>xEventGroupCreate()</td><td>动态创建一个事件组</td><td>系统初始化时创建同步对象</td></tr>
+                    <tr><td>xEventGroupSetBits()</td><td>设置指定的事件位</td><td>传感器任务在数据就绪时设置对应位</td></tr>
+                    <tr><td>xEventGroupWaitBits()</td><td>等待指定的事件位被设置</td><td>融合任务等待所有传感器位被置位</td></tr>
+                    <tr><td>xEventGroupClearBits()</td><td>清除指定的事件位</td><td>处理完成后清除标志，准备下一轮</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section>
+            <h2>
+                <svg viewBox="0 0 24 24"><path d="M9,22A1,1 0 0,1 8,21V18H4A2,2 0 0,1 2,16V4C2,2.89 2.9,2 4,2H20A2,2 0 0,1 22,4V16A2,2 0 0,1 20,18H13.9L10.2,21.71C10,21.9 9.75,22 9.5,22V22H9Z"/></svg>
+                实战场景：多传感器数据融合
+            </h2>
+            <p>模拟一个智能环境监测节点，包含三个传感器任务（温度、湿度、光照）和一个数据融合任务。融合任务必须等待三个传感器的数据<strong class="highlight">全部就绪</strong>后，才能执行数据打包和上传操作。</p>
+            
+            <div class="architecture">
+                <h3>软件架构图</h3>
+                <svg width="100%" height="300" viewBox="0 0 800 300">
+                    <rect x="50" y="50" width="200" height="60" rx="10" fill="#4A90E2" stroke="#2A6DB0" stroke-width="2"/>
+                    <text x="150" y="85" text-anchor="middle" fill="white" font-weight="bold">温度传感器任务</text>
+                    <text x="150" y="105" text-anchor="middle" fill="white" font-size="14">设置 BIT_TEMP_READY</text>
+
+                    <rect x="300" y="50" width="200" height="60" rx="10" fill="#FF8C42" stroke="#D96C22" stroke-width="2"/>
+                    <text x="400" y="85" text-anchor="middle" fill="white" font-weight="bold">湿度传感器任务</text>
+                    <text x="400" y="105" text-anchor="middle" fill="white" font-size="14">设置 BIT_HUMID_READY</text>
+
+                    <rect x="550" y="50" width="200" height="60" rx="10" fill="#7BC950" stroke="#5AA336" stroke-width="2"/>
+                    <text x="650" y="85" text-anchor="middle" fill="white" font-weight="bold">光照传感器任务</text>
+                    <text x="650" y="105" text-anchor="middle" fill="white" font-size="14">设置 BIT_LIGHT_READY</text>
+
+                    <circle cx="400" cy="200" r="80" fill="#F0F4F8" stroke="#2C3E50" stroke-width="3"/>
+                    <text x="400" y="190" text-anchor="middle" font-weight="bold" font-size="18">事件组</text>
+                    <text x="400" y="210" text-anchor="middle" font-size="14">32位整数</text>
+                    <text x="400" y="230" text-anchor="middle" font-size="14">位0:温度 | 位1:湿度 | 位2:光照</text>
+
+                    <rect x="300" y="320" width="200" height="60" rx="10" fill="#9B59B6" stroke="#7D3C98" stroke-width="2"/>
+                    <text x="400" y="355" text-anchor="middle" fill="white" font-weight="bold">数据融合任务</text>
+                    <text x="400" y="375" text-anchor="middle" fill="white" font-size="14">等待 (BIT_TEMP|BIT_HUMID|BIT_LIGHT)</text>
+
+                    <path d="M150,110 Q150,150 150,170 L150,190" stroke="#4A90E2" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+                    <path d="M400,110 Q400,150 400,170 L400,190" stroke="#FF8C42" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+                    <path d="M650,110 Q650,150 650,170 L650,190" stroke="#7BC950" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+                    <path d="M400,280 Q400,310 400,320" stroke="#9B59B6" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+
+                    <defs>
+                        <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                            <path d="M0,0 L0,6 L9,3 z" fill="#2C3E50"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+
+            <ol class="steps">
+                <li><strong>定义事件位：</strong> 为每个传感器分配一个独立的事件位（bit）。</li>
+                <li><strong>创建事件组：</strong> 在系统初始化时创建一个全局事件组。</li>
+                <li><strong>传感器任务：</strong> 每个传感器任务在采集数据完成后，调用 <code>xEventGroupSetBits()</code> 设置对应的事件位。</li>
+                <li><strong>融合任务：</strong> 调用 <code>xEventGroupWaitBits()</code> 等待三个事件位<strong>同时</strong>被设置（使用逻辑“与”）。</li>
+                <li><strong>执行与清理：</strong> 条件满足后，执行数据融合，并可选地清除事件位以准备下一轮采集。</li>
+            </ol>
+        </section>
+
+        <section>
+            <h2>
+                <svg viewBox="0 0 24 24"><path d="M14.6,16.6L19.2,12L14.6,7.4L16,6L22,12L16,18L14.6,16.6M9.4,16.6L4.8,12L9.4,7.4L8,6L2,12L8,18L9.4,16.6Z"/></svg>
+                核心代码实现
+            </h2>
+            <h3>1. 宏定义与全局变量</h3>
+            <div class="code-block">
+<pre>
+#include "FreeRTOS.h"
+#include "event_groups.h"
+
+/* 定义事件位（通常使用位0-23，位24-31保留） */
+#define BIT_TEMP_READY   ( 1UL << 0 ) /* 位0：温度数据就绪 */
+#define BIT_HUMID_READY  ( 1UL << 1 ) /* 位1：湿度数据就绪 */
+#define BIT_LIGHT_READY  ( 1UL << 2 ) /* 位2：光照数据就绪 */
+
+/* 所有条件组合：三个位都需要置位 */
+#define ALL_SENSOR_BITS ( BIT_TEMP_READY | BIT_HUMID_READY | BIT_LIGHT_READY )
+
+/* 全局事件组句柄 */
+EventGroupHandle_t xSensorEventGroup;
+</pre>
+            </div>
+
+            <h3>2. 传感器任务（以温度传感器为例）</h3>
+            <div class="code-block">
+<pre>
+void vTemperatureSensorTask(void *pvParameters) {
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+    const TickType_t xFrequency = pdMS_TO_TICKS(1000); // 1秒采集一次
+
+    for(;;) {
+        vTaskDelayUntil(&xLastWakeTime, xFrequency);
+
+        /* 模拟采集温度数据（此处为伪代码） */
+        float fTemperature = read_temperature_sensor();
+
+        /* 数据就绪后，设置对应事件位 */
+        xEventGroupSetBits(xSensorEventGroup, BIT_TEMP_READY);
+
+        printf("[温度] 数据就绪: %.2f°C\n", fTemperature);
+    }
+}
+</pre>
+            </div>
+
+            <h3>3. 数据融合任务（等待多条件）</h3>
+            <div class="code-block">
+<pre>
+void vDataFusionTask(void *pvParameters) {
+    EventBits_t uxBits;
+    const TickType_t xTicksToWait = pdMS_TO_TICKS(portMAX_DELAY); // 无限等待
+
+    for(;;) {
+        /* 等待三个事件位同时被设置 */
+        uxBits = xEventGroupWaitBits(
+            xSensorEventGroup,   /* 事件组句柄 */
+            ALL_SENSOR_BITS,     /* 等待的位 */
+            pdTRUE,              /* 退出前清除这些位 */
+            pdTRUE,              /* 需要所有位都被设置（AND） */
+            xTicksToWait         /* 超时时间 */
+        );
+
+        if((uxBits & ALL_SENSOR_BITS) == ALL_SENSOR_BITS) {
+            /* 所有传感器数据就绪，执行融合操作 */
+            printf("[融合] 所有传感器数据就绪，开始数据打包与上传...\n");
+            // 执行数据融合算法
+            // 上传到云端或显示
+            printf("[融合] 操作完成，等待下一轮数据...\n\n");
+        }
+    }
+}
+</pre>
+            </div>
+
+            <h3>4. 主函数初始化</h3>
+            <div class="code-block">
+<pre>
+int main(void) {
+    /* 硬件初始化... */
+
+    /* 创建事件组 */
+    xSensorEventGroup = xEventGroupCreate();
+    if(xSensorEventGroup == NULL) {
+        printf("事件组创建失败！\n");
+        while(1);
+    }
+
+    /* 创建传感器任务 */
+    xTaskCreate(vTemperatureSensorTask, "Temp", 256, NULL, 2, NULL);
+    xTaskCreate(vHumiditySensorTask,  "Humid", 256, NULL, 2, NULL);
+    xTaskCreate(vLightSensorTask,     "Light", 256, NULL, 2, NULL);
+
+    /* 创建融合任务（优先级可稍高） */
+    xTaskCreate(vDataFusionTask, "Fusion", 512, NULL, 3, NULL);
+
+    /* 启动调度器 */
+    vTaskStartScheduler();
+
+    for(;;);
+}
+</pre>
+            </div>
+        </section>
+
+        <section>
+            <h2>
+                <svg viewBox="0 0 24 24"><path d="M9,12A3,3 0 0,0 12,9A3,3 0 0,0 9,6A3,3 0 0,0 6,9A3,3 0 0,0 9,12M9,8A1,1 0 0,1 10,9A1,1 0 0,1 9,10A1,1 0 0,1 8,9A1,1 0 0,1 9,8M15,16.5C15,15.67 14.33,15 13.5,15H10.5C9.67,15 9,15.67 9,16.5V18H15V16.5M16,15V18H19V20H5V18H8V15C8,13.34 9.34,12 11,12H13C14.66,12 16,13.34 16,15M20,4H4C2.9,4 2,4.9 2,6V20C2,21.1 2.9,22 4,22H20C21.1,22 22,21.1 22,20V6C22,4.9 21.1,4 20,4Z"/></svg>
+                总结与要点
+            </h2>
+            <ul>
+                <li><strong class="highlight">高效同步：</strong> 事件组允许一个任务等待多个事件的任意组合（与、或），避免了使用多个二进制信号量带来的复杂性和资源开销。</li>
+                <li><strong class="highlight">轻量级：</strong> 事件组本身只占用一个32位整数，内存占用极小，操作速度快。</li>
+                <li><strong class="highlight">广播机制：</strong> 一个任务设置事件位后，所有等待该位的任务都会被唤醒，实现“一对多”的通知。</li>
+                <li><strong class="highlight">注意竞态条件：</strong> 在等待和清除事件位时，需合理设计逻辑，避免数据被重复处理或丢失。</li>
+                <li><strong class="highlight">适用场景：</strong> 系统启动顺序同步、多传感器数据融合、多按键组合触发、多模块就绪检查等。</li>
+            </ul>
+            <div class="note">
+                <strong>扩展思考：</strong> 如何修改代码，使得只要任意两个传感器数据就绪就触发融合？只需将 <code>xEventGroupWaitBits</code> 的第三个参数改为 <code>pdFALSE</code>（不要求所有位），并调整等待的位组合即可。
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        蓝海资料掘金营
+    </footer>
+</body>
+</html>

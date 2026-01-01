@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS任务栈溢出检测</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #bbdefb 50%, #f8bbd0 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px dashed #4fc3f7;
+        }
+
+        .header h1 {
+            color: #0277bd;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header p {
+            color: #0288d1;
+            font-size: 1.2rem;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h2 {
+            color: #0288d1;
+            border-left: 5px solid #4fc3f7;
+            padding-left: 15px;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .card h3 {
+            color: #0277bd;
+            margin: 15px 0 10px;
+            font-size: 1.2rem;
+        }
+
+        .card p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        .card ul, .card ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .card li {
+            margin-bottom: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e1f5fe;
+        }
+
+        th {
+            background-color: #4fc3f7;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background-color: #e1f5fe;
+        }
+
+        tr:hover {
+            background-color: #b3e5fc;
+        }
+
+        pre {
+            background: #f5f5f5;
+            border-left: 4px solid #4fc3f7;
+            padding: 15px;
+            overflow-x: auto;
+            margin: 15px 0;
+            border-radius: 5px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        code {
+            background: #e1f5fe;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 3px dashed #4fc3f7;
+            color: #0277bd;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, #e1f5fe 0%, #e1f5fe 100%);
+            background-repeat: no-repeat;
+            background-size: 100% 0.4em;
+            background-position: 0 88%;
+            padding: 0 3px;
+        }
+
+        .note {
+            background: #fff9c4;
+            border-left: 4px solid #ffd54f;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .warning {
+            background: #ffebee;
+            border-left: 4px solid #e57373;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>FreeRTOS任务栈溢出检测</h1>
+            <p>第18课：如何配置和使用栈溢出检测</p>
+        </div>
+
+        <div class="content">
+            <div class="card">
+                <h2>什么是栈溢出</h2>
+                <p>在FreeRTOS中，每个任务都有自己独立的栈空间。当任务使用的栈空间超过分配的大小时，就会发生栈溢出。</p>
+                
+                <div class="svg-container">
+                    <svg width="300" height="200" viewBox="0 0 300 200">
+                        <rect x="50" y="50" width="200" height="100" fill="#e3f2fd" stroke="#2196f3" stroke-width="2"/>
+                        <rect x="50" y="50" width="200" height="80" fill="#bbdefb" stroke="#1976d2" stroke-width="1"/>
+                        <rect x="50" y="50" width="200" height="60" fill="#90caf9" stroke="#1565c0" stroke-width="1"/>
+                        <rect x="50" y="50" width="200" height="40" fill="#64b5f6" stroke="#0d47a1" stroke-width="1"/>
+                        <rect x="50" y="50" width="200" height="20" fill="#42a5f5" stroke="#0d47a1" stroke-width="1"/>
+                        <rect x="50" y="150" width="200" height="20" fill="#f44336" stroke="#c62828" stroke-width="2"/>
+                        <text x="150" y="165" text-anchor="middle" fill="white" font-size="12">栈溢出区域</text>
+                        <text x="150" y="40" text-anchor="middle" fill="#1565c0" font-size="12">任务栈</text>
+                        <line x1="50" y1="150" x2="250" y2="150" stroke="#f44336" stroke-width="2" stroke-dasharray="5,5"/>
+                    </svg>
+                </div>
+                
+                <div class="warning">
+                    <p><strong>警告：</strong>栈溢出是嵌入式系统中常见的严重问题，可能导致系统崩溃、数据损坏或不可预测的行为。</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>栈溢出检测方法</h2>
+                <p>FreeRTOS提供了两种栈溢出检测方法：</p>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>检测方法</th>
+                            <th>原理</th>
+                            <th>优缺点</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>方法1</strong><br>(configCHECK_FOR_STACK_OVERFLOW=1)</td>
+                            <td>在任务切换时检查栈指针是否在有效范围内</td>
+                            <td>检测快速，但可能无法检测到所有溢出情况</td>
+                        </tr>
+                        <tr>
+                            <td><strong>方法2</strong><br>(configCHECK_FOR_STACK_OVERFLOW=2)</td>
+                            <td>在任务创建时用已知模式填充栈，定期检查模式是否被破坏</td>
+                            <td>检测更全面，但会增加系统开销</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card full-width">
+                <h2>配置栈溢出检测</h2>
+                
+                <h3>1. 修改FreeRTOSConfig.h</h3>
+                <pre><code>/* FreeRTOSConfig.h */
+#define configCHECK_FOR_STACK_OVERFLOW    2   /* 启用方法2检测 */</code></pre>
+                
+                <h3>2. 实现栈溢出钩子函数</h3>
+                <pre><code>void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName)
+{
+    /* 栈溢出处理代码 */
+    (void)xTask;
+    
+    /* 记录错误信息 */
+    printf("栈溢出发生在任务: %s\n", pcTaskName);
+    
+    /* 系统复位或进入安全状态 */
+    NVIC_SystemReset();
+}</code></pre>
+                
+                <div class="note">
+                    <p><strong>注意：</strong>栈溢出钩子函数在FreeRTOS内核中调用，因此应尽量保持简单，避免使用大量栈空间。</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>栈大小估算</h2>
+                <p>合理设置任务栈大小是预防栈溢出的关键：</p>
+                
+                <ul>
+                    <li><strong>基本需求：</strong>任务控制块 + 函数调用栈</li>
+                    <li><strong>局部变量：</strong>任务函数中定义的局部变量</li>
+                    <li><strong>函数调用深度：</strong>嵌套函数调用所需的栈空间</li>
+                    <li><strong>中断上下文：</strong>中断服务程序可能使用的栈空间</li>
+                    <li><strong>安全余量：</strong>建议额外增加20-30%的安全余量</li>
+                </ul>
+                
+                <div class="svg-container">
+                    <svg width="250" height="180" viewBox="0 0 250 180">
+                        <rect x="30" y="30" width="190" height="120" fill="#e8f5e9" stroke="#4caf50" stroke-width="2"/>
+                        <rect x="30" y="30" width="190" height="20" fill="#c8e6c9" stroke="#388e3c"/>
+                        <text x="125" y="42" text-anchor="middle" font-size="10">安全余量 (30%)</text>
+                        <rect x="30" y="50" width="190" height="20" fill="#a5d6a7" stroke="#388e3c"/>
+                        <text x="125" y="62" text-anchor="middle" font-size="10">中断上下文 (10%)</text>
+                        <rect x="30" y="70" width="190" height="20" fill="#81c784" stroke="#388e3c"/>
+                        <text x="125" y="82" text-anchor="middle" font-size="10">函数调用 (20%)</text>
+                        <rect x="30" y="90" width="190" height="20" fill="#66bb6a" stroke="#388e3c"/>
+                        <text x="125" y="102" text-anchor="middle" font-size="10">局部变量 (25%)</text>
+                        <rect x="30" y="110" width="190" height="20" fill="#4caf50" stroke="#388e3c"/>
+                        <text x="125" y="122" text-anchor="middle" font-size="10" fill="white">基本需求 (15%)</text>
+                        <text x="125" y="160" text-anchor="middle" font-size="12" fill="#2e7d32">任务栈组成分析</text>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>最佳实践</h2>
+                <ol>
+                    <li>在开发阶段启用栈溢出检测</li>
+                    <li>使用工具分析栈使用情况</li>
+                    <li>为关键任务设置更大的栈空间</li>
+                    <li>定期检查栈使用峰值</li>
+                    <li>在栈溢出钩子中实现适当的错误处理</li>
+                </ol>
+                
+                <h3>栈使用率检查代码示例</h3>
+                <pre><code>void checkTaskStackUsage(void)
+{
+    TaskStatus_t *pxTaskStatusArray;
+    UBaseType_t uxArraySize, x;
+    uint32_t ulTotalRunTime;
+    
+    /* 获取任务数量 */
+    uxArraySize = uxTaskGetNumberOfTasks();
+    
+    /* 分配内存存储任务状态 */
+    pxTaskStatusArray = pvPortMalloc(uxArraySize * sizeof(TaskStatus_t));
+    
+    if(pxTaskStatusArray != NULL) {
+        /* 获取任务状态信息 */
+        uxArraySize = uxTaskGetSystemState(pxTaskStatusArray, 
+                                         uxArraySize, 
+                                         &ulTotalRunTime);
+        
+        /* 打印每个任务的栈使用情况 */
+        for(x = 0; x < uxArraySize; x++) {
+            printf("任务: %s, 栈使用率: %d%%\n",
+                   pxTaskStatusArray[x].pcTaskName,
+                   (pxTaskStatusArray[x].usStackHighWaterMark * 100) / 
+                   pxTaskStatusArray[x].ulStackDepth);
+        }
+        
+        vPortFree(pxTaskStatusArray);
+    }
+}</code></pre>
+            </div>
+
+            <div class="card full-width">
+                <h2>栈溢出检测架构</h2>
+                
+                <div class="svg-container">
+                    <svg width="600" height="300" viewBox="0 0 600 300">
+                        <!-- 应用层 -->
+                        <rect x="50" y="30" width="500" height="50" fill="#e3f2fd" stroke="#2196f3" stroke-width="2"/>
+                        <text x="300" y="55" text-anchor="middle" font-size="14" fill="#1565c0">应用层 - 用户任务</text>
+                        
+                        <!-- FreeRTOS内核层 -->
+                        <rect x="100" y="100" width="400" height="50" fill="#bbdefb" stroke="#1976d2" stroke-width="2"/>
+                        <text x="300" y="125" text-anchor="middle" font-size="14" fill="#1565c0">FreeRTOS内核</text>
+                        
+                        <!-- 栈溢出检测模块 -->
+                        <rect x="150" y="170" width="300" height="50" fill="#90caf9" stroke="#1565c0" stroke-width="2"/>
+                        <text x="300" y="195" text-anchor="middle" font-size="14" fill="#1565c0">栈溢出检测模块</text>
+                        
+                        <!-- 硬件层 -->
+                        <rect x="200" y="240" width="200" height="50" fill="#64b5f6" stroke="#0d47a1" stroke-width="2"/>
+                        <text x="300" y="265" text-anchor="middle" font-size="14" fill="#0d47a1">硬件层 - 内存保护单元</text>
+                        
+                        <!-- 连接线 -->
+                        <line x1="300" y1="80" x2="300" y2="100" stroke="#2196f3" stroke-width="2"/>
+                        <line x1="300" y1="150" x2="300" y2="170" stroke="#2196f3" stroke-width="2"/>
+                        <line x1="300" y1="220" x2="300" y2="240" stroke="#2196f3" stroke-width="2"/>
+                        
+                        <!-- 检测流程 -->
+                        <path d="M 450 125 L 550 125 L 550 195 L 450 195" fill="none" stroke="#ff9800" stroke-width="2" stroke-dasharray="5,5"/>
+                        <text x="500" y="140" text-anchor="middle" font-size="10" fill="#ff9800">任务切换时检测</text>
+                        
+                        <path d="M 50 125 L 150 125 L 150 195 L 50 195" fill="none" stroke="#ff9800" stroke-width="2" stroke-dasharray="5,5"/>
+                        <text x="100" y="140" text-anchor="middle" font-size="10" fill="#ff9800">模式填充检测</text>
+                    </svg>
+                </div>
+                
+                <p>FreeRTOS栈溢出检测机制通过多层防护确保系统稳定性：从应用层的合理栈分配，到内核层的实时检测，再到硬件层的内存保护。</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            蓝海资料掘金营
+        </div>
+    </div>
+</body>
+</html>

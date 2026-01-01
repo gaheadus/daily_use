@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS任务切换原理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #f9fbe7 50%, #e8f5e9 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            border: 2px solid #4db6ac;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px dashed #4db6ac;
+        }
+
+        h1 {
+            color: #00695c;
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #00796b;
+            font-size: 1.8em;
+            margin: 25px 0 15px;
+            padding-left: 10px;
+            border-left: 5px solid #4db6ac;
+        }
+
+        h3 {
+            color: #00897b;
+            font-size: 1.4em;
+            margin: 20px 0 10px;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        .highlight-box {
+            background-color: #e0f2f1;
+            border-left: 4px solid #26a69a;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .code-block {
+            background-color: #f5f5f5;
+            border: 1px solid #b2dfdb;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            color: #00695c;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: #f1f8e9;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #c8e6c9;
+        }
+
+        th {
+            background-color: #4db6ac;
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #e8f5e9;
+        }
+
+        ul, ol {
+            margin: 15px 0 15px 30px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 25px 0;
+        }
+
+        .architecture {
+            background-color: #e3f2fd;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 25px 0;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px dashed #4db6ac;
+            color: #00796b;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .note {
+            background-color: #fff9c4;
+            border: 1px solid #ffd54f;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .key-term {
+            color: #d81b60;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>FreeRTOS任务管理50问</h1>
+            <h2>20、任务切换原理：任务上下文切换的机制</h2>
+        </header>
+
+        <section>
+            <p>在FreeRTOS中，任务切换是操作系统的核心功能之一，它允许多个任务在单个处理器上并发执行。任务上下文切换是实现这一功能的关键机制，它负责保存当前任务的执行状态，并恢复下一个要运行任务的执行状态。</p>
+            
+            <div class="highlight-box">
+                <p><strong>核心概念：</strong>任务上下文切换是指当操作系统决定从一个任务切换到另一个任务时，保存当前任务的执行环境（上下文），并恢复下一个任务的执行环境的过程。</p>
+            </div>
+        </section>
+
+        <section>
+            <h2>上下文切换的触发条件</h2>
+            <p>FreeRTOS中的任务上下文切换可以在以下情况下触发：</p>
+            <ul>
+                <li>任务主动调用<code>taskYIELD()</code>函数</li>
+                <li>系统滴答定时器中断（Tick Interrupt）</li>
+                <li>任务阻塞（如等待信号量、队列、延时等）</li>
+                <li>更高优先级任务就绪</li>
+                <li>中断服务程序中调用上下文切换相关函数</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>上下文内容</h2>
+            <p>任务上下文通常包括以下内容：</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>寄存器/状态</th>
+                        <th>描述</th>
+                        <th>保存位置</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>程序计数器(PC)</td>
+                        <td>当前执行指令的地址</td>
+                        <td>任务栈</td>
+                    </tr>
+                    <tr>
+                        <td>通用寄存器</td>
+                        <td>R0-R12（ARM Cortex-M）</td>
+                        <td>任务栈</td>
+                    </tr>
+                    <tr>
+                        <td>链接寄存器(LR)</td>
+                        <td>返回地址</td>
+                        <td>任务栈</td>
+                    </tr>
+                    <tr>
+                        <td>程序状态寄存器(xPSR)</td>
+                        <td>处理器状态标志</td>
+                        <td>任务栈</td>
+                    </tr>
+                    <tr>
+                        <td>浮点寄存器(FPU)</td>
+                        <td>如果使用浮点运算</td>
+                        <td>任务栈</td>
+                    </tr>
+                    <tr>
+                        <td>控制寄存器(CONTROL)</td>
+                        <td>处理器模式控制</td>
+                        <td>任务栈</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section>
+            <h2>上下文切换的详细过程</h2>
+            
+            <div class="svg-container">
+                <svg width="600" height="300" viewBox="0 0 600 300">
+                    <!-- 背景 -->
+                    <rect x="0" y="0" width="600" height="300" fill="#e1f5fe" rx="10" ry="10"/>
+                    
+                    <!-- 步骤1 -->
+                    <rect x="50" y="50" width="120" height="60" fill="#4fc3f7" stroke="#0288d1" stroke-width="2" rx="5" ry="5"/>
+                    <text x="110" y="85" text-anchor="middle" fill="white" font-weight="bold">1. 触发切换</text>
+                    <path d="M 170 80 L 200 80" stroke="#0288d1" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    
+                    <!-- 步骤2 -->
+                    <rect x="200" y="50" width="120" height="60" fill="#4fc3f7" stroke="#0288d1" stroke-width="2" rx="5" ry="5"/>
+                    <text x="260" y="85" text-anchor="middle" fill="white" font-weight="bold">2. 保存上下文</text>
+                    <path d="M 320 80 L 350 80" stroke="#0288d1" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    
+                    <!-- 步骤3 -->
+                    <rect x="350" y="50" width="120" height="60" fill="#4fc3f7" stroke="#0288d1" stroke-width="2" rx="5" ry="5"/>
+                    <text x="410" y="85" text-anchor="middle" fill="white" font-weight="bold">3. 选择任务</text>
+                    <path d="M 470 80 L 500 80" stroke="#0288d1" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    
+                    <!-- 步骤4 -->
+                    <rect x="200" y="150" width="120" height="60" fill="#4fc3f7" stroke="#0288d1" stroke-width="2" rx="5" ry="5"/>
+                    <text x="260" y="185" text-anchor="middle" fill="white" font-weight="bold">4. 恢复上下文</text>
+                    
+                    <!-- 步骤5 -->
+                    <rect x="350" y="150" width="120" height="60" fill="#4fc3f7" stroke="#0288d1" stroke-width="2" rx="5" ry="5"/>
+                    <text x="410" y="185" text-anchor="middle" fill="white" font-weight="bold">5. 执行新任务</text>
+                    
+                    <!-- 连接线 -->
+                    <path d="M 470 150 L 470 120 L 170 120 L 170 150" stroke="#0288d1" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+                    
+                    <!-- 箭头定义 -->
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#0288d1"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+            
+            <ol>
+                <li><span class="key-term">触发条件满足</span> - 系统检测到需要执行任务切换的条件</li>
+                <li><span class="key-term">保存当前任务上下文</span> - 将当前任务的寄存器值保存到其任务栈中</li>
+                <li><span class="key-term">选择下一个任务</span> - 调度器从就绪队列中选择优先级最高的任务</li>
+                <li><span class="key-term">恢复新任务上下文</span> - 从新任务的栈中恢复其寄存器值</li>
+                <li><span class="key-term">执行新任务</span> - 处理器开始执行新任务的代码</li>
+            </ol>
+        </section>
+
+        <section>
+            <h2>FreeRTOS中的上下文切换实现</h2>
+            
+            <div class="architecture">
+                <h3>软件架构概览</h3>
+                <div class="svg-container">
+                    <svg width="500" height="250" viewBox="0 0 500 250">
+                        <!-- 架构图 -->
+                        <rect x="50" y="30" width="400" height="40" fill="#81c784" stroke="#2e7d32" stroke-width="2" rx="5" ry="5"/>
+                        <text x="250" y="55" text-anchor="middle" fill="white" font-weight="bold">应用层 (用户任务)</text>
+                        
+                        <rect x="100" y="90" width="300" height="40" fill="#64b5f6" stroke="#1565c0" stroke-width="2" rx="5" ry="5"/>
+                        <text x="250" y="115" text-anchor="middle" fill="white" font-weight="bold">FreeRTOS内核</text>
+                        
+                        <rect x="150" y="150" width="200" height="40" fill="#ffb74d" stroke="#ef6c00" stroke-width="2" rx="5" ry="5"/>
+                        <text x="250" y="175" text-anchor="middle" fill="white" font-weight="bold">硬件抽象层</text>
+                        
+                        <rect x="200" y="210" width="100" height="30" fill="#e57373" stroke="#c62828" stroke-width="2" rx="5" ry="5"/>
+                        <text x="250" y="228" text-anchor="middle" fill="white" font-weight="bold">硬件</text>
+                        
+                        <!-- 连接线 -->
+                        <line x1="250" y1="70" x2="250" y2="90" stroke="#757575" stroke-width="2"/>
+                        <line x1="250" y1="130" x2="250" y2="150" stroke="#757575" stroke-width="2"/>
+                        <line x1="250" y1="190" x2="250" y2="210" stroke="#757575" stroke-width="2"/>
+                    </svg>
+                </div>
+            </div>
+            
+            <p>在FreeRTOS中，上下文切换主要通过以下函数实现：</p>
+            
+            <div class="code-block">
+                <pre>
+// 任务切换的入口函数
+void vTaskSwitchContext( void )
+{
+    // 检查是否在中断中调用
+    if( uxSchedulerSuspended != ( UBaseType_t ) pdFALSE )
+    {
+        // 调度器挂起，标记需要上下文切换
+        xYieldPending = pdTRUE;
+    }
+    else
+    {
+        xYieldPending = pdFALSE;
+        // 寻找最高优先级的就绪任务
+        taskSELECT_HIGHEST_PRIORITY_TASK();
+        
+        // 更新任务计数器
+        traceTASK_SWITCHED_IN();
+    }
+}</pre>
+            </div>
+            
+            <div class="code-block">
+                <pre>
+// 端口相关的上下文切换汇编代码示例 (ARM Cortex-M)
+__asm void xPortPendSVHandler( void )
+{
+    extern uxCriticalNesting;
+    extern pxCurrentTCB;
+    extern vTaskSwitchContext;
+
+    PRESERVE8
+
+    // 保存当前任务上下文
+    mrs r0, psp
+    ldr r3, =pxCurrentTCB
+    ldr r2, [r3]
+    
+    stmdb r0!, {r4-r11}   // 保存寄存器r4到r11
+    str r0, [r2]          // 保存栈顶指针到TCB
+    
+    // 调用调度器选择新任务
+    stmdb sp!, {r3, r14}
+    bl vTaskSwitchContext
+    ldmia sp!, {r3, r14}
+    
+    // 恢复新任务上下文
+    ldr r1, [r3]
+    ldr r0, [r1]          // 新任务的栈顶指针
+    ldmia r0!, {r4-r11}   // 恢复寄存器r4到r11
+    
+    msr psp, r0
+    bx r14
+}</pre>
+            </div>
+        </section>
+
+        <section>
+            <h2>任务控制块(TCB)与上下文保存</h2>
+            <p>每个FreeRTOS任务都有一个任务控制块(TCB)，其中包含任务的状态信息和栈指针：</p>
+            
+            <div class="code-block">
+                <pre>
+typedef struct tskTaskControlBlock
+{
+    volatile StackType_t *pxTopOfStack;    // 栈顶指针
+    
+    ListItem_t xStateListItem;              // 状态列表项
+    ListItem_t xEventListItem;              // 事件列表项
+    
+    UBaseType_t uxPriority;                // 任务优先级
+    StackType_t *pxStack;                  // 栈起始地址
+    
+    char pcTaskName[ configMAX_TASK_NAME_LEN ]; // 任务名称
+    
+    // ... 其他成员
+} tskTCB;</pre>
+            </div>
+            
+            <p>上下文保存时，处理器寄存器被保存到任务的栈中，栈顶指针保存在TCB的<code>pxTopOfStack</code>字段中。</p>
+        </section>
+
+        <section>
+            <h2>中断中的上下文切换</h2>
+            <p>在中断服务程序(ISR)中，FreeRTOS使用<code>xPortPendSVHandler</code>来处理延迟的上下文切换：</p>
+            
+            <div class="highlight-box">
+                <p><strong>PendSV机制：</strong>ARM Cortex-M处理器使用PendSV(可挂起的系统调用)异常来实现安全的上下文切换。当中断服务程序需要触发上下文切换时，它会挂起PendSV异常，在退出所有中断后才执行实际的上下文切换。</p>
+            </div>
+            
+            <ol>
+                <li>中断服务程序检测到需要任务切换</li>
+                <li>设置PendSV异常挂起位</li>
+                <li>退出中断服务程序</li>
+                <li>处理器立即进入PendSV异常处理程序</li>
+                <li>在PendSV处理程序中执行实际的上下文切换</li>
+            </ol>
+        </section>
+
+        <section>
+            <h2>性能考虑与优化</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>优化策略</th>
+                        <th>描述</th>
+                        <th>效果</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>懒保存FPU上下文</td>
+                        <td>仅在任务使用FPU时才保存FPU寄存器</td>
+                        <td>减少上下文切换时间</td>
+                    </tr>
+                    <tr>
+                        <td>优化任务栈大小</td>
+                        <td>根据任务实际需求分配栈空间</td>
+                        <td>减少内存使用</td>
+                    </tr>
+                    <tr>
+                        <td>使用Tickless模式</td>
+                        <td>在空闲时停止系统滴答定时器</td>
+                        <td>降低功耗</td>
+                    </tr>
+                    <tr>
+                        <td>合理设置任务优先级</td>
+                        <td>减少不必要的上下文切换</td>
+                        <td>提高系统效率</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section>
+            <h2>总结</h2>
+            <div class="note">
+                <p>任务上下文切换是FreeRTOS多任务能力的核心机制。通过高效地保存和恢复任务执行状态，FreeRTOS能够在单处理器上实现看似并发的多任务执行。理解上下文切换的原理对于开发高效、稳定的嵌入式系统至关重要。</p>
+            </div>
+            
+            <p>关键要点：</p>
+            <ul>
+                <li>上下文切换保存和恢复任务的完整执行环境</li>
+                <li>FreeRTOS使用任务控制块(TCB)管理任务状态</li>
+                <li>PendSV机制确保中断服务程序中的安全上下文切换</li>
+                <li>优化上下文切换性能对系统整体效率有重要影响</li>
+            </ul>
+        </section>
+
+        <footer>
+            蓝海资料掘金营
+        </footer>
+    </div>
+</body>
+</html>

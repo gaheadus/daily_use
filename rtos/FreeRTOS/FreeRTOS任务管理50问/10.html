@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS任务堆栈大小计算</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #f9fbe7 50%, #e8f5e9 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px dashed #4db6ac;
+        }
+        
+        h1 {
+            color: #00695c;
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        h2 {
+            color: #00796b;
+            margin: 25px 0 15px;
+            padding-left: 10px;
+            border-left: 5px solid #4db6ac;
+        }
+        
+        h3 {
+            color: #00897b;
+            margin: 20px 0 10px;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid #b2dfdb;
+        }
+        
+        .highlight {
+            background-color: #e0f2f1;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #26a69a;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #b2dfdb;
+        }
+        
+        th {
+            background-color: #4db6ac;
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f1f8e9;
+        }
+        
+        tr:hover {
+            background-color: #e0f2f1;
+        }
+        
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        pre {
+            background-color: #f5f5f5;
+            border: 1px solid #bdbdbd;
+            border-radius: 5px;
+            padding: 15px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        code {
+            background-color: #f5f5f5;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+        
+        .svg-container {
+            text-align: center;
+            margin: 25px 0;
+        }
+        
+        .method-box {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .method {
+            flex: 1;
+            min-width: 250px;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border-top: 5px solid #4db6ac;
+        }
+        
+        .method h3 {
+            color: #00796b;
+            margin-top: 0;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #4db6ac;
+            color: #00695c;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .tip {
+            background-color: #fff9c4;
+            border-left: 4px solid #ffd600;
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin: 15px 0;
+        }
+        
+        .warning {
+            background-color: #ffebee;
+            border-left: 4px solid #f44336;
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin: 15px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .method-box {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>FreeRTOS任务堆栈大小计算</h1>
+            <p>如何合理设置任务堆栈 - 《FreeRTOS任务管理50问》第10课</p>
+        </div>
+        
+        <div class="card">
+            <h2>任务堆栈的重要性</h2>
+            <p>在FreeRTOS中，每个任务都有自己独立的堆栈空间，用于存储局部变量、函数调用信息、中断上下文等。合理设置任务堆栈大小是确保系统稳定运行的关键因素。</p>
+            
+            <div class="svg-container">
+                <svg width="600" height="200" viewBox="0 0 600 200">
+                    <rect x="50" y="50" width="500" height="100" fill="#e0f2f1" stroke="#4db6ac" stroke-width="2" rx="10" />
+                    <rect x="70" y="70" width="80" height="60" fill="#80cbc4" stroke="#00695c" stroke-width="1" />
+                    <text x="110" y="105" text-anchor="middle" fill="#004d40" font-weight="bold">任务1堆栈</text>
+                    
+                    <rect x="170" y="70" width="80" height="60" fill="#80cbc4" stroke="#00695c" stroke-width="1" />
+                    <text x="210" y="105" text-anchor="middle" fill="#004d40" font-weight="bold">任务2堆栈</text>
+                    
+                    <rect x="270" y="70" width="80" height="60" fill="#80cbc4" stroke="#00695c" stroke-width="1" />
+                    <text x="310" y="105" text-anchor="middle" fill="#004d40" font-weight="bold">任务3堆栈</text>
+                    
+                    <rect x="370" y="70" width="80" height="60" fill="#80cbc4" stroke="#00695c" stroke-width="1" />
+                    <text x="410" y="105" text-anchor="middle" fill="#004d40" font-weight="bold">任务4堆栈</text>
+                    
+                    <rect x="470" y="70" width="60" height="60" fill="#b2dfdb" stroke="#00695c" stroke-width="1" />
+                    <text x="500" y="105" text-anchor="middle" fill="#004d40" font-weight="bold">空闲</text>
+                    
+                    <text x="300" y="40" text-anchor="middle" fill="#00796b" font-size="16" font-weight="bold">FreeRTOS任务堆栈分布示意图</text>
+                </svg>
+            </div>
+            
+            <div class="highlight">
+                <p><strong>堆栈溢出后果：</strong>堆栈溢出会导致数据损坏、系统崩溃、难以调试的随机错误，是嵌入式系统中最常见的问题之一。</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>堆栈大小影响因素</h2>
+            <p>任务堆栈大小的需求取决于多个因素，主要包括：</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>因素</th>
+                        <th>说明</th>
+                        <th>影响程度</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>函数调用深度</td>
+                        <td>任务中函数嵌套调用的层次</td>
+                        <td>高</td>
+                    </tr>
+                    <tr>
+                        <td>局部变量大小</td>
+                        <td>函数中定义的局部变量和数组</td>
+                        <td>高</td>
+                    </tr>
+                    <tr>
+                        <td>中断上下文</td>
+                        <td>中断服务程序执行时的上下文保存</td>
+                        <td>中</td>
+                    </tr>
+                    <tr>
+                        <td>FreeRTOS API调用</td>
+                        <td>使用队列、信号量等API时的额外开销</td>
+                        <td>中</td>
+                    </tr>
+                    <tr>
+                        <td>处理器架构</td>
+                        <td>不同架构的寄存器数量和栈帧大小</td>
+                        <td>高</td>
+                    </tr>
+                    <tr>
+                        <td>编译器优化</td>
+                        <td>编译器优化级别影响代码生成</td>
+                        <td>中</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="card">
+            <h2>堆栈大小计算方法</h2>
+            <p>以下是几种常用的堆栈大小计算方法：</p>
+            
+            <div class="method-box">
+                <div class="method">
+                    <h3>1. 经验估算法</h3>
+                    <p>根据任务复杂度初步估算：</p>
+                    <ul>
+                        <li>简单任务：1-2KB</li>
+                        <li>中等任务：2-4KB</li>
+                        <li>复杂任务：4-8KB或更多</li>
+                    </ul>
+                    <div class="tip">
+                        <p><strong>提示：</strong>这种方法快速但不精确，适合项目初期。</p>
+                    </div>
+                </div>
+                
+                <div class="method">
+                    <h3>2. 静态分析计算法</h3>
+                    <p>通过分析代码计算最大堆栈使用量：</p>
+                    <ul>
+                        <li>分析函数调用图</li>
+                        <li>计算局部变量大小</li>
+                        <li>考虑中断嵌套</li>
+                    </ul>
+                    <div class="tip">
+                        <p><strong>提示：</strong>编译器通常提供堆栈使用分析工具。</p>
+                    </div>
+                </div>
+                
+                <div class="method">
+                    <h3>3. 运行时监测法</h3>
+                    <p>利用FreeRTOS提供的堆栈检查功能：</p>
+                    <ul>
+                        <li>uxTaskGetStackHighWaterMark()</li>
+                        <li>configCHECK_FOR_STACK_OVERFLOW</li>
+                    </ul>
+                    <div class="tip">
+                        <p><strong>提示：</strong>这是最准确的方法，推荐在测试阶段使用。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>FreeRTOS堆栈监控API</h2>
+            <p>FreeRTOS提供了用于监控任务堆栈使用情况的API：</p>
+            
+            <pre><code>// 获取任务堆栈的高水位线（最小剩余堆栈）
+UBaseType_t uxTaskGetStackHighWaterMark( TaskHandle_t xTask );
+
+// 示例用法：
+void vTaskFunction( void *pvParameters )
+{
+    // 任务代码...
+    
+    // 检查堆栈使用情况
+    UBaseType_t uxHighWaterMark;
+    uxHighWaterMark = uxTaskGetStackHighWaterMark( NULL );
+    
+    // 打印高水位线值（以字为单位）
+    printf("堆栈高水位线: %d 字\n", uxHighWaterMark);
+    
+    // 建议保留20-30%的堆栈余量
+    if( uxHighWaterMark < (configMINIMAL_STACK_SIZE) ) {
+        // 堆栈可能不足，需要增加大小
+        printf("警告：堆栈可能不足！\n");
+    }
+}</code></pre>
+            
+            <div class="highlight">
+                <p><strong>高水位线含义：</strong>高水位线值表示任务运行过程中堆栈达到的最大使用深度后剩余的最小堆栈空间。这个值越小，说明堆栈使用率越高。</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>堆栈大小设置最佳实践</h2>
+            
+            <h3>1. 不同任务类型的推荐堆栈大小</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>任务类型</th>
+                        <th>推荐大小(32位系统)</th>
+                        <th>说明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>空闲任务</td>
+                        <td>configMINIMAL_STACK_SIZE</td>
+                        <td>系统默认的最小堆栈大小</td>
+                    </tr>
+                    <tr>
+                        <td>简单任务</td>
+                        <td>128-256字 (512-1024字节)</td>
+                        <td>仅调用少量API，无复杂计算</td>
+                    </tr>
+                    <tr>
+                        <td>中等任务</td>
+                        <td>256-512字 (1024-2048字节)</td>
+                        <td>有函数调用，使用队列/信号量</td>
+                    </tr>
+                    <tr>
+                        <td>复杂任务</td>
+                        <td>512-1024字 (2048-4096字节)</td>
+                        <td>深度函数调用，大量局部变量</td>
+                    </tr>
+                    <tr>
+                        <td>使用printf的任务</td>
+                        <td>额外增加256-512字</td>
+                        <td>printf函数本身消耗较多堆栈</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>2. 堆栈大小设置步骤</h3>
+            <ol>
+                <li><strong>初始估算：</strong>根据任务复杂度设置初始堆栈大小</li>
+                <li><strong>添加监控：</strong>在任务中添加堆栈高水位线检查</li>
+                <li><strong>压力测试：</strong>让系统在最大负载下运行</li>
+                <li><strong>分析数据：</strong>收集各任务的堆栈高水位线数据</li>
+                <li><strong>调整优化：</strong>根据实际使用情况调整堆栈大小</li>
+                <li><strong>保留余量：</strong>最终设置时保留20-30%的安全余量</li>
+            </ol>
+            
+            <div class="warning">
+                <p><strong>注意：</strong>堆栈大小设置过小会导致系统不稳定，设置过大会浪费内存资源。需要在稳定性和资源利用之间找到平衡。</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>实际配置示例</h2>
+            <p>以下是一个实际的任务创建示例，展示了如何设置和监控任务堆栈：</p>
+            
+            <pre><code>#include "FreeRTOS.h"
+#include "task.h"
+
+// 任务堆栈大小定义（以字为单位）
+#define TASK1_STACK_SIZE  256
+#define TASK2_STACK_SIZE  512
+#define TASK3_STACK_SIZE  128
+
+// 任务函数声明
+void vTask1Function( void *pvParameters );
+void vTask2Function( void *pvParameters );
+void vTask3Function( void *pvParameters );
+
+int main( void )
+{
+    // 创建任务1 - 中等复杂度任务
+    xTaskCreate(
+        vTask1Function,        // 任务函数
+        "Task1",               // 任务名称
+        TASK1_STACK_SIZE,      // 堆栈大小（字）
+        NULL,                  // 参数
+        tskIDLE_PRIORITY + 2,  // 优先级
+        NULL                   // 任务句柄
+    );
+    
+    // 创建任务2 - 高复杂度任务
+    xTaskCreate(
+        vTask2Function,
+        "Task2", 
+        TASK2_STACK_SIZE,
+        NULL,
+        tskIDLE_PRIORITY + 3,
+        NULL
+    );
+    
+    // 创建任务3 - 简单任务
+    xTaskCreate(
+        vTask3Function,
+        "Task3",
+        TASK3_STACK_SIZE,
+        NULL,
+        tskIDLE_PRIORITY + 1,
+        NULL
+    );
+    
+    // 启动调度器
+    vTaskStartScheduler();
+    
+    return 0;
+}
+
+// 任务1实现
+void vTask1Function( void *pvParameters )
+{
+    // 局部变量
+    int localArray[32];
+    char buffer[64];
+    
+    for( ;; )
+    {
+        // 任务功能代码...
+        
+        // 检查堆栈使用情况
+        UBaseType_t uxHighWaterMark = uxTaskGetStackHighWaterMark( NULL );
+        if( uxHighWaterMark < 50 ) { // 保留至少50字的余量
+            // 处理堆栈不足的情况
+        }
+        
+        vTaskDelay( pdMS_TO_TICKS( 1000 ) );
+    }
+}</code></pre>
+        </div>
+        
+        <div class="card">
+            <h2>堆栈溢出检测</h2>
+            <p>FreeRTOS提供了堆栈溢出检测机制，可以在FreeRTOSConfig.h中配置：</p>
+            
+            <pre><code>// 在FreeRTOSConfig.h中启用堆栈溢出检测
+#define configCHECK_FOR_STACK_OVERFLOW 2
+
+// 可选值：
+// 0 - 不检测
+// 1 - 方法1：任务切换时检查堆栈指针是否在有效范围内
+// 2 - 方法2：任务切换时检查堆栈末尾的标记模式是否被修改</code></pre>
+            
+            <p>当检测到堆栈溢出时，FreeRTOS会调用<code>vApplicationStackOverflowHook</code>函数：</p>
+            
+            <pre><code>// 堆栈溢出钩子函数
+void vApplicationStackOverflowHook( TaskHandle_t xTask, char *pcTaskName )
+{
+    // 处理堆栈溢出
+    printf("堆栈溢出！任务名称: %s\n", pcTaskName);
+    
+    // 可以在这里记录错误、重启系统等
+    while(1) { /* 死循环 */ }
+}</code></pre>
+            
+            <div class="warning">
+                <p><strong>重要：</strong>堆栈溢出检测会增加系统开销，建议在开发阶段启用，在产品发布前可以根据情况禁用。</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>总结</h2>
+            <p>合理设置FreeRTOS任务堆栈大小是确保嵌入式系统稳定运行的关键。通过结合经验估算、静态分析和运行时监控，可以找到最适合的堆栈大小配置。</p>
+            
+            <div class="highlight">
+                <p><strong>关键要点：</strong></p>
+                <ul>
+                    <li>始终使用<code>uxTaskGetStackHighWaterMark()</code>监控堆栈使用情况</li>
+                    <li>为每个任务保留20-30%的堆栈余量</li>
+                    <li>在开发阶段启用堆栈溢出检测</li>
+                    <li>不同复杂度的任务需要不同大小的堆栈</li>
+                    <li>考虑处理器架构和编译器优化对堆栈需求的影响</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="footer">
+            蓝海资料掘金营
+        </div>
+    </div>
+</body>
+</html>

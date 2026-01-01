@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS任务管理50问 - 任务挂起与恢复的嵌套</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #f9fbe7 50%, #e8f5e9 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px dashed #4db6ac;
+        }
+        
+        .header h1 {
+            color: #00695c;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h2 {
+            color: #00796b;
+            font-size: 1.8rem;
+            font-weight: normal;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h3 {
+            color: #00796b;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #80cbc4;
+        }
+        
+        .card p {
+            margin-bottom: 15px;
+        }
+        
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .code-block {
+            background: #f5f5f5;
+            border-left: 4px solid #4db6ac;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+            overflow-x: auto;
+        }
+        
+        pre {
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            color: #00695c;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0f2f1;
+        }
+        
+        th {
+            background-color: #4db6ac;
+            color: white;
+            font-weight: bold;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f1f8e9;
+        }
+        
+        tr:hover {
+            background-color: #e0f2f1;
+        }
+        
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #4db6ac;
+            color: #00796b;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .highlight {
+            background-color: #e8f5e9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .note {
+            background-color: #fff9c4;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #ffd54f;
+            margin: 15px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>FreeRTOS任务管理50问</h1>
+            <h2>30、任务挂起与恢复的嵌套：多次挂起和恢复的处理</h2>
+        </div>
+        
+        <div class="content">
+            <div class="card">
+                <h3>什么是任务挂起与恢复的嵌套？</h3>
+                <p>在FreeRTOS中，任务挂起与恢复的嵌套是指对同一个任务多次调用<span class="highlight">vTaskSuspend()</span>和<span class="highlight">vTaskResume()</span>函数的情况。</p>
+                <p>FreeRTOS内部使用一个计数器来跟踪任务的挂起状态，而不是简单的布尔标志。每次调用<span class="highlight">vTaskSuspend()</span>会使计数器加1，每次调用<span class="highlight">vTaskResume()</span>会使计数器减1。</p>
+                <p>只有当计数器为0时，任务才处于可运行状态。</p>
+                
+                <div class="svg-container">
+                    <svg width="300" height="200" viewBox="0 0 300 200">
+                        <rect x="50" y="30" width="200" height="40" rx="5" fill="#4db6ac" stroke="#00796b" stroke-width="2"/>
+                        <text x="150" y="55" text-anchor="middle" fill="white" font-weight="bold">任务挂起计数器</text>
+                        
+                        <rect x="80" y="100" width="60" height="40" rx="5" fill="#80cbc4" stroke="#00796b" stroke-width="1"/>
+                        <text x="110" y="125" text-anchor="middle" fill="#00695c">vTaskSuspend()</text>
+                        <text x="110" y="140" text-anchor="middle" fill="#00695c">计数器+1</text>
+                        
+                        <rect x="160" y="100" width="60" height="40" rx="5" fill="#80cbc4" stroke="#00796b" stroke-width="1"/>
+                        <text x="190" y="125" text-anchor="middle" fill="#00695c">vTaskResume()</text>
+                        <text x="190" y="140" text-anchor="middle" fill="#00695c">计数器-1</text>
+                        
+                        <rect x="120" y="160" width="60" height="30" rx="5" fill="#a5d6a7" stroke="#00796b" stroke-width="1"/>
+                        <text x="150" y="180" text-anchor="middle" fill="#00695c">计数器=0</text>
+                        <text x="150" y="195" text-anchor="middle" fill="#00695c">任务可运行</text>
+                    </svg>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>嵌套挂起恢复的工作原理</h3>
+                <p>FreeRTOS使用<span class="highlight">uxTaskCounter</span>来记录任务的挂起深度：</p>
+                <ul>
+                    <li>初始状态：计数器 = 0（任务可运行）</li>
+                    <li>第一次挂起：计数器 = 1（任务挂起）</li>
+                    <li>第二次挂起：计数器 = 2（任务保持挂起）</li>
+                    <li>第一次恢复：计数器 = 1（任务保持挂起）</li>
+                    <li>第二次恢复：计数器 = 0（任务恢复运行）</li>
+                </ul>
+                
+                <div class="code-block">
+                    <pre>// 示例：嵌套挂起与恢复
+void vExampleTask( void *pvParameters )
+{
+    for( ;; )
+    {
+        // 任务代码...
+        
+        // 第一次挂起任务
+        vTaskSuspend( xTaskHandle );
+        
+        // 第二次挂起任务（嵌套）
+        vTaskSuspend( xTaskHandle );
+        
+        // 此时任务需要两次恢复才能重新运行
+    }
+}
+
+void vResumeTask( void *pvParameters )
+{
+    for( ;; )
+    {
+        // 第一次恢复 - 任务仍然挂起
+        vTaskResume( xTaskHandle );
+        
+        // 第二次恢复 - 任务恢复运行
+        vTaskResume( xTaskHandle );
+    }
+}</pre>
+                </div>
+            </div>
+            
+            <div class="card full-width">
+                <h3>嵌套挂起恢复的状态转换表</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>操作序列</th>
+                            <th>挂起计数器值</th>
+                            <th>任务状态</th>
+                            <th>说明</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>初始状态</td>
+                            <td>0</td>
+                            <td>就绪/运行</td>
+                            <td>任务可运行</td>
+                        </tr>
+                        <tr>
+                            <td>vTaskSuspend()</td>
+                            <td>1</td>
+                            <td>挂起</td>
+                            <td>任务被挂起</td>
+                        </tr>
+                        <tr>
+                            <td>vTaskSuspend()</td>
+                            <td>2</td>
+                            <td>挂起</td>
+                            <td>任务保持挂起状态</td>
+                        </tr>
+                        <tr>
+                            <td>vTaskResume()</td>
+                            <td>1</td>
+                            <td>挂起</td>
+                            <td>任务仍然挂起</td>
+                        </tr>
+                        <tr>
+                            <td>vTaskResume()</td>
+                            <td>0</td>
+                            <td>就绪</td>
+                            <td>任务恢复运行</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="card">
+                <h3>API函数说明</h3>
+                <p><strong>vTaskSuspend()</strong></p>
+                <ul>
+                    <li>功能：挂起指定任务</li>
+                    <li>参数：xTaskToSuspend - 要挂起的任务句柄</li>
+                    <li>说明：增加任务的挂起计数器，如果计数器从0变为1，则任务进入挂起状态</li>
+                </ul>
+                
+                <p><strong>vTaskResume()</strong></p>
+                <ul>
+                    <li>功能：恢复被挂起的任务</li>
+                    <li>参数：xTaskToResume - 要恢复的任务句柄</li>
+                    <li>说明：减少任务的挂起计数器，如果计数器从1变为0，则任务恢复运行</li>
+                </ul>
+                
+                <p><strong>xTaskResumeFromISR()</strong></p>
+                <ul>
+                    <li>功能：从中断服务程序中恢复被挂起的任务</li>
+                    <li>参数：xTaskToResume - 要恢复的任务句柄</li>
+                    <li>返回值：pdTRUE表示恢复操作导致任务切换</li>
+                </ul>
+            </div>
+            
+            <div class="card">
+                <h3>实际应用场景</h3>
+                <ol>
+                    <li><strong>资源保护</strong>：多个模块需要临时禁用某个任务</li>
+                    <li><strong>同步控制</strong>：复杂的状态机需要多次挂起/恢复</li>
+                    <li><strong>调试支持</strong>：调试器可能需要多次挂起任务</li>
+                    <li><strong>电源管理</strong>：深度睡眠前挂起所有非关键任务</li>
+                </ol>
+                
+                <div class="note">
+                    <p><strong>重要提示：</strong>使用嵌套挂起恢复时，必须确保挂起和恢复的次数匹配，否则可能导致任务永远挂起或意外恢复。</p>
+                </div>
+            </div>
+            
+            <div class="card full-width">
+                <h3>FreeRTOS任务状态机与挂起恢复</h3>
+                <div class="svg-container">
+                    <svg width="600" height="300" viewBox="0 0 600 300">
+                        <!-- 状态机图 -->
+                        <rect x="50" y="50" width="100" height="60" rx="10" fill="#c8e6c9" stroke="#4caf50" stroke-width="2"/>
+                        <text x="100" y="85" text-anchor="middle" fill="#2e7d32" font-weight="bold">就绪</text>
+                        
+                        <rect x="50" y="150" width="100" height="60" rx="10" fill="#ffcdd2" stroke="#f44336" stroke-width="2"/>
+                        <text x="100" y="185" text-anchor="middle" fill="#c62828" font-weight="bold">挂起</text>
+                        
+                        <rect x="200" y="50" width="100" height="60" rx="10" fill="#fff9c4" stroke="#ffeb3b" stroke-width="2"/>
+                        <text x="250" y="85" text-anchor="middle" fill="#f9a825" font-weight="bold">运行</text>
+                        
+                        <rect x="350" y="50" width="100" height="60" rx="10" fill="#bbdefb" stroke="#2196f3" stroke-width="2"/>
+                        <text x="400" y="85" text-anchor="middle" fill="#1565c0" font-weight="bold">阻塞</text>
+                        
+                        <!-- 转换箭头 -->
+                        <path d="M150 80 L200 80" stroke="#4caf50" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+                        <text x="175" y="75" text-anchor="middle" fill="#4caf50">调度器选择</text>
+                        
+                        <path d="M250 80 L300 80" stroke="#2196f3" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+                        <text x="275" y="75" text-anchor="middle" fill="#2196f3">等待事件</text>
+                        
+                        <path d="M400 80 L450 80 L450 150 L150 150" stroke="#ff9800" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+                        <text x="300" y="120" text-anchor="middle" fill="#ff9800">事件发生</text>
+                        
+                        <path d="M100 110 L100 150" stroke="#f44336" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+                        <text x="120" y="130" text-anchor="middle" fill="#f44336">vTaskSuspend()</text>
+                        
+                        <path d="M100 180 L100 220 L300 220 L300 110" stroke="#4caf50" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+                        <text x="200" y="210" text-anchor="middle" fill="#4caf50">vTaskResume()</text>
+                        
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#4caf50"/>
+                            </marker>
+                        </defs>
+                    </svg>
+                </div>
+            </div>
+            
+            <div class="card full-width">
+                <h3>最佳实践与注意事项</h3>
+                <div class="content">
+                    <div>
+                        <h4>最佳实践</h4>
+                        <ul>
+                            <li>使用计数器跟踪挂起/恢复操作</li>
+                            <li>在模块化设计中，每个模块负责自己的挂起/恢复</li>
+                            <li>使用xTaskResumeFromISR()从中断恢复任务</li>
+                            <li>在任务删除前确保它没有被挂起</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>常见错误</h4>
+                        <ul>
+                            <li>挂起和恢复次数不匹配</li>
+                            <li>在中断中调用vTaskSuspend()</li>
+                            <li>忘记处理嵌套情况</li>
+                            <li>在任务已删除后尝试恢复</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="code-block">
+                    <pre>// 正确的嵌套挂起恢复示例
+void vSafeSuspendResume( void )
+{
+    static UBaseType_t uxSuspendCount = 0;
+    
+    // 挂起任务
+    vTaskSuspend( xTaskHandle );
+    uxSuspendCount++;
+    
+    // 执行需要挂起的操作...
+    
+    // 恢复任务（确保匹配）
+    if( uxSuspendCount > 0 )
+    {
+        vTaskResume( xTaskHandle );
+        uxSuspendCount--;
+    }
+}</pre>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            蓝海资料掘金营
+        </div>
+    </div>
+</body>
+</html>

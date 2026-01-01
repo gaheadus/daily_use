@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS任务管理50问 - 任务临界区保护</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #f9fbe7 50%, #e8f5e9 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px dashed #4db6ac;
+        }
+        
+        .header h1 {
+            color: #00695c;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h2 {
+            color: #00796b;
+            font-size: 1.8rem;
+            font-weight: normal;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h3 {
+            color: #00796b;
+            border-bottom: 2px solid #80cbc4;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+        
+        .card-content {
+            padding: 10px 0;
+        }
+        
+        .code-block {
+            background: #f5f5f5;
+            border-left: 4px solid #4db6ac;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+            overflow-x: auto;
+        }
+        
+        pre {
+            white-space: pre-wrap;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0f2f1;
+        }
+        
+        th {
+            background-color: #4db6ac;
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f1f8e9;
+        }
+        
+        tr:hover {
+            background-color: #e0f2f1;
+        }
+        
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .comparison {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #e1f5fe 0%, #f3e5f5 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+        }
+        
+        .comparison h3 {
+            text-align: center;
+            color: #7b1fa2;
+            margin-bottom: 20px;
+        }
+        
+        .comparison-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .comparison-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        }
+        
+        .comparison-card h4 {
+            color: #7b1fa2;
+            border-bottom: 1px solid #ce93d8;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px dashed #4db6ac;
+            color: #00695c;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        
+        ul, ol {
+            padding-left: 20px;
+            margin: 15px 0;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        .highlight {
+            background-color: #fff9c4;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+            
+            .comparison-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>FreeRTOS任务管理50问</h1>
+            <h2>46、任务临界区保护：进入和退出临界区的方法</h2>
+        </div>
+        
+        <div class="content">
+            <div class="card">
+                <h3>什么是临界区？</h3>
+                <div class="card-content">
+                    <p>临界区是指一段必须<span class="highlight">原子性执行</span>的代码区域，在这段代码执行期间，不能被其他任务或中断打断。</p>
+                    <p>在FreeRTOS中，临界区保护用于确保共享资源（如全局变量、外设寄存器等）在访问时不会被其他任务或中断意外修改。</p>
+                    
+                    <div class="svg-container">
+                        <svg width="300" height="200" viewBox="0 0 300 200">
+                            <rect x="50" y="50" width="200" height="100" fill="#e1f5fe" stroke="#4db6ac" stroke-width="2"/>
+                            <text x="150" y="80" text-anchor="middle" fill="#00695c" font-weight="bold">任务A</text>
+                            <rect x="70" y="90" width="160" height="40" fill="#c8e6c9" stroke="#388e3c" stroke-width="2"/>
+                            <text x="150" y="115" text-anchor="middle" fill="#1b5e20">临界区</text>
+                            <path d="M 50 150 L 250 150" stroke="#f44336" stroke-width="2" stroke-dasharray="5,5"/>
+                            <text x="150" y="170" text-anchor="middle" fill="#c62828">中断可能发生的位置</text>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>为什么需要临界区保护？</h3>
+                <div class="card-content">
+                    <ul>
+                        <li><span class="highlight">防止数据竞争</span>：多个任务同时访问共享数据可能导致数据不一致</li>
+                        <li><span class="highlight">保证操作的原子性</span>：确保一系列操作要么全部完成，要么全部不执行</li>
+                        <li><span class="highlight">避免优先级反转</span>：高优先级任务等待低优先级任务释放资源</li>
+                        <li><span class="highlight">保护硬件资源</span>：确保对外设的访问不会被中断打断</li>
+                    </ul>
+                    
+                    <div class="code-block">
+                        <pre>// 不安全的共享资源访问示例
+int shared_counter = 0;
+
+void Task1(void *pvParameters) {
+    while(1) {
+        shared_counter++;  // 可能被中断打断
+        vTaskDelay(100 / portTICK_PERIOD_MS);
+    }
+}
+
+void Task2(void *pvParameters) {
+    while(1) {
+        shared_counter--;  // 可能被中断打断
+        vTaskDelay(150 / portTICK_PERIOD_MS);
+    }
+}</pre>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>进入和退出临界区的方法</h3>
+                <div class="card-content">
+                    <p>FreeRTOS提供了多种进入和退出临界区的方法：</p>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>方法</th>
+                                <th>函数原型</th>
+                                <th>说明</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>基本临界区</td>
+                                <td>taskENTER_CRITICAL()<br>taskEXIT_CRITICAL()</td>
+                                <td>简单禁用中断，适用于短时间操作</td>
+                            </tr>
+                            <tr>
+                                <td>带FromISR版本</td>
+                                <td>taskENTER_CRITICAL_FROM_ISR()<br>taskEXIT_CRITICAL_FROM_ISR()</td>
+                                <td>在中断服务程序中使用</td>
+                            </tr>
+                            <tr>
+                                <td>调度器挂起</td>
+                                <td>vTaskSuspendAll()<br>xTaskResumeAll()</td>
+                                <td>挂起任务调度，但不禁止中断</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="code-block">
+                        <pre>// 使用临界区保护共享资源
+int shared_counter = 0;
+
+void SafeTask(void *pvParameters) {
+    while(1) {
+        // 进入临界区
+        taskENTER_CRITICAL();
+        
+        // 安全地访问共享资源
+        shared_counter++;
+        
+        // 退出临界区
+        taskEXIT_CRITICAL();
+        
+        vTaskDelay(100 / portTICK_PERIOD_MS);
+    }
+}</pre>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>临界区的实现原理</h3>
+                <div class="card-content">
+                    <p>FreeRTOS通过操作处理器的中断屏蔽寄存器来实现临界区保护：</p>
+                    
+                    <ol>
+                        <li><span class="highlight">taskENTER_CRITICAL()</span>：保存当前中断状态并禁用可配置优先级的中断</li>
+                        <li><span class="highlight">taskEXIT_CRITICAL()</span>：恢复之前保存的中断状态</li>
+                        <li>使用<span class="highlight">嵌套计数</span>来支持临界区的嵌套调用</li>
+                    </ol>
+                    
+                    <div class="svg-container">
+                        <svg width="350" height="250" viewBox="0 0 350 250">
+                            <!-- 任务执行流程 -->
+                            <rect x="50" y="30" width="250" height="40" fill="#bbdefb" stroke="#1976d2" stroke-width="2"/>
+                            <text x="175" y="55" text-anchor="middle" fill="#0d47a1">正常任务执行</text>
+                            
+                            <path d="M 175 70 L 175 90" stroke="#1976d2" stroke-width="2"/>
+                            <polygon points="170,90 175,100 180,90" fill="#1976d2"/>
+                            
+                            <rect x="100" y="90" width="150" height="40" fill="#c8e6c9" stroke="#388e3c" stroke-width="2"/>
+                            <text x="175" y="115" text-anchor="middle" fill="#1b5e20">taskENTER_CRITICAL()</text>
+                            
+                            <path d="M 175 130 L 175 150" stroke="#388e3c" stroke-width="2"/>
+                            <polygon points="170,150 175,160 180,150" fill="#388e3c"/>
+                            
+                            <rect x="50" y="150" width="250" height="40" fill="#ffcdd2" stroke="#d32f2f" stroke-width="2"/>
+                            <text x="175" y="175" text-anchor="middle" fill="#b71c1c">临界区代码执行</text>
+                            
+                            <path d="M 175 190 L 175 210" stroke="#d32f2f" stroke-width="2"/>
+                            <polygon points="170,210 175,220 180,210" fill="#d32f2f"/>
+                            
+                            <rect x="100" y="210" width="150" height="40" fill="#ffecb3" stroke="#ffa000" stroke-width="2"/>
+                            <text x="175" y="235" text-anchor="middle" fill="#ff6f00">taskEXIT_CRITICAL()</text>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="comparison">
+            <h3>不同临界区保护方法的比较</h3>
+            <div class="comparison-content">
+                <div class="comparison-card">
+                    <h4>taskENTER_CRITICAL() / taskEXIT_CRITICAL()</h4>
+                    <ul>
+                        <li><span class="highlight">优点</span>：
+                            <ul>
+                                <li>简单易用</li>
+                                <li>保护最全面（禁用中断）</li>
+                                <li>支持嵌套调用</li>
+                            </ul>
+                        </li>
+                        <li><span class="highlight">缺点</span>：
+                            <ul>
+                                <li>增加中断延迟</li>
+                                <li>不适合长时间操作</li>
+                            </ul>
+                        </li>
+                        <li><span class="highlight">适用场景</span>：
+                            <ul>
+                                <li>短时间的共享资源访问</li>
+                                <li>需要绝对原子性的操作</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="comparison-card">
+                    <h4>vTaskSuspendAll() / xTaskResumeAll()</h4>
+                    <ul>
+                        <li><span class="highlight">优点</span>：
+                            <ul>
+                                <li>不禁止中断，中断延迟小</li>
+                                <li>适合较长时间的操作</li>
+                            </ul>
+                        </li>
+                        <li><span class="highlight">缺点</span>：
+                            <ul>
+                                <li>不能防止中断服务程序访问共享资源</li>
+                                <li>可能导致任务响应延迟</li>
+                            </ul>
+                        </li>
+                        <li><span class="highlight">适用场景</span>：
+                            <ul>
+                                <li>长时间的非中断敏感操作</li>
+                                <li>需要防止任务切换但不需防中断的场景</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3>最佳实践和注意事项</h3>
+            <div class="card-content">
+                <ul>
+                    <li><span class="highlight">保持临界区尽可能短</span>：长时间禁用中断会影响系统实时性</li>
+                    <li><span class="highlight">避免在临界区内调用可能引起阻塞的API</span>：如vTaskDelay()</li>
+                    <li><span class="highlight">注意嵌套使用</span>：确保进入和退出次数匹配</li>
+                    <li><span class="highlight">合理选择保护方法</span>：根据具体需求选择适当的保护机制</li>
+                    <li><span class="highlight">考虑使用互斥量或信号量</span>：对于复杂的同步需求</li>
+                </ul>
+                
+                <div class="code-block">
+                    <pre>// 良好的临界区使用示例
+void GoodCriticalSectionUsage(void) {
+    // 进入临界区
+    taskENTER_CRITICAL();
+    
+    // 执行必要的原子操作
+    UpdateSharedData();
+    ConfigureHardware();
+    
+    // 立即退出临界区
+    taskEXIT_CRITICAL();
+    
+    // 在临界区外执行非关键操作
+    LogOperationResult();
+    SendNotification();
+}
+
+// 不良的临界区使用示例
+void BadCriticalSectionUsage(void) {
+    // 进入临界区
+    taskENTER_CRITICAL();
+    
+    // 执行原子操作
+    UpdateSharedData();
+    
+    // 错误：在临界区内调用可能阻塞的函数
+    vTaskDelay(100 / portTICK_PERIOD_MS);  // 这会导致系统问题！
+    
+    // 执行更多操作
+    ConfigureHardware();
+    
+    // 退出临界区
+    taskEXIT_CRITICAL();
+}</pre>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            蓝海资料掘金营
+        </div>
+    </div>
+</body>
+</html>

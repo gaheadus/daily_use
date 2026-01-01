@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS从入门到实战 - 任务调度与时间管理</title>
+    <style>
+        :root {
+            --tech-blue: #3498db;
+            --vitality-orange: #f39c12;
+            --fresh-green: #2ecc71;
+            --light-bg: #f8f9fa;
+            --dark-text: #2c3e50;
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            color: var(--dark-text);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            padding: 30px 20px;
+            background: linear-gradient(to right, var(--tech-blue), var(--fresh-green));
+            color: white;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            box-shadow: var(--card-shadow);
+        }
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        main {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s ease;
+            border-top: 6px solid var(--tech-blue);
+        }
+        .card:nth-child(2) { border-top-color: var(--vitality-orange); }
+        .card:nth-child(3) { border-top-color: var(--fresh-green); }
+        .card:nth-child(4) { border-top-color: #9b59b6; }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        h2 {
+            color: var(--tech-blue);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px dashed #eee;
+            font-size: 1.8rem;
+        }
+        h3 {
+            color: var(--vitality-orange);
+            margin: 15px 0 10px;
+        }
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        ul, ol {
+            padding-left: 25px;
+            margin-bottom: 15px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: var(--tech-blue);
+            color: white;
+            font-weight: 600;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        pre {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 18px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            border-left: 5px solid var(--fresh-green);
+        }
+        code {
+            background: #f1f1f1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            color: #c7254e;
+        }
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .arch-diagram {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            margin: 25px 0;
+        }
+        footer {
+            text-align: center;
+            padding: 25px;
+            margin-top: 40px;
+            background: linear-gradient(to right, #2c3e50, #34495e);
+            color: white;
+            border-radius: 16px;
+            font-size: 1.3rem;
+            letter-spacing: 2px;
+            box-shadow: var(--card-shadow);
+        }
+        .highlight {
+            background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .note {
+            background: #fff8e1;
+            border-left: 5px solid var(--vitality-orange);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>FreeRTOS从入门到实战</h1>
+        <p class="subtitle">第六章：任务调度深入与时间管理</p>
+        <p>调度器启动、时钟节拍、任务延时、空闲任务及其钩子函数</p>
+    </header>
+
+    <main>
+        <section class="card">
+            <h2>1. 调度器启动 vTaskStartScheduler()</h2>
+            <p>这是FreeRTOS的“引擎启动键”。调用此函数后，内核正式接管CPU，开始多任务调度。</p>
+            <h3>主要工作流程：</h3>
+            <ol>
+                <li>创建<span class="highlight">空闲任务(Idle Task)</span>，优先级为0（最低）。</li>
+                <li>如果启用软件定时器，则创建<span class="highlight">定时器服务任务</span>。</li>
+                <li>初始化系统时钟节拍中断（如SysTick）。</li>
+                <li>启动第一个任务（通常是最高优先级的就绪任务）。</li>
+                <li>从此，系统进入<span class="highlight">多任务并行运行</span>状态。</li>
+            </ol>
+            <div class="svg-container">
+                <svg width="300" height="180" viewBox="0 0 300 180">
+                    <rect x="10" y="20" width="280" height="140" rx="10" fill="#e3f2fd" stroke="#3498db" stroke-width="2"/>
+                    <rect x="40" y="40" width="220" height="30" rx="5" fill="#bbdefb"/>
+                    <text x="150" y="60" text-anchor="middle" fill="#0d47a1" font-weight="bold">vTaskStartScheduler()</text>
+                    <path d="M150 70 L150 90" stroke="#f39c12" stroke-width="2" marker-end="url(#arrow)"/>
+                    <rect x="60" y="100" width="180" height="30" rx="5" fill="#c8e6c9"/>
+                    <text x="150" y="120" text-anchor="middle" fill="#1b5e20">启动调度，任务开始运行</text>
+                    <defs>
+                        <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                            <path d="M0,0 L0,6 L9,3 z" fill="#f39c12"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+            <pre><code>void vTaskStartScheduler( void )
+{
+    // 1. 创建空闲任务
+    xIdleTaskHandle = xTaskCreate( prvIdleTask, "IDLE", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+
+    // 2. 如果启用定时器，创建定时器服务任务
+    #if ( configUSE_TIMERS == 1 )
+        xTimerCreateTimerTask();
+    #endif
+
+    // 3. 启动硬件定时器，产生Tick中断
+    xPortStartScheduler();
+
+    // 4. 正常情况下不会返回，若返回则说明启动失败
+}</code></pre>
+        </section>
+
+        <section class="card">
+            <h2>2. 时钟节拍（Tick）</h2>
+            <p>FreeRTOS的心跳，由硬件定时器周期性中断产生，是任务调度和时间测量的基准。</p>
+            <h3>关键特性：</h3>
+            <ul>
+                <li>频率由<span class="highlight">configTICK_RATE_HZ</span>配置，常见为1000Hz（1ms）。</li>
+                <li>每个Tick中断，内核会：
+                    <ul>
+                        <li>更新系统时间（xTickCount）。</li>
+                        <li>检查是否有任务延时到期。</li>
+                        <li>执行调度（如果使用抢占式调度）。</li>
+                    </ul>
+                </li>
+                <li>Tick中断服务例程中必须调用<span class="highlight">xTaskIncrementTick()</span>或<span class="highlight">vTaskSwitchContext()</span>。</li>
+            </ul>
+            <table>
+                <thead>
+                    <tr><th>配置宏</th><th>说明</th><th>典型值</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>configTICK_RATE_HZ</td><td>Tick频率</td><td>1000 (1ms)</td></tr>
+                    <tr><td>configUSE_TICKLESS_IDLE</td><td>低功耗Tickless模式</td><td>1 或 0</td></tr>
+                    <tr><td>portTICK_PERIOD_MS</td><td>一个Tick的毫秒数</td><td>1 (当频率为1000Hz时)</td></tr>
+                </tbody>
+            </table>
+            <div class="note">
+                <strong>注意：</strong> Tick频率越高，时间精度越高，但中断开销也越大。需根据应用平衡选择。
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>3. 任务延时函数</h2>
+            <p>让任务主动让出CPU，进入阻塞状态，是实现协作与时间控制的关键。</p>
+            <h3>vTaskDelay( TickType_t xTicksToDelay )</h3>
+            <p>相对延时，从调用点开始，延时指定的Tick数。</p>
+            <pre><code>// 延时100个Tick（假设1 Tick = 1ms，则延时100ms）
+vTaskDelay( 100 / portTICK_PERIOD_MS );
+
+// 常用模式：周期性执行（但会受任务执行时间影响）
+void vTaskPeriodic( void *pvParameters )
+{
+    while(1) {
+        // 执行任务工作
+        doWork();
+        // 延时100ms
+        vTaskDelay( pdMS_TO_TICKS(100) );
+    }
+}</code></pre>
+            <h3>vTaskDelayUntil( TickType_t *pxPreviousWakeTime, TickType_t xTimeIncrement )</h3>
+            <p>绝对延时，用于实现<span class="highlight">固定频率</span>的精确周期执行。</p>
+            <pre><code>// 精确每50ms执行一次
+void vTaskPrecisePeriodic( void *pvParameters )
+{
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+    while(1) {
+        // 执行任务工作
+        doPreciseWork();
+        // 精确延时到下一个周期点
+        vTaskDelayUntil( &xLastWakeTime, pdMS_TO_TICKS(50) );
+    }
+}</code></pre>
+            <div class="svg-container">
+                <svg width="320" height="150" viewBox="0 0 320 150">
+                    <rect x="10" y="10" width="300" height="130" rx="8" fill="#f3e5f5" stroke="#9b59b6" stroke-width="2"/>
+                    <text x="160" y="35" text-anchor="middle" fill="#4a148c" font-weight="bold">两种延时对比</text>
+                    <line x1="50" y1="60" x2="270" y2="60" stroke="#7e57c2" stroke-width="2" stroke-dasharray="5,5"/>
+                    <circle cx="80" cy="60" r="6" fill="#f39c12"/>
+                    <text x="80" y="90" text-anchor="middle" fill="#e65100" font-size="14">vTaskDelay</text>
+                    <text x="80" y="110" text-anchor="middle" fill="#555" font-size="12">相对时间点</text>
+                    <circle cx="160" cy="60" r="6" fill="#3498db"/>
+                    <circle cx="240" cy="60" r="6" fill="#3498db"/>
+                    <text x="200" y="90" text-anchor="middle" fill="#1565c0" font-size="14">vTaskDelayUntil</text>
+                    <text x="200" y="110" text-anchor="middle" fill="#555" font-size="12">绝对固定周期</text>
+                    <path d="M80 60 L150 60" stroke="#f39c12" stroke-width="3"/>
+                    <path d="M160 60 L230 60" stroke="#3498db" stroke-width="3"/>
+                    <text x="115" y="50" text-anchor="middle" fill="#f39c12" font-size="12">延时区间</text>
+                    <text x="195" y="50" text-anchor="middle" fill="#3498db" font-size="12">固定周期</text>
+                </svg>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>4. 空闲任务（Idle Task）及其钩子函数</h2>
+            <p>系统“后台”任务，优先级最低，当没有其他任务运行时自动执行。</p>
+            <h3>空闲任务的作用：</h3>
+            <ul>
+                <li>清理被删除任务的内存。</li>
+                <li>执行低功耗模式（如WFI）。</li>
+                <li>运行用户定义的钩子函数（Idle Hook）。</li>
+            </ul>
+            <h3>钩子函数（Idle Hook）配置与使用：</h3>
+            <ol>
+                <li>在<span class="highlight">FreeRTOSConfig.h</span>中启用：<code>#define configUSE_IDLE_HOOK 1</code></li>
+                <li>实现函数：<code>void vApplicationIdleHook( void );</code></li>
+                <li>钩子函数中<span class="highlight">不能</span>调用可能引起阻塞的API（如vTaskDelay）。</li>
+            </ol>
+            <pre><code>// 空闲任务钩子函数示例：执行低功耗或简单后台统计
+void vApplicationIdleHook( void )
+{
+    // 1. 进入低功耗模式（依赖硬件）
+    __WFI(); // ARM Cortex-M 等待中断指令
+
+    // 2. 简单的后台统计（注意非原子操作）
+    static uint32_t idleCounter = 0;
+    idleCounter++;
+
+    // 3. 用户自定义的轻量级后台处理
+    // ...
+}</code></pre>
+            <div class="arch-diagram">
+                <h3>FreeRTOS任务调度与时间管理架构图</h3>
+                <div class="svg-container">
+                    <svg width="350" height="220" viewBox="0 0 350 220">
+                        <rect x="20" y="20" width="310" height="180" rx="10" fill="#fff" stroke="#2c3e50" stroke-width="2"/>
+                        <rect x="40" y="40" width="130" height="40" rx="6" fill="#bbdefb"/>
+                        <text x="105" y="65" text-anchor="middle" fill="#0d47a1" font-size="14" font-weight="bold">应用任务</text>
+                        <rect x="40" y="100" width="130" height="40" rx="6" fill="#c8e6c9"/>
+                        <text x="105" y="125" text-anchor="middle" fill="#1b5e20" font-size="14" font-weight="bold">定时器任务</text>
+                        <rect x="40" y="160" width="130" height="40" rx="6" fill="#ffecb3"/>
+                        <text x="105" y="185" text-anchor="middle" fill="#ff6f00" font-size="14" font-weight="bold">空闲任务</text>
+                        <rect x="200" y="60" width="120" height="100" rx="8" fill="#fce4ec" stroke="#ad1457" stroke-width="2"/>
+                        <text x="260" y="85" text-anchor="middle" fill="#880e4f" font-size="16" font-weight="bold">内核</text>
+                        <text x="260" y="110" text-anchor="middle" fill="#c2185b" font-size="13">调度器</text>
+                        <text x="260" y="130" text-anchor="middle" fill="#c2185b" font-size="13">Tick管理</text>
+                        <text x="260" y="150" text-anchor="middle" fill="#c2185b" font-size="13">延时队列</text>
+                        <path d="M170 60 L200 85" stroke="#555" stroke-width="1.5" stroke-dasharray="3,3"/>
+                        <path d="M170 120 L200 110" stroke="#555" stroke-width="1.5" stroke-dasharray="3,3"/>
+                        <path d="M170 180 L200 135" stroke="#555" stroke-width="1.5" stroke-dasharray="3,3"/>
+                        <circle cx="320" cy="110" r="15" fill="#e57373"/>
+                        <text x="320" y="115" text-anchor="middle" fill="#fff" font-size="12">Tick</text>
+                        <path d="M320 95 L320 40" stroke="#e57373" stroke-width="2" marker-end="url(#arrow2)"/>
+                        <text x="340" y="60" text-anchor="start" fill="#d32f2f" font-size="11">硬件中断</text>
+                        <defs>
+                            <marker id="arrow2" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto">
+                                <path d="M0,0 L8,4 L0,8 z" fill="#e57373"/>
+                            </marker>
+                        </defs>
+                    </svg>
+                </div>
+            </div>
+            <div class="note">
+                <strong>最佳实践：</strong> 钩子函数应非常简短，避免影响低功耗进入，且不应长时间关闭中断。
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        蓝海资料掘金营
+    </footer>
+</body>
+</html>

@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS任务管理50问 - 任务标签获取</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #f9fbe7 50%, #e8f5e9 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #4fc3f7 0%, #29b6f6 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #0288d1;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid #4fc3f7;
+        }
+        
+        h2 {
+            color: #0288d1;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px dashed #b3e5fc;
+        }
+        
+        h3 {
+            color: #0097a7;
+            margin: 15px 0 10px;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        th {
+            background: #4fc3f7;
+            color: white;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        
+        td {
+            padding: 10px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        tr:nth-child(even) {
+            background: #f5f5f5;
+        }
+        
+        tr:hover {
+            background: #e1f5fe;
+        }
+        
+        pre {
+            background: #f5f5f5;
+            border-left: 4px solid #4fc3f7;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+            border-radius: 5px;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+        
+        code {
+            background: #e3f2fd;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+        
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .note {
+            background: #e8f5e9;
+            border-left: 4px solid #66bb6a;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        
+        .warning {
+            background: #fff3e0;
+            border-left: 4px solid #ffa726;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+        
+        footer {
+            background: linear-gradient(135deg, #0288d1 0%, #01579b 100%);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: 30px;
+            font-size: 1.1rem;
+        }
+        
+        .example-box {
+            background: #f1f8e9;
+            border: 1px solid #c5e1a5;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .function-signature {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>FreeRTOS任务管理50问</h1>
+            <div class="subtitle">第25问：任务标签获取 - xTaskGetApplicationTaskTag函数使用</div>
+        </header>
+        
+        <div class="content">
+            <div class="section">
+                <h2>任务标签概述</h2>
+                <p>在FreeRTOS中，任务标签（Task Tag）是一个非常有用的功能，它允许开发者为每个任务分配一个自定义的标签值。这个标签值可以是任何32位的数据，通常用于存储与任务相关的特定信息，如任务ID、优先级标识、调试信息或其他自定义数据。</p>
+                
+                <div class="svg-container">
+                    <svg width="600" height="200" viewBox="0 0 600 200">
+                        <rect x="50" y="50" width="100" height="60" rx="10" fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                        <text x="100" y="85" text-anchor="middle" fill="white" font-weight="bold">任务1</text>
+                        <text x="100" y="105" text-anchor="middle" fill="white" font-size="12">标签: 0x1234</text>
+                        
+                        <rect x="200" y="50" width="100" height="60" rx="10" fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                        <text x="250" y="85" text-anchor="middle" fill="white" font-weight="bold">任务2</text>
+                        <text x="250" y="105" text-anchor="middle" fill="white" font-size="12">标签: 0x5678</text>
+                        
+                        <rect x="350" y="50" width="100" height="60" rx="10" fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                        <text x="400" y="85" text-anchor="middle" fill="white" font-weight="bold">任务3</text>
+                        <text x="400" y="105" text-anchor="middle" fill="white" font-size="12">标签: 0x9ABC</text>
+                        
+                        <rect x="450" y="120" width="120" height="40" rx="5" fill="#ffcc80" stroke="#ff9800" stroke-width="2"/>
+                        <text x="510" y="145" text-anchor="middle" fill="#333" font-size="14">任务标签表</text>
+                        
+                        <line x1="150" y1="80" x2="450" y2="140" stroke="#666" stroke-width="2" stroke-dasharray="5,5"/>
+                        <line x1="250" y1="80" x2="470" y2="140" stroke="#666" stroke-width="2" stroke-dasharray="5,5"/>
+                        <line x1="350" y1="80" x2="490" y2="140" stroke="#666" stroke-width="2" stroke-dasharray="5,5"/>
+                    </svg>
+                </div>
+                
+                <p>任务标签的主要用途包括：</p>
+                <ul>
+                    <li><strong>调试和跟踪</strong>：在调试时标识不同的任务</li>
+                    <li><strong>任务识别</strong>：在回调函数或钩子函数中识别特定任务</li>
+                    <li><strong>数据关联</strong>：将特定数据与任务关联起来</li>
+                    <li><strong>性能分析</strong>：在性能分析工具中标识任务</li>
+                </ul>
+            </div>
+            
+            <div class="section">
+                <h2>xTaskGetApplicationTaskTag函数详解</h2>
+                
+                <div class="function-signature">
+                    TaskHookFunction_t xTaskGetApplicationTaskTag( TaskHandle_t xTask );
+                </div>
+                
+                <h3>函数参数</h3>
+                <table>
+                    <tr>
+                        <th>参数</th>
+                        <th>类型</th>
+                        <th>描述</th>
+                    </tr>
+                    <tr>
+                        <td>xTask</td>
+                        <td>TaskHandle_t</td>
+                        <td>要获取标签的任务句柄。如果为NULL，则获取调用任务自身的标签</td>
+                    </tr>
+                </table>
+                
+                <h3>返回值</h3>
+                <table>
+                    <tr>
+                        <th>返回值</th>
+                        <th>描述</th>
+                    </tr>
+                    <tr>
+                        <td>TaskHookFunction_t</td>
+                        <td>实际上是一个32位无符号整数，表示任务的标签值</td>
+                    </tr>
+                </table>
+                
+                <div class="note">
+                    <p><strong>注意：</strong>TaskHookFunction_t 类型实际上被定义为 uint32_t，用于存储任务的标签值。</p>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>使用示例</h2>
+                
+                <h3>示例1：设置和获取任务标签</h3>
+                <div class="example-box">
+                    <pre><code>#include "FreeRTOS.h"
+#include "task.h"
+
+// 定义任务标签值
+#define TASK1_TAG    0x12345678
+#define TASK2_TAG    0x87654321
+
+// 任务1函数
+void vTask1(void *pvParameters)
+{
+    // 设置任务1的标签
+    vTaskSetApplicationTaskTag(NULL, (TaskHookFunction_t)TASK1_TAG);
+    
+    for(;;)
+    {
+        // 获取自身任务的标签
+        uint32_t tagValue = (uint32_t)xTaskGetApplicationTaskTag(NULL);
+        
+        // 使用标签值进行一些操作
+        if(tagValue == TASK1_TAG)
+        {
+            // 这是任务1
+            // 执行任务1特定的操作
+        }
+        
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+}
+
+// 任务2函数
+void vTask2(void *pvParameters)
+{
+    TaskHandle_t xTask1Handle = (TaskHandle_t)pvParameters;
+    
+    // 设置任务2的标签
+    vTaskSetApplicationTaskTag(NULL, (TaskHookFunction_t)TASK2_TAG);
+    
+    for(;;)
+    {
+        // 获取任务1的标签
+        uint32_t task1Tag = (uint32_t)xTaskGetApplicationTaskTag(xTask1Handle);
+        
+        printf("任务1的标签值: 0x%08lX\n", task1Tag);
+        
+        vTaskDelay(pdMS_TO_TICKS(2000));
+    }
+}
+
+int main(void)
+{
+    TaskHandle_t xTask1Handle = NULL;
+    
+    // 创建任务1
+    xTaskCreate(vTask1, "Task1", configMINIMAL_STACK_SIZE, NULL, 1, &xTask1Handle);
+    
+    // 创建任务2，并传递任务1的句柄
+    xTaskCreate(vTask2, "Task2", configMINIMAL_STACK_SIZE, xTask1Handle, 1, NULL);
+    
+    // 启动调度器
+    vTaskStartScheduler();
+    
+    return 0;
+}</code></pre>
+                </div>
+                
+                <h3>示例2：在钩子函数中使用任务标签</h3>
+                <div class="example-box">
+                    <pre><code>// 任务运行时间统计钩子函数
+void vApplicationTickHook(void)
+{
+    TaskHandle_t xCurrentTask = xTaskGetCurrentTaskHandle();
+    uint32_t taskTag = (uint32_t)xTaskGetApplicationTaskTag(xCurrentTask);
+    
+    // 根据任务标签执行不同的操作
+    switch(taskTag)
+    {
+        case 0x11111111:
+            // 处理类型1的任务
+            break;
+            
+        case 0x22222222:
+            // 处理类型2的任务
+            break;
+            
+        case 0x33333333:
+            // 处理类型3的任务
+            break;
+            
+        default:
+            // 处理未知类型的任务
+            break;
+    }
+}
+
+// 任务栈溢出钩子函数
+void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName)
+{
+    uint32_t taskTag = (uint32_t)xTaskGetApplicationTaskTag(xTask);
+    
+    printf("任务栈溢出！任务名: %s, 标签: 0x%08lX\n", pcTaskName, taskTag);
+    
+    // 根据任务标签执行特定的错误处理
+    if(taskTag == CRITICAL_TASK_TAG)
+    {
+        // 关键任务栈溢出，需要紧急处理
+        emergencyHandler();
+    }
+}</code></pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2>任务标签的应用场景</h2>
+                
+                <div class="svg-container">
+                    <svg width="600" height="300" viewBox="0 0 600 300">
+                        <rect x="50" y="50" width="500" height="200" rx="10" fill="#e1f5fe" stroke="#4fc3f7" stroke-width="2"/>
+                        
+                        <circle cx="100" cy="100" r="30" fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                        <text x="100" y="105" text-anchor="middle" fill="white" font-size="14">调试</text>
+                        
+                        <circle cx="200" cy="100" r="30" fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                        <text x="200" y="105" text-anchor="middle" fill="white" font-size="14">跟踪</text>
+                        
+                        <circle cx="300" cy="100" r="30" fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                        <text x="300" y="105" text-anchor="middle" fill="white" font-size="14">识别</text>
+                        
+                        <circle cx="400" cy="100" r="30" fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                        <text x="400" y="105" text-anchor="middle" fill="white" font-size="14">分析</text>
+                        
+                        <circle cx="500" cy="100" r="30" fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                        <text x="500" y="105" text-anchor="middle" fill="white" font-size="14">关联</text>
+                        
+                        <text x="100" y="160" text-anchor="middle" fill="#333" font-size="12">调试信息标识</text>
+                        <text x="200" y="160" text-anchor="middle" fill="#333" font-size="12">任务执行跟踪</text>
+                        <text x="300" y="160" text-anchor="middle" fill="#333" font-size="12">任务类型识别</text>
+                        <text x="400" y="160" text-anchor="middle" fill="#333" font-size="12">性能分析</text>
+                        <text x="500" y="160" text-anchor="middle" fill="#333" font-size="12">数据关联</text>
+                    </svg>
+                </div>
+                
+                <h3>主要应用场景</h3>
+                <ol>
+                    <li><strong>调试和日志记录</strong>：在调试输出中标识不同的任务</li>
+                    <li><strong>任务分类</strong>：根据标签值对任务进行分类处理</li>
+                    <li><strong>钩子函数处理</strong>：在FreeRTOS钩子函数中识别特定任务</li>
+                    <li><strong>性能监控</strong>：在性能监控工具中区分不同任务</li>
+                    <li><strong>错误处理</strong>：在错误处理程序中识别出错的任务类型</li>
+                </ol>
+            </div>
+            
+            <div class="section">
+                <h2>最佳实践和注意事项</h2>
+                
+                <h3>最佳实践</h3>
+                <ul>
+                    <li>为每个任务分配有意义的标签值，便于识别和调试</li>
+                    <li>使用枚举或宏定义来管理标签值，避免魔法数字</li>
+                    <li>在系统初始化时统一设置任务标签</li>
+                    <li>在钩子函数中充分利用任务标签进行任务识别</li>
+                </ul>
+                
+                <h3>注意事项</h3>
+                <div class="warning">
+                    <p><strong>重要提醒：</strong></p>
+                    <ul>
+                        <li>任务标签的默认值为0，在使用前需要先设置</li>
+                        <li>任务标签是每个任务独立的，不会自动继承或共享</li>
+                        <li>在多任务环境中访问其他任务的标签时，需要注意任务同步问题</li>
+                        <li>标签值只是32位数据，不能直接存储指针（在32位系统中可以）</li>
+                    </ul>
+                </div>
+                
+                <h3>相关函数</h3>
+                <table>
+                    <tr>
+                        <th>函数</th>
+                        <th>描述</th>
+                    </tr>
+                    <tr>
+                        <td>vTaskSetApplicationTaskTag</td>
+                        <td>设置任务的标签值</td>
+                    </tr>
+                    <tr>
+                        <td>xTaskGetApplicationTaskTag</td>
+                        <td>获取任务的标签值</td>
+                    </tr>
+                    <tr>
+                        <td>pxTaskGetApplicationTaskTag</td>
+                        <td>获取任务标签的指针（某些FreeRTOS版本）</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div class="section">
+                <h2>总结</h2>
+                <p>xTaskGetApplicationTaskTag函数是FreeRTOS任务管理中一个简单但强大的工具，它允许开发者获取任务的标签值。结合vTaskSetApplicationTaskTag函数，可以实现灵活的任务标识和数据关联功能。</p>
+                
+                <p>通过合理使用任务标签，可以：</p>
+                <ul>
+                    <li>简化调试和故障排查过程</li>
+                    <li>提高代码的可读性和可维护性</li>
+                    <li>实现更灵活的任务管理和监控</li>
+                    <li>在系统级函数中实现针对特定任务的处理逻辑</li>
+                </ul>
+                
+                <p>掌握xTaskGetApplicationTaskTag函数的使用，对于开发复杂的FreeRTOS应用程序具有重要意义。</p>
+            </div>
+        </div>
+        
+        <footer>
+            蓝海资料掘金营
+        </footer>
+    </div>
+</body>
+</html>

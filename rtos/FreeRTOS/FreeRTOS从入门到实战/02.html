@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS从入门到实战 - 开发环境搭建</title>
+    <style>
+        :root {
+            --tech-blue: #3498db;
+            --vitality-orange: #f39c12;
+            --fresh-green: #2ecc71;
+            --light-bg: #f8f9fa;
+            --dark-text: #2c3e50;
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            color: var(--dark-text);
+            line-height: 1.6;
+            padding-bottom: 60px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(90deg, var(--tech-blue), var(--fresh-green));
+            color: white;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            box-shadow: var(--card-shadow);
+        }
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        section {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: var(--card-shadow);
+            border-left: 6px solid var(--tech-blue);
+        }
+        h2 {
+            color: var(--tech-blue);
+            border-bottom: 3px solid var(--vitality-orange);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        h2 svg {
+            margin-right: 12px;
+        }
+        h3 {
+            color: var(--fresh-green);
+            margin: 20px 0 12px;
+        }
+        ul, ol {
+            padding-left: 24px;
+            margin-bottom: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+        th, td {
+            padding: 16px 20px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background-color: var(--tech-blue);
+            color: white;
+            font-weight: 600;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f8ff;
+        }
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            border-left: 5px solid var(--vitality-orange);
+        }
+        .architecture {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 25px 0;
+            text-align: center;
+            border: 2px dashed var(--fresh-green);
+        }
+        .step-card {
+            display: flex;
+            align-items: center;
+            background: #f0f7ff;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border-left: 5px solid var(--vitality-orange);
+        }
+        .step-num {
+            background: var(--vitality-orange);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 25px;
+            color: white;
+            background: linear-gradient(90deg, var(--tech-blue), #2980b9);
+            border-radius: 16px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            box-shadow: var(--card-shadow);
+        }
+        .tip {
+            background: #fff8e1;
+            border-left: 5px solid var(--vitality-orange);
+            padding: 16px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .env-logo {
+            display: inline-block;
+            background: var(--fresh-green);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin: 5px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>FreeRTOS从入门到实战</h1>
+            <p class="subtitle">第二章：开发环境搭建 — 迈出嵌入式实时系统的第一步</p>
+        </header>
+
+        <section>
+            <h2>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
+                课程目标
+            </h2>
+            <p>本章将带领你完成从零开始搭建FreeRTOS开发环境的全过程。你将学会：</p>
+            <ul>
+                <li>根据需求选择合适的STM32或ESP32单片机型号</li>
+                <li>获取官方FreeRTOS源码并理解其目录结构</li>
+                <li>配置Keil、IAR、ESP-IDF或VSCode+PlatformIO开发环境</li>
+                <li>创建、配置并编译你的第一个FreeRTOS工程</li>
+                <li>掌握工程调试与烧录的基本方法</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+                </svg>
+                单片机选型：STM32 vs ESP32
+            </h2>
+            <p>选择合适的微控制器是项目成功的基础。以下是两款主流芯片的对比：</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>特性</th>
+                        <th>STM32 (ARM Cortex-M)</th>
+                        <th>ESP32 (Xtensa LX6)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>核心架构</strong></td>
+                        <td>ARM Cortex-M0/M3/M4/M7</td>
+                        <td>Xtensa LX6 双核/单核</td>
+                    </tr>
+                    <tr>
+                        <td><strong>主频</strong></td>
+                        <td>72MHz - 480MHz</td>
+                        <td>160MHz - 240MHz</td>
+                    </tr>
+                    <tr>
+                        <td><strong>内存</strong></td>
+                        <td>16KB - 1MB SRAM</td>
+                        <td>520KB SRAM</td>
+                    </tr>
+                    <tr>
+                        <td><strong>无线功能</strong></td>
+                        <td>需外接模块</td>
+                        <td>内置Wi-Fi & Bluetooth</td>
+                    </tr>
+                    <tr>
+                        <td><strong>开发环境</strong></td>
+                        <td>Keil, IAR, STM32CubeIDE</td>
+                        <td>ESP-IDF, Arduino, PlatformIO</td>
+                    </tr>
+                    <tr>
+                        <td><strong>适用场景</strong></td>
+                        <td>工业控制、汽车电子、低功耗设备</td>
+                        <td>物联网、智能家居、无线连接设备</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="tip">
+                <strong>选型建议：</strong> 若项目需要强大的无线连接能力，选择ESP32；若需要丰富的模拟外设、高实时性及工业级可靠性，STM32是更优选择。
+            </div>
+        </section>
+
+        <section>
+            <h2>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+                FreeRTOS源码获取与结构
+            </h2>
+            <p>FreeRTOS是开源、免费的实时操作系统内核，可通过以下方式获取：</p>
+            <div class="step-card">
+                <div class="step-num">1</div>
+                <div>
+                    <h3>官方GitHub仓库</h3>
+                    <p>访问 <strong>https://github.com/FreeRTOS/FreeRTOS</strong>，克隆或下载最新稳定版本。</p>
+                </div>
+            </div>
+            <div class="step-card">
+                <div class="step-num">2</div>
+                <div>
+                    <h3>官方打包下载</h3>
+                    <p>从 <strong>https://www.freertos.org</strong> 直接下载包含所有移植版本的ZIP包。</p>
+                </div>
+            </div>
+            <div class="step-card">
+                <div class="step-num">3</div>
+                <div>
+                    <h3>包管理器（如PlatformIO）</h3>
+                    <p>在PlatformIO的库管理中直接搜索并安装FreeRTOS，自动集成到项目中。</p>
+                </div>
+            </div>
+
+            <h3>源码目录结构解析</h3>
+            <div class="architecture">
+                <svg width="100%" height="220" viewBox="0 0 800 220">
+                    <rect x="10" y="50" width="180" height="60" rx="8" fill="#3498db" stroke="#2980b9" stroke-width="2"/>
+                    <text x="100" y="85" text-anchor="middle" fill="white" font-weight="bold">FreeRTOS/</text>
+                    <rect x="210" y="20" width="140" height="40" rx="6" fill="#2ecc71" stroke="#27ae60" stroke-width="2"/>
+                    <text x="280" y="45" text-anchor="middle" fill="white" font-size="14">Source/</text>
+                    <rect x="210" y="70" width="140" height="40" rx="6" fill="#f39c12" stroke="#e67e22" stroke-width="2"/>
+                    <text x="280" y="95" text-anchor="middle" fill="white" font-size="14">Demo/</text>
+                    <rect x="210" y="120" width="140" height="40" rx="6" fill="#9b59b6" stroke="#8e44ad" stroke-width="2"/>
+                    <text x="280" y="145" text-anchor="middle" fill="white" font-size="14">License/</text>
+                    <line x1="190" y1="80" x2="210" y2="40" stroke="#7f8c8d" stroke-width="2" stroke-dasharray="5,5"/>
+                    <line x1="190" y1="80" x2="210" y2="90" stroke="#7f8c8d" stroke-width="2" stroke-dasharray="5,5"/>
+                    <line x1="190" y1="80" x2="210" y2="140" stroke="#7f8c8d" stroke-width="2" stroke-dasharray="5,5"/>
+                    <rect x="370" y="10" width="120" height="30" rx="5" fill="#2ecc71" opacity="0.8"/>
+                    <text x="430" y="30" text-anchor="middle" fill="white" font-size="12">tasks.c</text>
+                    <rect x="370" y="50" width="120" height="30" rx="5" fill="#2ecc71" opacity="0.8"/>
+                    <text x="430" y="70" text-anchor="middle" fill="white" font-size="12">queue.c</text>
+                    <rect x="370" y="90" width="120" height="30" rx="5" fill="#2ecc71" opacity="0.8"/>
+                    <text x="430" y="110" text-anchor="middle" fill="white" font-size="12">list.c</text>
+                    <rect x="370" y="130" width="120" height="30" rx="5" fill="#2ecc71" opacity="0.8"/>
+                    <text x="430" y="150" text-anchor="middle" fill="white" font-size="12">port.c</text>
+                    <rect x="370" y="170" width="120" height="30" rx="5" fill="#2ecc71" opacity="0.8"/>
+                    <text x="430" y="190" text-anchor="middle" fill="white" font-size="12">...</text>
+                    <line x1="350" y1="40" x2="370" y2="25" stroke="#7f8c8d" stroke-width="1"/>
+                    <line x1="350" y1="90" x2="370" y2="65" stroke="#7f8c8d" stroke-width="1"/>
+                    <line x1="350" y1="140" x2="370" y2="105" stroke="#7f8c8d" stroke-width="1"/>
+                    <line x1="350" y1="185" x2="370" y2="145" stroke="#7f8c8d" stroke-width="1"/>
+                </svg>
+                <p><strong>核心目录说明</strong></p>
+                <ul style="text-align: left; margin-top: 15px;">
+                    <li><strong>Source/</strong>：核心内核文件（tasks.c, queue.c, list.c等）及移植层（portable/）</li>
+                    <li><strong>Demo/</strong>：针对不同芯片厂商的示例工程，是学习的绝佳起点</li>
+                    <li><strong>License/</strong>：开源许可证文件（MIT License）</li>
+                </ul>
+            </div>
+        </section>
+
+        <section>
+            <h2>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z"/>
+                </svg>
+                开发环境配置指南
+            </h2>
+            <p>根据你的芯片和习惯，选择以下一种或多种环境进行配置：</p>
+            <div class="env-logo">Keil MDK</div>
+            <div class="env-logo">IAR Embedded Workbench</div>
+            <div class="env-logo">ESP-IDF</div>
+            <div class="env-logo">VSCode + PlatformIO</div>
+
+            <h3>VSCode + PlatformIO 配置流程（推荐）</h3>
+            <ol>
+                <li>安装 <strong>Visual Studio Code</strong> 编辑器。</li>
+                <li>在VSCode扩展商店搜索并安装 <strong>PlatformIO IDE</strong>。</li>
+                <li>安装完成后，点击左侧PlatformIO图标，选择“New Project”。</li>
+                <li>输入项目名称，选择开发板（如STM32F103C8或ESP32 Dev Module）。</li>
+                <li>选择框架（Framework）为 <strong>FreeRTOS</strong>，点击创建。</li>
+                <li>PlatformIO会自动下载所需工具链、FreeRTOS库并生成基础工程结构。</li>
+            </ol>
+
+            <h3>关键配置示例（platformio.ini）</h3>
+            <div class="code-block">
+<pre>[env:stm32f103c8]
+platform = ststm32
+board = bluepill_f103c8
+framework = cmsis
+<b>framework = freertos</b>
+upload_protocol = stlink
+debug_tool = stlink
+
+[env:esp32dev]
+platform = espressif32
+board = esp32dev
+framework = esp-idf
+<b>framework = freertos</b>
+monitor_speed = 115200
+</pre>
+            </div>
+        </section>
+
+        <section>
+            <h2>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/>
+                </svg>
+                第一个FreeRTOS工程创建与编译
+            </h2>
+            <p>让我们创建一个简单的“闪烁LED”任务，验证环境是否正常工作。</p>
+
+            <div class="step-card">
+                <div class="step-num">1</div>
+                <div>
+                    <h3>创建主程序文件 (main.c)</h3>
+                </div>
+            </div>
+            <div class="code-block">
+<pre>#include &lt;stdio.h&gt;
+#include "FreeRTOS.h"
+#include "task.h"
+#include "main.h" // 包含你的硬件头文件，如 stm32f1xx_hal.h
+
+// 任务函数原型
+void vTaskBlink(void *pvParameters);
+void vTaskPrint(void *pvParameters);
+
+int main(void) {
+    // 硬件初始化（时钟、GPIO等）
+    HAL_Init();
+    SystemClock_Config();
+    MX_GPIO_Init();
+
+    // 创建第一个任务：闪烁LED
+    xTaskCreate(vTaskBlink, "Blink", 128, NULL, 1, NULL);
+    // 创建第二个任务：打印信息
+    xTaskCreate(vTaskPrint, "Print", 128, NULL, 1, NULL);
+
+    // 启动FreeRTOS调度器
+    vTaskStartScheduler();
+
+    // 调度器启动后不会返回
+    while (1);
+}
+
+// 闪烁LED任务
+void vTaskBlink(void *pvParameters) {
+    const TickType_t xDelay = 500 / portTICK_PERIOD_MS; // 500ms延时
+    while (1) {
+        HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+        vTaskDelay(xDelay); // 阻塞延时，释放CPU
+    }
+}
+
+// 打印任务
+void vTaskPrint(void *pvParameters) {
+    const TickType_t xDelay = 1000 / portTICK_PERIOD_MS; // 1000ms
+    int count = 0;
+    while (1) {
+        printf("FreeRTOS is running! Count: %d\n", count++);
+        vTaskDelay(xDelay);
+    }
+}</pre>
+            </div>
+
+            <div class="step-card">
+                <div class="step-num">2</div>
+                <div>
+                    <h3>编译与烧录</h3>
+                </div>
+            </div>
+            <ul>
+                <li><strong>PlatformIO</strong>：点击底部状态栏的 <strong>→ (Upload)</strong> 按钮，自动编译并烧录。</li>
+                <li><strong>Keil/IAR</strong>：点击“Build”编译，使用ST-Link/J-Link工具烧录。</li>
+                <li><strong>ESP-IDF</strong>：在终端执行 <code>idf.py build</code> 编译，<code>idf.py -p PORT flash</code> 烧录。</li>
+            </ul>
+
+            <div class="step-card">
+                <div class="step-num">3</div>
+                <div>
+                    <h3>验证结果</h3>
+                </div>
+            </div>
+            <p>观察开发板上的LED是否以1Hz频率闪烁，同时打开串口调试助手（如115200波特率），查看是否每秒收到打印信息。如果两者都正常，恭喜你，第一个FreeRTOS工程运行成功！</p>
+        </section>
+
+        <section>
+            <h2>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
+                </svg>
+                常见问题与解决
+            </h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>问题现象</th>
+                        <th>可能原因</th>
+                        <th>解决方案</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>编译错误：FreeRTOS.h找不到</td>
+                        <td>头文件路径未包含</td>
+                        <td>在IDE中添加FreeRTOS/Source/include到包含路径</td>
+                    </tr>
+                    <tr>
+                        <td>任务创建失败</td>
+                        <td>堆空间不足</td>
+                        <td>增大FreeRTOSConfig.h中的configTOTAL_HEAP_SIZE</td>
+                    </tr>
+                    <tr>
+                        <td>程序卡在启动阶段</td>
+                        <td>系统时钟配置错误</td>
+                        <td>检查SystemClock_Config()，确保SysTick与FreeRTOS心跳一致</td>
+                    </tr>
+                    <tr>
+                        <td>串口无输出</td>
+                        <td>串口初始化或重定向未完成</td>
+                        <td>实现printf重定向（如重写_write或使用ESP-IDF内置功能）</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <footer>
+            蓝海资料掘金营
+        </footer>
+    </div>
+</body>
+</html>

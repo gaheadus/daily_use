@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS任务管理50问 - 软件定时器的创建和使用</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #bbdefb 50%, #f8bbd0 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px dashed #4fc3f7;
+        }
+        
+        .header h1 {
+            color: #0277bd;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h2 {
+            color: #0288d1;
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+        }
+        
+        .header p {
+            color: #555;
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h3 {
+            color: #0288d1;
+            border-bottom: 2px solid #b3e5fc;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+        
+        .card p {
+            margin-bottom: 15px;
+            color: #444;
+        }
+        
+        .code-block {
+            background: #f5f5f5;
+            border-left: 4px solid #4fc3f7;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+            overflow-x: auto;
+        }
+        
+        pre {
+            white-space: pre-wrap;
+            font-family: 'Consolas', 'Monaco', monospace;
+            color: #01579b;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e1f5fe;
+        }
+        
+        th {
+            background-color: #4fc3f7;
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #e1f5fe;
+        }
+        
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .diagram {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin: 20px 0;
+        }
+        
+        .diagram h3 {
+            color: #0288d1;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px dashed #4fc3f7;
+            color: #0277bd;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .highlight {
+            background-color: #e1f5fe;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>FreeRTOS任务管理50问</h1>
+            <h2>45、任务与软件定时器：软件定时器的创建和使用</h2>
+            <p>本课程将详细介绍FreeRTOS中软件定时器的创建、配置和使用方法，以及软件定时器与任务之间的关系。</p>
+        </div>
+        
+        <div class="content">
+            <div class="card">
+                <h3>什么是软件定时器？</h3>
+                <p>软件定时器是FreeRTOS提供的一种基于系统节拍的可配置定时机制，它允许开发者创建和管理多个定时器，每个定时器都可以在指定的时间间隔后执行回调函数。</p>
+                
+                <p>与硬件定时器不同，软件定时器完全由FreeRTOS内核管理，不需要额外的硬件资源。它们特别适合处理非实时性要求较高的周期性任务。</p>
+                
+                <div class="code-block">
+                    <pre>// 软件定时器回调函数原型
+void TimerCallback(TimerHandle_t xTimer);</pre>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>软件定时器的类型</h3>
+                <p>FreeRTOS支持两种类型的软件定时器：</p>
+                <ul>
+                    <li><span class="highlight">单次定时器</span>：在指定的时间后执行一次回调函数，然后自动停止</li>
+                    <li><span class="highlight">自动重载定时器</span>：在指定的时间间隔后重复执行回调函数，直到被手动删除</li>
+                </ul>
+                
+                <table>
+                    <tr>
+                        <th>定时器类型</th>
+                        <th>特点</th>
+                        <th>适用场景</th>
+                    </tr>
+                    <tr>
+                        <td>单次定时器</td>
+                        <td>执行一次后停止</td>
+                        <td>延时操作、一次性事件</td>
+                    </tr>
+                    <tr>
+                        <td>自动重载定时器</td>
+                        <td>周期性重复执行</td>
+                        <td>数据采样、状态检查、周期性任务</td>
+                    </tr>
+                </table>
+            </div>
+            
+            <div class="card">
+                <h3>软件定时器的创建</h3>
+                <p>创建软件定时器需要调用 <span class="highlight">xTimerCreate()</span> 函数：</p>
+                
+                <div class="code-block">
+                    <pre>TimerHandle_t xTimerCreate(
+    const char * const pcTimerName,     // 定时器名称（用于调试）
+    const TickType_t xTimerPeriod,      // 定时周期（以节拍为单位）
+    const UBaseType_t uxAutoReload,     // 自动重载标志
+    void * const pvTimerID,             // 定时器ID
+    TimerCallbackFunction_t pxCallbackFunction // 回调函数
+);</pre>
+                </div>
+                
+                <p>创建示例：</p>
+                <div class="code-block">
+                    <pre>// 创建单次定时器
+TimerHandle_t xOneShotTimer = xTimerCreate(
+    "OneShotTimer",     // 定时器名称
+    pdMS_TO_TICKS(1000), // 1秒后触发
+    pdFALSE,            // 单次定时器
+    (void *)0,          // 定时器ID
+    vOneShotTimerCallback // 回调函数
+);
+
+// 创建自动重载定时器
+TimerHandle_t xAutoReloadTimer = xTimerCreate(
+    "AutoReloadTimer",  // 定时器名称
+    pdMS_TO_TICKS(500), // 每500ms触发一次
+    pdTRUE,             // 自动重载
+    (void *)1,          // 定时器ID
+    vAutoReloadTimerCallback // 回调函数
+);</pre>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>软件定时器的使用</h3>
+                <p>创建定时器后，需要启动它才能开始计时：</p>
+                
+                <div class="code-block">
+                    <pre>// 启动定时器（立即启动）
+if (xTimerStart(xOneShotTimer, 0) != pdPASS) {
+    // 启动失败处理
+}
+
+// 启动定时器（延迟启动）
+if (xTimerStart(xAutoReloadTimer, pdMS_TO_TICKS(100)) != pdPASS) {
+    // 启动失败处理
+}</pre>
+                </div>
+                
+                <p>其他常用操作：</p>
+                <div class="code-block">
+                    <pre>// 停止定时器
+xTimerStop(xTimer, 0);
+
+// 重置定时器
+xTimerReset(xTimer, 0);
+
+// 修改定时器周期
+xTimerChangePeriod(xTimer, pdMS_TO_TICKS(2000), 0);
+
+// 删除定时器
+xTimerDelete(xTimer, 0);</pre>
+                </div>
+            </div>
+        </div>
+        
+        <div class="diagram">
+            <h3>软件定时器工作流程</h3>
+            <div class="svg-container">
+                <svg width="600" height="300" viewBox="0 0 600 300">
+                    <rect x="50" y="50" width="100" height="60" rx="10" fill="#4fc3f7" stroke="#0277bd" stroke-width="2"/>
+                    <text x="100" y="85" text-anchor="middle" fill="white" font-weight="bold">创建定时器</text>
+                    
+                    <rect x="200" y="50" width="100" height="60" rx="10" fill="#4fc3f7" stroke="#0277bd" stroke-width="2"/>
+                    <text x="250" y="85" text-anchor="middle" fill="white" font-weight="bold">启动定时器</text>
+                    
+                    <rect x="350" y="50" width="100" height="60" rx="10" fill="#4fc3f7" stroke="#0277bd" stroke-width="2"/>
+                    <text x="400" y="85" text-anchor="middle" fill="white" font-weight="bold">定时器运行</text>
+                    
+                    <rect x="500" y="50" width="100" height="60" rx="10" fill="#4fc3f7" stroke="#0277bd" stroke-width="2"/>
+                    <text x="550" y="85" text-anchor="middle" fill="white" font-weight="bold">触发回调</text>
+                    
+                    <polygon points="150,80 200,80" fill="none" stroke="#0277bd" stroke-width="2"/>
+                    <polygon points="300,80 350,80" fill="none" stroke="#0277bd" stroke-width="2"/>
+                    <polygon points="450,80 500,80" fill="none" stroke="#0277bd" stroke-width="2"/>
+                    
+                    <polygon points="195,75 200,80 195,85" fill="#0277bd"/>
+                    <polygon points="345,75 350,80 345,85" fill="#0277bd"/>
+                    <polygon points="495,75 500,80 495,85" fill="#0277bd"/>
+                    
+                    <rect x="250" y="180" width="100" height="60" rx="10" fill="#81c784" stroke="#2e7d32" stroke-width="2"/>
+                    <text x="300" y="215" text-anchor="middle" fill="white" font-weight="bold">定时器服务任务</text>
+                    
+                    <rect x="400" y="180" width="100" height="60" rx="10" fill="#ffb74d" stroke="#ef6c00" stroke-width="2"/>
+                    <text x="450" y="215" text-anchor="middle" fill="white" font-weight="bold">回调函数</text>
+                    
+                    <polygon points="300,150 300,180" fill="none" stroke="#0277bd" stroke-width="2" stroke-dasharray="5,5"/>
+                    <polygon points="350,180 400,180" fill="none" stroke="#0277bd" stroke-width="2"/>
+                    
+                    <polygon points="348,175 350,180 348,185" fill="#0277bd"/>
+                </svg>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div class="card">
+                <h3>软件定时器服务任务</h3>
+                <p>FreeRTOS使用一个专门的<span class="highlight">定时器服务任务</span>（daemon task）来管理所有软件定时器。这个任务在启动调度器时自动创建（如果配置了 <span class="highlight">configUSE_TIMERS</span> 为1）。</p>
+                
+                <p>定时器服务任务的主要职责：</p>
+                <ul>
+                    <li>管理定时器命令队列</li>
+                    <li>处理定时器到期事件</li>
+                    <li>执行定时器回调函数</li>
+                </ul>
+                
+                <div class="code-block">
+                    <pre>// 在FreeRTOSConfig.h中配置定时器服务任务
+#define configUSE_TIMERS             1
+#define configTIMER_TASK_PRIORITY    (configMAX_PRIORITIES - 1)
+#define configTIMER_QUEUE_LENGTH     10
+#define configTIMER_TASK_STACK_DEPTH (configMINIMAL_STACK_SIZE * 2)</pre>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h3>软件定时器与任务的关系</h3>
+                <p>软件定时器回调函数在定时器服务任务的上下文中执行，这意味着：</p>
+                <ul>
+                    <li>回调函数不能调用可能导致阻塞的API（如 <span class="highlight">vTaskDelay()</span>）</li>
+                    <li>回调函数应尽可能简短，避免影响其他定时器的执行</li>
+                    <li>如果需要执行耗时操作，应该在回调函数中通过队列、信号量等机制通知其他任务</li>
+                </ul>
+                
+                <p>软件定时器与任务的对比：</p>
+                <table>
+                    <tr>
+                        <th>特性</th>
+                        <th>软件定时器</th>
+                        <th>任务</th>
+                    </tr>
+                    <tr>
+                        <td>执行上下文</td>
+                        <td>定时器服务任务</td>
+                        <td>独立任务上下文</td>
+                    </tr>
+                    <tr>
+                        <td>阻塞操作</td>
+                        <td>不允许</td>
+                        <td>允许</td>
+                    </tr>
+                    <tr>
+                        <td>优先级</td>
+                        <td>固定（服务任务优先级）</td>
+                        <td>可配置</td>
+                    </tr>
+                    <tr>
+                        <td>适用场景</td>
+                        <td>周期性、轻量级操作</td>
+                        <td>复杂、耗时操作</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        
+        <div class="diagram">
+            <h3>软件定时器与任务协作架构</h3>
+            <div class="svg-container">
+                <svg width="600" height="400" viewBox="0 0 600 400">
+                    <!-- 应用任务 -->
+                    <rect x="50" y="50" width="120" height="80" rx="10" fill="#4fc3f7" stroke="#0277bd" stroke-width="2"/>
+                    <text x="110" y="90" text-anchor="middle" fill="white" font-weight="bold">应用任务</text>
+                    
+                    <!-- 定时器服务任务 -->
+                    <rect x="250" y="50" width="120" height="80" rx="10" fill="#81c784" stroke="#2e7d32" stroke-width="2"/>
+                    <text x="310" y="90" text-anchor="middle" fill="white" font-weight="bold">定时器服务任务</text>
+                    
+                    <!-- 工作任务 -->
+                    <rect x="450" y="50" width="120" height="80" rx="10" fill="#ffb74d" stroke="#ef6c00" stroke-width="2"/>
+                    <text x="510" y="90" text-anchor="middle" fill="white" font-weight="bold">工作任务</text>
+                    
+                    <!-- 定时器命令队列 -->
+                    <rect x="200" y="180" width="200" height="60" rx="10" fill="#ba68c8" stroke="#6a1b9a" stroke-width="2"/>
+                    <text x="300" y="215" text-anchor="middle" fill="white" font-weight="bold">定时器命令队列</text>
+                    
+                    <!-- 工作队列 -->
+                    <rect x="200" y="280" width="200" height="60" rx="10" fill="#ff8a65" stroke="#d84315" stroke-width="2"/>
+                    <text x="300" y="315" text-anchor="middle" fill="white" font-weight="bold">工作队列</text>
+                    
+                    <!-- 连接线 -->
+                    <polygon points="170,90 200,150" fill="none" stroke="#0277bd" stroke-width="2"/>
+                    <polygon points="198,148 200,150 202,148" fill="#0277bd"/>
+                    
+                    <polygon points="300,130 300,180" fill="none" stroke="#0277bd" stroke-width="2"/>
+                    <polygon points="298,178 300,180 302,178" fill="#0277bd"/>
+                    
+                    <polygon points="430,90 400,150" fill="none" stroke="#0277bd" stroke-width="2"/>
+                    <polygon points="402,148 400,150 398,148" fill="#0277bd"/>
+                    
+                    <polygon points="300,240 300,280" fill="none" stroke="#0277bd" stroke-width="2"/>
+                    <polygon points="298,278 300,280 302,278" fill="#0277bd"/>
+                    
+                    <polygon points="400,240 400,280" fill="none" stroke="#0277bd" stroke-width="2"/>
+                    <polygon points="398,278 400,280 402,278" fill="#0277bd"/>
+                    
+                    <polygon points="510,130 510,180" fill="none" stroke="#0277bd" stroke-width="2" stroke-dasharray="5,5"/>
+                    <polygon points="508,178 510,180 512,178" fill="#0277bd"/>
+                </svg>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3>完整示例代码</h3>
+            <p>下面是一个完整的软件定时器使用示例：</p>
+            
+            <div class="code-block">
+                <pre>#include "FreeRTOS.h"
+#include "task.h"
+#include "timers.h"
+#include "queue.h"
+
+// 定义定时器ID
+#define TIMER_ID_ONE_SHOT    0
+#define TIMER_ID_AUTO_RELOAD 1
+
+// 定时器句柄
+TimerHandle_t xOneShotTimer, xAutoReloadTimer;
+
+// 工作队列
+QueueHandle_t xWorkQueue;
+
+// 单次定时器回调函数
+void vOneShotTimerCallback(TimerHandle_t xTimer)
+{
+    // 发送消息到工作队列
+    uint32_t ulMessage = 100;
+    xQueueSend(xWorkQueue, &ulMessage, 0);
+    
+    // 打印信息
+    printf("单次定时器触发！\r\n");
+}
+
+// 自动重载定时器回调函数
+void vAutoReloadTimerCallback(TimerHandle_t xTimer)
+{
+    // 发送消息到工作队列
+    uint32_t ulMessage = 200;
+    xQueueSend(xWorkQueue, &ulMessage, 0);
+    
+    // 打印信息
+    printf("自动重载定时器触发！\r\n");
+}
+
+// 工作任务
+void vWorkTask(void *pvParameters)
+{
+    uint32_t ulReceivedValue;
+    
+    for(;;)
+    {
+        // 等待工作队列消息
+        if(xQueueReceive(xWorkQueue, &ulReceivedValue, portMAX_DELAY) == pdPASS)
+        {
+            // 处理接收到的消息
+            printf("工作任务收到消息: %lu\r\n", ulReceivedValue);
+            
+            // 这里可以执行实际的工作
+            // ...
+        }
+    }
+}
+
+// 主任务
+void vMainTask(void *pvParameters)
+{
+    // 创建工作队列
+    xWorkQueue = xQueueCreate(10, sizeof(uint32_t));
+    
+    // 创建单次定时器（1秒后触发）
+    xOneShotTimer = xTimerCreate(
+        "OneShotTimer",
+        pdMS_TO_TICKS(1000),
+        pdFALSE,
+        (void *)TIMER_ID_ONE_SHOT,
+        vOneShotTimerCallback
+    );
+    
+    // 创建自动重载定时器（每2秒触发一次）
+    xAutoReloadTimer = xTimerCreate(
+        "AutoReloadTimer",
+        pdMS_TO_TICKS(2000),
+        pdTRUE,
+        (void *)TIMER_ID_AUTO_RELOAD,
+        vAutoReloadTimerCallback
+    );
+    
+    // 启动定时器
+    if(xOneShotTimer != NULL && xAutoReloadTimer != NULL)
+    {
+        xTimerStart(xOneShotTimer, 0);
+        xTimerStart(xAutoReloadTimer, 0);
+    }
+    
+    // 创建工作任务
+    xTaskCreate(vWorkTask, "WorkTask", configMINIMAL_STACK_SIZE * 2, NULL, 2, NULL);
+    
+    // 主任务循环
+    for(;;)
+    {
+        // 主任务可以执行其他操作
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+}
+
+int main(void)
+{
+    // 创建主任务
+    xTaskCreate(vMainTask, "MainTask", configMINIMAL_STACK_SIZE * 2, NULL, 1, NULL);
+    
+    // 启动调度器
+    vTaskStartScheduler();
+    
+    // 不会执行到这里
+    for(;;);
+}</pre>
+            </div>
+        </div>
+        
+        <div class="footer">
+            蓝海资料掘金营
+        </div>
+    </div>
+</body>
+</html>

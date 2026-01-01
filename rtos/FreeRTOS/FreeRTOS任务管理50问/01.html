@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS任务管理50问 - 任务基础概念</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #f9fbe7 50%, #e8f5e9 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #42a5f5, #66bb6a);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            border-bottom: 5px solid #ffd54f;
+        }
+
+        h1 {
+            font-size: 2.8em;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .subtitle {
+            font-size: 1.3em;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        section {
+            margin-bottom: 50px;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid #42a5f5;
+        }
+
+        h2 {
+            color: #1565c0;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px dashed #bbdefb;
+            font-size: 1.8em;
+        }
+
+        h3 {
+            color: #2e7d32;
+            margin: 25px 0 15px;
+            font-size: 1.4em;
+        }
+
+        p {
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        ul, ol {
+            margin: 15px 0 15px 30px;
+        }
+
+        li {
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th {
+            background: linear-gradient(135deg, #42a5f5, #66bb6a);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f5f5f5;
+        }
+
+        tr:hover {
+            background-color: #e3f2fd;
+        }
+
+        .code-block {
+            background: #263238;
+            color: #e0e0e0;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .diagram-container {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, #ffeb3b 0%, #ffeb3b 100%);
+            background-repeat: no-repeat;
+            background-size: 100% 0.3em;
+            background-position: 0 88%;
+            font-weight: 600;
+        }
+
+        .note {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #42a5f5, #66bb6a);
+            color: white;
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-top: 40px;
+        }
+
+        .task-state-diagram {
+            width: 100%;
+            max-width: 800px;
+            height: 400px;
+        }
+
+        .tcb-structure {
+            width: 100%;
+            max-width: 700px;
+            height: 500px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>FreeRTOS任务管理50问</h1>
+            <div class="subtitle">第一讲：FreeRTOS任务基础概念</div>
+        </header>
+
+        <div class="content">
+            <section id="introduction">
+                <h2>FreeRTOS任务基础概念</h2>
+                <p>在嵌入式实时操作系统中，<span class="highlight">任务(Task)</span>是系统调度的基本单位，也是应用程序的基本组成部分。理解任务的概念、状态和管理机制是掌握FreeRTOS的关键。</p>
+            </section>
+
+            <section id="what-is-task">
+                <h2>什么是任务？</h2>
+                <p>在FreeRTOS中，<span class="highlight">任务</span>是一个独立执行的线程，可以看作是一个简单的C函数，它通常包含一个无限循环。每个任务都有自己的堆栈空间和优先级，由FreeRTOS内核进行调度和管理。</p>
+                
+                <div class="note">
+                    <p><strong>任务的特点：</strong></p>
+                    <ul>
+                        <li>每个任务都是独立运行的实体</li>
+                        <li>拥有自己的堆栈空间和程序计数器</li>
+                        <li>可以处于不同的状态（运行、就绪、阻塞、挂起）</li>
+                        <li>通过优先级进行调度</li>
+                        <li>可以与其他任务通信和同步</li>
+                    </ul>
+                </div>
+
+                <h3>任务函数示例</h3>
+                <div class="code-block">
+<pre>
+// 简单的任务函数示例
+void vTaskFunction( void *pvParameters )
+{
+    // 任务初始化代码
+    // 可以在这里进行硬件初始化等操作
+    
+    for( ;; )
+    {
+        // 任务主体 - 无限循环
+        // 执行具体的功能代码
+        
+        // 可以调用FreeRTOS API进行任务调度
+        vTaskDelay( pdMS_TO_TICKS( 1000 ) ); // 延迟1秒
+    }
+    
+    // 任务理论上不应该返回，如果返回则需要删除自己
+    vTaskDelete( NULL );
+}
+</pre>
+                </div>
+            </section>
+
+            <section id="task-states">
+                <h2>任务的状态</h2>
+                <p>在FreeRTOS中，任务可以处于以下四种主要状态：</p>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>状态</th>
+                            <th>描述</th>
+                            <th>触发条件</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>运行态 (Running)</strong></td>
+                            <td>任务正在处理器上执行</td>
+                            <td>被调度器选中执行</td>
+                        </tr>
+                        <tr>
+                            <td><strong>就绪态 (Ready)</strong></td>
+                            <td>任务已准备就绪，等待被调度执行</td>
+                            <td>等待更高优先级任务释放CPU</td>
+                        </tr>
+                        <tr>
+                            <td><strong>阻塞态 (Blocked)</strong></td>
+                            <td>任务等待某个事件发生（如延时、信号量、队列等）</td>
+                            <td>调用vTaskDelay()、等待信号量等</td>
+                        </tr>
+                        <tr>
+                            <td><strong>挂起态 (Suspended)</strong></td>
+                            <td>任务被显式挂起，不参与调度</td>
+                            <td>调用vTaskSuspend()函数</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="diagram-container">
+                    <svg class="task-state-diagram" viewBox="0 0 800 400">
+                        <!-- 任务状态转换图 -->
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+                                    refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#1565c0"/>
+                            </marker>
+                            <linearGradient id="runningGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#42a5f5"/>
+                                <stop offset="100%" stop-color="#1976d2"/>
+                            </linearGradient>
+                            <linearGradient id="readyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#66bb6a"/>
+                                <stop offset="100%" stop-color="#388e3c"/>
+                            </linearGradient>
+                            <linearGradient id="blockedGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#ffb74d"/>
+                                <stop offset="100%" stop-color="#f57c00"/>
+                            </linearGradient>
+                            <linearGradient id="suspendedGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#bdbdbd"/>
+                                <stop offset="100%" stop-color="#757575"/>
+                            </linearGradient>
+                        </defs>
+                        
+                        <!-- 状态框 -->
+                        <rect x="50" y="150" width="150" height="80" rx="15" ry="15" 
+                              fill="url(#runningGrad)" stroke="#0d47a1" stroke-width="2"/>
+                        <text x="125" y="195" text-anchor="middle" fill="white" font-size="18" font-weight="bold">
+                            运行态
+                        </text>
+                        
+                        <rect x="300" y="50" width="150" height="80" rx="15" ry="15" 
+                              fill="url(#readyGrad)" stroke="#1b5e20" stroke-width="2"/>
+                        <text x="375" y="95" text-anchor="middle" fill="white" font-size="18" font-weight="bold">
+                            就绪态
+                        </text>
+                        
+                        <rect x="300" y="250" width="150" height="80" rx="15" ry="15" 
+                              fill="url(#blockedGrad)" stroke="#e65100" stroke-width="2"/>
+                        <text x="375" y="295" text-anchor="middle" fill="white" font-size="18" font-weight="bold">
+                            阻塞态
+                        </text>
+                        
+                        <rect x="550" y="150" width="150" height="80" rx="15" ry="15" 
+                              fill="url(#suspendedGrad)" stroke="#424242" stroke-width="2"/>
+                        <text x="625" y="195" text-anchor="middle" fill="white" font-size="18" font-weight="bold">
+                            挂起态
+                        </text>
+                        
+                        <!-- 状态转换箭头 -->
+                        <path d="M 200 190 L 300 90" stroke="#1565c0" stroke-width="2" 
+                              marker-end="url(#arrowhead)" fill="none"/>
+                        <text x="250" y="70" text-anchor="middle" fill="#1565c0" font-size="14">
+                            时间片用完/更高优先级任务就绪
+                        </text>
+                        
+                        <path d="M 375 130 L 375 250" stroke="#1565c0" stroke-width="2" 
+                              marker-end="url(#arrowhead)" fill="none"/>
+                        <text x="400" y="190" text-anchor="middle" fill="#1565c0" font-size="14">
+                            等待事件
+                        </text>
+                        
+                        <path d="M 450 290 L 550 190" stroke="#1565c0" stroke-width="2" 
+                              marker-end="url(#arrowhead)" fill="none"/>
+                        <text x="500" y="260" text-anchor="middle" fill="#1565c0" font-size="14">
+                            事件发生
+                        </text>
+                        
+                        <path d="M 450 130 L 550 190" stroke="#1565c0" stroke-width="2" 
+                              marker-end="url(#arrowhead)" fill="none"/>
+                        <text x="500" y="150" text-anchor="middle" fill="#1565c0" font-size="14">
+                            被调度器选中
+                        </text>
+                        
+                        <path d="M 200 190 L 300 290" stroke="#1565c0" stroke-width="2" 
+                              marker-end="url(#arrowhead)" fill="none"/>
+                        <text x="250" y="270" text-anchor="middle" fill="#1565c0" font-size="14">
+                            等待事件
+                        </text>
+                        
+                        <path d="M 450 290 L 300 330 L 300 290" stroke="#1565c0" stroke-width="2" 
+                              marker-end="url(#arrowhead)" fill="none"/>
+                        <text x="375" y="350" text-anchor="middle" fill="#1565c0" font-size="14">
+                            事件发生
+                        </text>
+                        
+                        <!-- 挂起态相关箭头 -->
+                        <path d="M 450 190 L 550 190" stroke="#1565c0" stroke-width="2" 
+                              marker-end="url(#arrowhead)" fill="none"/>
+                        <text x="500" y="180" text-anchor="middle" fill="#1565c0" font-size="14">
+                            vTaskSuspend()
+                        </text>
+                        
+                        <path d="M 700 190 L 600 190" stroke="#1565c0" stroke-width="2" 
+                              marker-end="url(#arrowhead)" fill="none"/>
+                        <text x="650" y="180" text-anchor="middle" fill="#1565c0" font-size="14">
+                            vTaskResume()
+                        </text>
+                    </svg>
+                </div>
+            </section>
+
+            <section id="task-control-block">
+                <h2>任务控制块(TCB)</h2>
+                <p><span class="highlight">任务控制块(TCB - Task Control Block)</span>是FreeRTOS中用于描述和管理任务的数据结构。每个任务都有一个对应的TCB，内核通过TCB来管理任务的所有信息。</p>
+                
+                <h3>TCB的主要成员</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>成员</th>
+                            <th>描述</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>pxTopOfStack</strong></td>
+                            <td>指向任务堆栈的栈顶位置</td>
+                        </tr>
+                        <tr>
+                            <td><strong>pxStack</strong></td>
+                            <td>指向任务堆栈的起始位置</td>
+                        </tr>
+                        <tr>
+                            <td><strong>uxPriority</strong></td>
+                            <td>任务的优先级</td>
+                        </tr>
+                        <tr>
+                            <td><strong>pcTaskName</strong></td>
+                            <td>任务名称字符串</td>
+                        </tr>
+                        <tr>
+                            <td><strong>xGenericListItem</strong></td>
+                            <td>用于将任务插入就绪列表、阻塞列表等</td>
+                        </tr>
+                        <tr>
+                            <td><strong>xEventListItem</strong></td>
+                            <td>用于将任务插入事件列表</td>
+                        </tr>
+                        <tr>
+                            <td><strong>uxBasePriority</strong></td>
+                            <td>任务的基础优先级（用于优先级继承）</td>
+                        </tr>
+                        <tr>
+                            <td><strong>ulRunTimeCounter</strong></td>
+                            <td>任务运行时间计数器（用于运行统计）</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="diagram-container">
+                    <svg class="tcb-structure" viewBox="0 0 700 500">
+                        <!-- TCB结构示意图 -->
+                        <defs>
+                            <linearGradient id="tcbGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#e3f2fd"/>
+                                <stop offset="100%" stop-color="#bbdefb"/>
+                            </linearGradient>
+                            <linearGradient id="stackGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#f3e5f5"/>
+                                <stop offset="100%" stop-color="#e1bee7"/>
+                            </linearGradient>
+                        </defs>
+                        
+                        <!-- TCB标题 -->
+                        <rect x="50" y="30" width="600" height="50" rx="10" ry="10" 
+                              fill="url(#tcbGrad)" stroke="#1565c0" stroke-width="2"/>
+                        <text x="350" y="62" text-anchor="middle" fill="#1565c0" font-size="24" font-weight="bold">
+                            任务控制块(TCB)结构
+                        </text>
+                        
+                        <!-- TCB成员 -->
+                        <rect x="50" y="100" width="600" height="40" rx="5" ry="5" 
+                              fill="#e8f5e9" stroke="#66bb6a" stroke-width="1"/>
+                        <text x="70" y="125" fill="#2e7d32" font-size="16" font-weight="bold">
+                            pxTopOfStack: 指向堆栈顶部
+                        </text>
+                        
+                        <rect x="50" y="150" width="600" height="40" rx="5" ry="5" 
+                              fill="#e8f5e9" stroke="#66bb6a" stroke-width="1"/>
+                        <text x="70" y="175" fill="#2e7d32" font-size="16" font-weight="bold">
+                            pxStack: 指向堆栈起始位置
+                        </text>
+                        
+                        <rect x="50" y="200" width="600" height="40" rx="5" ry="5" 
+                              fill="#e8f5e9" stroke="#66bb6a" stroke-width="1"/>
+                        <text x="70" y="225" fill="#2e7d32" font-size="16" font-weight="bold">
+                            uxPriority: 任务优先级
+                        </text>
+                        
+                        <rect x="50" y="250" width="600" height="40" rx="5" ry="5" 
+                              fill="#e8f5e9" stroke="#66bb6a" stroke-width="1"/>
+                        <text x="70" y="275" fill="#2e7d32" font-size="16" font-weight="bold">
+                            pcTaskName: 任务名称
+                        </text>
+                        
+                        <rect x="50" y="300" width="600" height="40" rx="5" ry="5" 
+                              fill="#e8f5e9" stroke="#66bb6a" stroke-width="1"/>
+                        <text x="70" y="325" fill="#2e7d32" font-size="16" font-weight="bold">
+                            xGenericListItem: 通用列表项
+                        </text>
+                        
+                        <rect x="50" y="350" width="600" height="40" rx="5" ry="5" 
+                              fill="#e8f5e9" stroke="#66bb6a" stroke-width="1"/>
+                        <text x="70" y="375" fill="#2e7d32" font-size="16" font-weight="bold">
+                            xEventListItem: 事件列表项
+                        </text>
+                        
+                        <rect x="50" y="400" width="600" height="40" rx="5" ry="5" 
+                              fill="#e8f5e9" stroke="#66bb6a" stroke-width="1"/>
+                        <text x="70" y="425" fill="#2e7d32" font-size="16" font-weight="bold">
+                            uxBasePriority: 基础优先级
+                        </text>
+                        
+                        <!-- 堆栈示意图 -->
+                        <rect x="450" y="100" width="200" height="300" rx="5" ry="5" 
+                              fill="url(#stackGrad)" stroke="#7b1fa2" stroke-width="2"/>
+                        <text x="550" y="120" text-anchor="middle" fill="#7b1fa2" font-size="16" font-weight="bold">
+                            任务堆栈
+                        </text>
+                        
+                        <!-- 堆栈内容 -->
+                        <rect x="460" y="140" width="180" height="20" rx="3" ry="3" 
+                              fill="#fce4ec" stroke="#ad1457" stroke-width="1"/>
+                        <text x="470" y="155" fill="#ad1457" font-size="12">
+                            局部变量
+                        </text>
+                        
+                        <rect x="460" y="170" width="180" height="20" rx="3" ry="3" 
+                              fill="#fce4ec" stroke="#ad1457" stroke-width="1"/>
+                        <text x="470" y="185" fill="#ad1457" font-size="12">
+                            函数参数
+                        </text>
+                        
+                        <rect x="460" y="200" width="180" height="20" rx="3" ry="3" 
+                              fill="#fce4ec" stroke="#ad1457" stroke-width="1"/>
+                        <text x="470" y="215" fill="#ad1457" font-size="12">
+                            返回地址
+                        </text>
+                        
+                        <rect x="460" y="230" width="180" height="20" rx="3" ry="3" 
+                              fill="#fce4ec" stroke="#ad1457" stroke-width="1"/>
+                        <text x="470" y="245" fill="#ad1457" font-size="12">
+                            寄存器值
+                        </text>
+                        
+                        <rect x="460" y="260" width="180" height="20" rx="3" ry="3" 
+                              fill="#fce4ec" stroke="#ad1457" stroke-width="1"/>
+                        <text x="470" y="275" fill="#ad1457" font-size="12">
+                            状态信息
+                        </text>
+                        
+                        <!-- 箭头指示 -->
+                        <path d="M 300 120 L 450 120" stroke="#ff9800" stroke-width="2" 
+                              marker-end="url(#arrowhead)" fill="none"/>
+                        <text x="375" y="115" text-anchor="middle" fill="#ff9800" font-size="14">
+                            pxStack指向
+                        </text>
+                        
+                        <path d="M 300 180 L 450 350" stroke="#ff9800" stroke-width="2" 
+                              marker-end="url(#arrowhead)" fill="none"/>
+                        <text x="375" y="280" text-anchor="middle" fill="#ff9800" font-size="14">
+                            pxTopOfStack指向
+                        </text>
+                    </svg>
+                </div>
+
+                <h3>TCB定义示例（简化版）</h3>
+                <div class="code-block">
+<pre>
+typedef struct tskTaskControlBlock
+{
+    // 堆栈相关
+    volatile StackType_t *pxTopOfStack;     // 当前堆栈顶部
+    StackType_t *pxStack;                   // 堆栈起始位置
+    unsigned short usStackDepth;            // 堆栈深度
+    
+    // 任务属性
+    UBaseType_t uxPriority;                // 任务优先级
+    char pcTaskName[ configMAX_TASK_NAME_LEN ]; // 任务名称
+    
+    // 列表相关
+    ListItem_t xGenericListItem;           // 用于就绪列表、阻塞列表等
+    ListItem_t xEventListItem;             // 用于事件列表
+    
+    // 优先级相关
+    UBaseType_t uxBasePriority;            // 基础优先级
+    
+    // 状态标志
+    uint32_t ulRunTimeCounter;             // 运行时间统计
+    
+    #if ( configUSE_MUTEXES == 1 )
+        UBaseType_t uxMutexesHeld;         // 持有的互斥信号量数量
+    #endif
+    
+} tskTCB;
+
+typedef tskTCB TCB_t;
+</pre>
+                </div>
+            </section>
+
+            <section id="summary">
+                <h2>总结</h2>
+                <p>在本讲中，我们深入探讨了FreeRTOS任务管理的三个核心概念：</p>
+                <ol>
+                    <li><strong>任务(Task)</strong> - 是FreeRTOS调度的基本单位，每个任务都是一个独立的执行线程</li>
+                    <li><strong>任务状态</strong> - 包括运行态、就绪态、阻塞态和挂起态，任务在这些状态间转换</li>
+                    <li><strong>任务控制块(TCB)</strong> - 是内核管理任务的数据结构，包含了任务的所有管理信息</li>
+                </ol>
+                
+                <div class="note">
+                    <p><strong>关键要点：</strong></p>
+                    <ul>
+                        <li>理解任务状态转换是掌握FreeRTOS调度的基础</li>
+                        <li>TCB是FreeRTOS内核管理任务的核心数据结构</li>
+                        <li>合理设置任务优先级和堆栈大小对系统稳定性至关重要</li>
+                        <li>任务函数通常包含无限循环，不应返回</li>
+                    </ul>
+                </div>
+            </section>
+        </div>
+
+        <footer>
+            蓝海资料掘金营
+        </footer>
+    </div>
+</body>
+</html>

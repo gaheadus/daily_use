@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS任务管理50问 - 任务恢复执行</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #f9fbe7 50%, #e8f5e9 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px dashed #4db6ac;
+        }
+        
+        .header h1 {
+            color: #00695c;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h2 {
+            color: #00796b;
+            font-size: 1.8rem;
+            font-weight: normal;
+        }
+        
+        .content-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        h3 {
+            color: #004d40;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #80cbc4;
+            font-size: 1.5rem;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        .highlight {
+            background-color: #e0f2f1;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 5px solid #00796b;
+            margin: 15px 0;
+        }
+        
+        .code-block {
+            background-color: #f5f5f5;
+            border: 1px solid #b2dfdb;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #b2dfdb;
+        }
+        
+        th {
+            background-color: #4db6ac;
+            color: white;
+            font-weight: bold;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #e0f2f1;
+        }
+        
+        tr:hover {
+            background-color: #b2dfdb;
+        }
+        
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .architecture {
+            background-color: #e8f5e9;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #4db6ac;
+            color: #00796b;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .note {
+            background-color: #fff9c4;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 5px solid #ffd600;
+            margin: 15px 0;
+        }
+        
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        .example-box {
+            background-color: #f3e5f5;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 5px solid #7b1fa2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>FreeRTOS任务管理50问</h1>
+            <h2>6、任务恢复执行：vTaskResume函数的功能和调用时机</h2>
+        </div>
+        
+        <div class="content-section">
+            <h3>vTaskResume函数概述</h3>
+            <p>vTaskResume()是FreeRTOS中用于恢复被挂起任务执行的API函数。当一个任务被vTaskSuspend()函数挂起后，可以使用vTaskResume()函数将其恢复到就绪状态，使其能够再次被调度器调度执行。</p>
+            
+            <div class="highlight">
+                <p><strong>函数原型：</strong> void vTaskResume( TaskHandle_t xTaskToResume );</p>
+                <p><strong>参数：</strong> xTaskToResume - 要恢复的任务句柄</p>
+                <p><strong>返回值：</strong> 无</p>
+            </div>
+            
+            <div class="svg-container">
+                <svg width="600" height="200" viewBox="0 0 600 200">
+                    <rect x="50" y="80" width="100" height="40" rx="5" fill="#4db6ac" stroke="#00796b" stroke-width="2"/>
+                    <text x="100" y="105" text-anchor="middle" fill="white" font-weight="bold">任务挂起</text>
+                    
+                    <rect x="250" y="80" width="100" height="40" rx="5" fill="#ffb74d" stroke="#f57c00" stroke-width="2"/>
+                    <text x="300" y="105" text-anchor="middle" fill="white" font-weight="bold">挂起状态</text>
+                    
+                    <rect x="450" y="80" width="100" height="40" rx="5" fill="#81c784" stroke="#388e3c" stroke-width="2"/>
+                    <text x="500" y="105" text-anchor="middle" fill="white" font-weight="bold">任务恢复</text>
+                    
+                    <path d="M150 100 L250 100" stroke="#00796b" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    <path d="M350 100 L450 100" stroke="#00796b" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    
+                    <text x="200" y="70" text-anchor="middle" fill="#00796b" font-weight="bold">vTaskSuspend()</text>
+                    <text x="400" y="70" text-anchor="middle" fill="#00796b" font-weight="bold">vTaskResume()</text>
+                    
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#00796b"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+        </div>
+        
+        <div class="content-section">
+            <h3>vTaskResume函数功能详解</h3>
+            
+            <div class="architecture">
+                <h4>任务状态转换图</h4>
+                <div class="svg-container">
+                    <svg width="650" height="400" viewBox="0 0 650 400">
+                        <!-- 运行状态 -->
+                        <rect x="300" y="50" width="100" height="60" rx="10" fill="#4db6ac" stroke="#00796b" stroke-width="2"/>
+                        <text x="350" y="85" text-anchor="middle" fill="white" font-weight="bold">运行状态</text>
+                        
+                        <!-- 就绪状态 -->
+                        <rect x="100" y="150" width="100" height="60" rx="10" fill="#81c784" stroke="#388e3c" stroke-width="2"/>
+                        <text x="150" y="185" text-anchor="middle" fill="white" font-weight="bold">就绪状态</text>
+                        
+                        <!-- 阻塞状态 -->
+                        <rect x="300" y="250" width="100" height="60" rx="10" fill="#ffb74d" stroke="#f57c00" stroke-width="2"/>
+                        <text x="350" y="285" text-anchor="middle" fill="white" font-weight="bold">阻塞状态</text>
+                        
+                        <!-- 挂起状态 -->
+                        <rect x="500" y="150" width="100" height="60" rx="10" fill="#e57373" stroke="#d32f2f" stroke-width="2"/>
+                        <text x="550" y="185" text-anchor="middle" fill="white" font-weight="bold">挂起状态</text>
+                        
+                        <!-- 箭头和标签 -->
+                        <!-- 运行 -> 就绪 -->
+                        <path d="M300 110 L200 150" stroke="#00796b" stroke-width="2" marker-end="url(#arrow)"/>
+                        <text x="250" y="120" text-anchor="middle" fill="#00796b" font-size="12">时间片结束</text>
+                        
+                        <!-- 就绪 -> 运行 -->
+                        <path d="M200 150 L300 110" stroke="#00796b" stroke-width="2" marker-end="url(#arrow)"/>
+                        <text x="250" y="140" text-anchor="middle" fill="#00796b" font-size="12">调度器选择</text>
+                        
+                        <!-- 运行 -> 阻塞 -->
+                        <path d="M350 110 L350 250" stroke="#00796b" stroke-width="2" marker-end="url(#arrow)"/>
+                        <text x="370" y="180" text-anchor="middle" fill="#00796b" font-size="12">等待事件</text>
+                        
+                        <!-- 阻塞 -> 就绪 -->
+                        <path d="M350 250 L200 210" stroke="#00796b" stroke-width="2" marker-end="url(#arrow)"/>
+                        <text x="270" y="240" text-anchor="middle" fill="#00796b" font-size="12">事件发生</text>
+                        
+                        <!-- 运行/就绪/阻塞 -> 挂起 -->
+                        <path d="M250 150 L500 150" stroke="#00796b" stroke-width="2" marker-end="url(#arrow)"/>
+                        <text x="375" y="140" text-anchor="middle" fill="#00796b" font-size="12">vTaskSuspend()</text>
+                        
+                        <!-- 挂起 -> 就绪 -->
+                        <path d="M500 210 L250 210" stroke="#00796b" stroke-width="2" marker-end="url(#arrow)"/>
+                        <text x="375" y="220" text-anchor="middle" fill="#00796b" font-size="12">vTaskResume()</text>
+                        
+                        <defs>
+                            <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#00796b"/>
+                            </marker>
+                        </defs>
+                    </svg>
+                </div>
+            </div>
+            
+            <p>vTaskResume()函数的主要功能包括：</p>
+            <ul>
+                <li>将任务从挂起状态恢复到就绪状态</li>
+                <li>如果恢复的任务优先级高于当前运行任务，会触发任务切换</li>
+                <li>只能恢复被vTaskSuspend()挂起的任务，不能恢复因等待事件而阻塞的任务</li>
+                <li>可以在任务和中断服务程序(ISR)中调用（ISR中需使用xTaskResumeFromISR）</li>
+            </ul>
+            
+            <div class="note">
+                <p><strong>注意：</strong> vTaskResume()不能恢复因调用vTaskDelay()、等待队列、信号量等而阻塞的任务。这些任务会在等待的条件满足后自动恢复到就绪状态。</p>
+            </div>
+        </div>
+        
+        <div class="content-section">
+            <h3>vTaskResume调用时机</h3>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>场景</th>
+                        <th>描述</th>
+                        <th>示例</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>任务同步</td>
+                        <td>当一个任务需要等待另一个任务完成特定操作后才能继续执行</td>
+                        <td>数据处理任务等待数据采集任务完成</td>
+                    </tr>
+                    <tr>
+                        <td>资源管理</td>
+                        <td>当共享资源可用时，恢复等待该资源的任务</td>
+                        <td>外设使用完毕，恢复等待该外设的任务</td>
+                    </tr>
+                    <tr>
+                        <td>条件执行</td>
+                        <td>根据系统状态决定是否恢复某些任务</td>
+                        <td>系统进入特定模式时恢复相关功能任务</td>
+                    </tr>
+                    <tr>
+                        <td>错误恢复</td>
+                        <td>在错误处理流程中恢复因错误而挂起的任务</td>
+                        <td>通信异常恢复后，恢复通信任务</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="example-box">
+                <h4>典型应用场景示例</h4>
+                <p>在以下场景中，vTaskResume()特别有用：</p>
+                <ol>
+                    <li><strong>任务间协作：</strong> 任务A挂起自己，等待任务B完成某些操作后恢复任务A</li>
+                    <li><strong>系统初始化：</strong> 主任务挂起所有应用任务，完成系统初始化后统一恢复</li>
+                    <li><strong>低功耗管理：</strong> 系统进入低功耗模式前挂起非必要任务，唤醒后恢复</li>
+                    <li><strong>调试支持：</strong> 调试时挂起某些任务以简化系统行为分析</li>
+                </ol>
+            </div>
+        </div>
+        
+        <div class="content-section">
+            <h3>代码示例</h3>
+            
+            <div class="code-block">
+                <pre>
+// 任务句柄声明
+TaskHandle_t xDataProcessTaskHandle = NULL;
+
+// 数据处理任务
+void vDataProcessTask(void *pvParameters)
+{
+    for(;;)
+    {
+        // 挂起自己，等待数据就绪
+        vTaskSuspend(NULL);
+        
+        // 被恢复后执行数据处理
+        process_data();
+        
+        // 其他任务逻辑...
+    }
+}
+
+// 数据采集任务
+void vDataAcquisitionTask(void *pvParameters)
+{
+    for(;;)
+    {
+        // 采集数据
+        acquire_data();
+        
+        // 数据就绪，恢复数据处理任务
+        if(xDataProcessTaskHandle != NULL)
+        {
+            vTaskResume(xDataProcessTaskHandle);
+        }
+        
+        vTaskDelay(pdMS_TO_TICKS(100)); // 延迟100ms
+    }
+}
+
+// 主函数
+int main(void)
+{
+    // 创建数据处理任务
+    xTaskCreate(vDataProcessTask, "DataProcess", 1024, NULL, 2, &xDataProcessTaskHandle);
+    
+    // 创建数据采集任务
+    xTaskCreate(vDataAcquisitionTask, "DataAcq", 1024, NULL, 1, NULL);
+    
+    // 启动调度器
+    vTaskStartScheduler();
+    
+    return 0;
+}
+                </pre>
+            </div>
+            
+            <div class="note">
+                <p><strong>代码说明：</strong> 这个示例展示了如何使用vTaskResume()实现任务间的同步。数据处理任务在开始时会挂起自己，等待数据采集任务完成数据采集后将其恢复。</p>
+            </div>
+        </div>
+        
+        <div class="content-section">
+            <h3>注意事项和最佳实践</h3>
+            
+            <div class="highlight">
+                <h4>重要注意事项</h4>
+                <ul>
+                    <li>vTaskResume()不能用于恢复因等待事件而阻塞的任务</li>
+                    <li>在中断服务程序(ISR)中恢复任务应使用xTaskResumeFromISR()</li>
+                    <li>多次调用vTaskResume()对已就绪的任务没有额外影响</li>
+                    <li>确保任务句柄有效，避免使用NULL句柄</li>
+                    <li>考虑任务优先级，高优先级任务恢复可能导致立即任务切换</li>
+                </ul>
+            </div>
+            
+            <div class="example-box">
+                <h4>最佳实践建议</h4>
+                <ol>
+                    <li>在恢复任务前，确保任务恢复后所需的条件已经满足</li>
+                    <li>对于关键任务，考虑使用超时机制而不是无限期挂起</li>
+                    <li>在系统设计时明确任务间的依赖关系和恢复条件</li>
+                    <li>使用任务通知或事件标志组作为更轻量级的任务同步机制</li>
+                    <li>在文档中记录任务挂起和恢复的逻辑，便于维护</li>
+                </ol>
+            </div>
+        </div>
+        
+        <div class="footer">
+            蓝海资料掘金营
+        </div>
+    </div>
+</body>
+</html>

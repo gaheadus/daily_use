@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS任务管理50问 - 任务与信号量</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #f9fbe7 50%, #e8f5e9 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px dashed #4db6ac;
+        }
+        
+        .header h1 {
+            color: #00695c;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h2 {
+            color: #00796b;
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+        }
+        
+        .header p {
+            color: #004d40;
+            font-size: 1.1rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .section {
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+        
+        .section:hover {
+            transform: translateY(-5px);
+        }
+        
+        .section h3 {
+            color: #00796b;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #80cbc4;
+        }
+        
+        .section h4 {
+            color: #004d40;
+            margin: 15px 0 10px;
+        }
+        
+        .section p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        .section ul, .section ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .section li {
+            margin-bottom: 8px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        th {
+            background-color: #4db6ac;
+            color: white;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0f2f1;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f1f8e9;
+        }
+        
+        tr:hover {
+            background-color: #e0f2f1;
+        }
+        
+        pre {
+            background-color: #f5f5f5;
+            border-left: 4px solid #4db6ac;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+            border-radius: 0 8px 8px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        
+        .code-block {
+            margin: 20px 0;
+        }
+        
+        .diagram-container {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+        
+        .comparison {
+            grid-column: 1 / -1;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 20px;
+        }
+        
+        .comparison h3 {
+            text-align: center;
+            color: #00796b;
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+        }
+        
+        .comparison-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        .comparison-section {
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .comparison-section h4 {
+            color: #004d40;
+            text-align: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #80cbc4;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 3px dashed #4db6ac;
+            color: #00695c;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+            
+            .comparison-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>FreeRTOS任务管理50问</h1>
+            <h2>42、任务与信号量：二进制信号量和计数信号量的使用</h2>
+            <p>本课程详细讲解FreeRTOS中二进制信号量和计数信号量的概念、使用方法、应用场景以及它们之间的区别。</p>
+        </div>
+        
+        <div class="content">
+            <div class="section">
+                <h3>信号量概述</h3>
+                <p>信号量是FreeRTOS中用于任务间同步和互斥的重要机制。它本质上是一个计数器，用于控制对共享资源的访问。</p>
+                
+                <h4>信号量的主要作用：</h4>
+                <ul>
+                    <li><strong>任务同步</strong>：协调多个任务的执行顺序</li>
+                    <li><strong>资源管理</strong>：控制对共享资源的访问</li>
+                    <li><strong>事件通知</strong>：通知任务某个事件已经发生</li>
+                </ul>
+                
+                <h4>信号量的两种类型：</h4>
+                <ol>
+                    <li><strong>二进制信号量</strong>：只能取0或1的信号量</li>
+                    <li><strong>计数信号量</strong>：可以取多个值的信号量</li>
+                </ol>
+            </div>
+            
+            <div class="section">
+                <h3>二进制信号量</h3>
+                <p>二进制信号量是一种特殊的信号量，其计数值只能是0或1。它通常用于任务同步和互斥。</p>
+                
+                <h4>二进制信号量的特点：</h4>
+                <ul>
+                    <li>计数值只能是0或1</li>
+                    <li>常用于任务同步和互斥</li>
+                    <li>获取和释放操作会改变信号量的状态</li>
+                    <li>可以用于中断服务程序和任务之间的同步</li>
+                </ul>
+                
+                <h4>二进制信号量的API函数：</h4>
+                <ul>
+                    <li><code>xSemaphoreCreateBinary()</code> - 创建二进制信号量</li>
+                    <li><code>xSemaphoreTake()</code> - 获取信号量</li>
+                    <li><code>xSemaphoreGive()</code> - 释放信号量</li>
+                    <li><code>xSemaphoreGiveFromISR()</code> - 在中断中释放信号量</li>
+                </ul>
+            </div>
+            
+            <div class="section">
+                <h3>二进制信号量使用示例</h3>
+                <p>以下是一个使用二进制信号量进行任务同步的示例：</p>
+                
+                <div class="code-block">
+                    <pre>#include "FreeRTOS.h"
+#include "task.h"
+#include "semphr.h"
+
+// 定义二进制信号量句柄
+SemaphoreHandle_t xBinarySemaphore;
+
+// 任务1：生产者任务
+void vProducerTask(void *pvParameters)
+{
+    while(1)
+    {
+        // 执行一些操作...
+        vTaskDelay(pdMS_TO_TICKS(1000));
+        
+        // 释放二进制信号量
+        xSemaphoreGive(xBinarySemaphore);
+    }
+}
+
+// 任务2：消费者任务
+void vConsumerTask(void *pvParameters)
+{
+    while(1)
+    {
+        // 等待二进制信号量
+        if(xSemaphoreTake(xBinarySemaphore, portMAX_DELAY) == pdTRUE)
+        {
+            // 收到信号量，执行相应操作
+            // ...
+        }
+    }
+}
+
+int main(void)
+{
+    // 创建二进制信号量
+    xBinarySemaphore = xSemaphoreCreateBinary();
+    
+    // 创建任务
+    xTaskCreate(vProducerTask, "Producer", 1000, NULL, 1, NULL);
+    xTaskCreate(vConsumerTask, "Consumer", 1000, NULL, 1, NULL);
+    
+    // 启动调度器
+    vTaskStartScheduler();
+    
+    return 0;
+}</pre>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>计数信号量</h3>
+                <p>计数信号量的计数值可以大于1，通常用于管理多个相同的资源。</p>
+                
+                <h4>计数信号量的特点：</h4>
+                <ul>
+                    <li>计数值可以大于1</li>
+                    <li>常用于资源池管理</li>
+                    <li>可以跟踪可用资源的数量</li>
+                    <li>允许多个任务同时访问资源</li>
+                </ul>
+                
+                <h4>计数信号量的API函数：</h4>
+                <ul>
+                    <li><code>xSemaphoreCreateCounting()</code> - 创建计数信号量</li>
+                    <li><code>xSemaphoreTake()</code> - 获取信号量</li>
+                    <li><code>xSemaphoreGive()</code> - 释放信号量</li>
+                    <li><code>xSemaphoreGiveFromISR()</code> - 在中断中释放信号量</li>
+                </ul>
+            </div>
+            
+            <div class="section">
+                <h3>计数信号量使用示例</h3>
+                <p>以下是一个使用计数信号量管理资源池的示例：</p>
+                
+                <div class="code-block">
+                    <pre>#include "FreeRTOS.h"
+#include "task.h"
+#include "semphr.h"
+
+// 定义计数信号量句柄（假设有5个可用资源）
+SemaphoreHandle_t xCountingSemaphore;
+
+// 任务：使用资源的任务
+void vResourceUserTask(void *pvParameters)
+{
+    while(1)
+    {
+        // 尝试获取资源（等待最多100ms）
+        if(xSemaphoreTake(xCountingSemaphore, pdMS_TO_TICKS(100)) == pdTRUE)
+        {
+            // 成功获取资源，使用资源...
+            // ...
+            
+            // 使用完成后释放资源
+            xSemaphoreGive(xCountingSemaphore);
+        }
+        else
+        {
+            // 获取资源失败，执行其他操作或等待
+            // ...
+        }
+        
+        vTaskDelay(pdMS_TO_TICKS(500));
+    }
+}
+
+int main(void)
+{
+    // 创建计数信号量，最大计数值为5，初始计数值为5
+    xCountingSemaphore = xSemaphoreCreateCounting(5, 5);
+    
+    // 创建多个资源使用任务
+    xTaskCreate(vResourceUserTask, "User1", 1000, NULL, 1, NULL);
+    xTaskCreate(vResourceUserTask, "User2", 1000, NULL, 1, NULL);
+    xTaskCreate(vResourceUserTask, "User3", 1000, NULL, 1, NULL);
+    
+    // 启动调度器
+    vTaskStartScheduler();
+    
+    return 0;
+}</pre>
+                </div>
+            </div>
+        </div>
+        
+        <div class="comparison">
+            <h3>二进制信号量与计数信号量对比</h3>
+            <div class="comparison-content">
+                <div class="comparison-section">
+                    <h4>二进制信号量</h4>
+                    <table>
+                        <tr>
+                            <th>特性</th>
+                            <th>描述</th>
+                        </tr>
+                        <tr>
+                            <td>计数值范围</td>
+                            <td>0或1</td>
+                        </tr>
+                        <tr>
+                            <td>主要用途</td>
+                            <td>任务同步、互斥</td>
+                        </tr>
+                        <tr>
+                            <td>创建函数</td>
+                            <td>xSemaphoreCreateBinary()</td>
+                        </tr>
+                        <tr>
+                            <td>适用场景</td>
+                            <td>一对一或一对多的任务同步</td>
+                        </tr>
+                        <tr>
+                            <td>资源管理</td>
+                            <td>不适合管理多个相同资源</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="comparison-section">
+                    <h4>计数信号量</h4>
+                    <table>
+                        <tr>
+                            <th>特性</th>
+                            <th>描述</th>
+                        </tr>
+                        <tr>
+                            <td>计数值范围</td>
+                            <td>0到最大计数值</td>
+                        </tr>
+                        <tr>
+                            <td>主要用途</td>
+                            <td>资源池管理、流量控制</td>
+                        </tr>
+                        <tr>
+                            <td>创建函数</td>
+                            <td>xSemaphoreCreateCounting()</td>
+                        </tr>
+                        <tr>
+                            <td>适用场景</td>
+                            <td>管理多个相同的资源</td>
+                        </tr>
+                        <tr>
+                            <td>资源管理</td>
+                            <td>非常适合管理多个相同资源</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="diagram-container">
+            <svg width="800" height="300" viewBox="0 0 800 300">
+                <!-- 信号量使用流程示意图 -->
+                <defs>
+                    <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+                    refX="9" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#00796b"/>
+                    </marker>
+                </defs>
+                
+                <rect x="50" y="50" width="200" height="60" rx="10" ry="10" 
+                      fill="#4db6ac" stroke="#00796b" stroke-width="2"/>
+                <text x="150" y="85" text-anchor="middle" fill="white" font-size="16" font-weight="bold">
+                    创建信号量
+                </text>
+                
+                <rect x="300" y="50" width="200" height="60" rx="10" ry="10" 
+                      fill="#80cbc4" stroke="#00796b" stroke-width="2"/>
+                <text x="400" y="85" text-anchor="middle" fill="#004d40" font-size="16" font-weight="bold">
+                    任务等待信号量
+                </text>
+                
+                <rect x="550" y="50" width="200" height="60" rx="10" ry="10" 
+                      fill="#b2dfdb" stroke="#00796b" stroke-width="2"/>
+                <text x="650" y="85" text-anchor="middle" fill="#004d40" font-size="16" font-weight="bold">
+                    任务获取信号量
+                </text>
+                
+                <line x1="250" y1="80" x2="300" y2="80" stroke="#00796b" stroke-width="2" marker-end="url(#arrowhead)"/>
+                <line x1="500" y1="80" x2="550" y2="80" stroke="#00796b" stroke-width="2" marker-end="url(#arrowhead)"/>
+                
+                <rect x="300" y="150" width="200" height="60" rx="10" ry="10" 
+                      fill="#a5d6a7" stroke="#388e3c" stroke-width="2"/>
+                <text x="400" y="185" text-anchor="middle" fill="#1b5e20" font-size="16" font-weight="bold">
+                    任务释放信号量
+                </text>
+                
+                <line x1="400" y1="110" x2="400" y2="150" stroke="#00796b" stroke-width="2" marker-end="url(#arrowhead)"/>
+                
+                <text x="400" y="250" text-anchor="middle" fill="#004d40" font-size="14">
+                    信号量使用流程示意图
+                </text>
+            </svg>
+        </div>
+        
+        <div class="section">
+            <h3>信号量使用注意事项</h3>
+            <h4>常见问题与解决方案：</h4>
+            <ul>
+                <li><strong>优先级反转</strong>：使用互斥信号量而非二进制信号量进行互斥</li>
+                <li><strong>死锁</strong>：确保获取和释放信号量的顺序一致</li>
+                <li><strong>资源泄漏</strong>：确保每次获取后都释放信号量</li>
+                <li><strong>中断中使用</strong>：使用xSemaphoreGiveFromISR()在中断中释放信号量</li>
+            </ul>
+            
+            <h4>最佳实践：</h4>
+            <ol>
+                <li>根据需求选择合适的信号量类型</li>
+                <li>为信号量设置合理的等待时间</li>
+                <li>在中断服务程序中只释放信号量，不获取信号量</li>
+                <li>确保信号量的获取和释放成对出现</li>
+                <li>使用信号量名称和注释提高代码可读性</li>
+            </ol>
+        </div>
+        
+        <div class="footer">
+            蓝海资料掘金营
+        </div>
+    </div>
+</body>
+</html>

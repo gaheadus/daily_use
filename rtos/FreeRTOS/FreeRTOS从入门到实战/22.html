@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS任务设计模式与最佳实践</title>
+    <style>
+        :root {
+            --tech-blue: #4A90E2;
+            --vitality-orange: #FF8C42;
+            --fresh-green: #6BCF7F;
+            --light-bg: #F0F8FF;
+            --dark-text: #333333;
+            --light-text: #666666;
+            --white: #FFFFFF;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, var(--light-bg) 0%, #E6F7FF 100%);
+            color: var(--dark-text);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(90deg, var(--tech-blue), var(--fresh-green));
+            color: var(--white);
+            border-radius: 20px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px var(--shadow);
+        }
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        main {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 40px;
+        }
+        section {
+            background: var(--white);
+            border-radius: 18px;
+            padding: 30px;
+            box-shadow: 0 8px 25px var(--shadow);
+            border-left: 8px solid var(--tech-blue);
+            transition: transform 0.3s ease;
+        }
+        section:hover {
+            transform: translateY(-5px);
+        }
+        h2 {
+            color: var(--tech-blue);
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid var(--vitality-orange);
+            display: inline-block;
+        }
+        h3 {
+            color: var(--vitality-orange);
+            margin: 25px 0 15px;
+            font-size: 1.4rem;
+        }
+        p {
+            margin-bottom: 15px;
+            color: var(--light-text);
+        }
+        ul, ol {
+            padding-left: 25px;
+            margin-bottom: 20px;
+        }
+        li {
+            margin-bottom: 10px;
+            color: var(--light-text);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px var(--shadow);
+        }
+        th {
+            background-color: var(--tech-blue);
+            color: white;
+            padding: 18px 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f0f7ff;
+        }
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 12px;
+            overflow-x: auto;
+            margin: 25px 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+        .highlight {
+            background-color: #FFF9E6;
+            padding: 20px;
+            border-radius: 12px;
+            border-left: 6px solid var(--vitality-orange);
+            margin: 25px 0;
+        }
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            padding: 30px;
+            color: var(--light-text);
+            font-size: 1.1rem;
+            border-top: 2px dashed var(--fresh-green);
+        }
+        .footer-text {
+            font-weight: bold;
+            color: var(--tech-blue);
+            font-size: 1.3rem;
+            letter-spacing: 2px;
+        }
+        .tip {
+            background-color: #E8F7FF;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 5px solid var(--fresh-green);
+        }
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+            h1 {
+                font-size: 2.2rem;
+            }
+            section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>FreeRTOS任务设计模式与最佳实践</h1>
+        <p class="subtitle">深入探讨任务划分原则、优先级分配策略及常见问题防范，构建高效可靠的嵌入式实时系统</p>
+    </header>
+
+    <main>
+        <section id="intro">
+            <h2>课程导引</h2>
+            <p>在FreeRTOS等实时操作系统中，任务（Task）是系统调度的基本单元。合理的任务设计是确保系统实时性、可靠性与可维护性的基石。本章将系统性地讲解任务设计的核心原则与最佳实践，涵盖任务划分、优先级管理以及如何避免典型调度问题。</p>
+            <div class="svg-container">
+                <svg width="600" height="180" viewBox="0 0 600 180">
+                    <rect x="10" y="60" width="120" height="60" rx="10" fill="var(--tech-blue)" opacity="0.8"/>
+                    <text x="70" y="95" text-anchor="middle" fill="white" font-weight="bold" font-size="16">任务划分</text>
+                    <path d="M130 90 H180" stroke="var(--vitality-orange)" stroke-width="3" marker-end="url(#arrow)"/>
+                    <rect x="180" y="60" width="120" height="60" rx="10" fill="var(--fresh-green)" opacity="0.8"/>
+                    <text x="240" y="95" text-anchor="middle" fill="white" font-weight="bold" font-size="16">优先级分配</text>
+                    <path d="M300 90 H350" stroke="var(--vitality-orange)" stroke-width="3" marker-end="url(#arrow)"/>
+                    <rect x="350" y="60" width="120" height="60" rx="10" fill="var(--vitality-orange)" opacity="0.8"/>
+                    <text x="410" y="95" text-anchor="middle" fill="white" font-weight="bold" font-size="16">问题防范</text>
+                    <path d="M470 90 H520" stroke="var(--tech-blue)" stroke-width="3" marker-end="url(#arrow)"/>
+                    <rect x="520" y="60" width="70" height="60" rx="10" fill="#8A2BE2" opacity="0.8"/>
+                    <text x="555" y="95" text-anchor="middle" fill="white" font-weight="bold" font-size="16">稳定系统</text>
+                    <defs>
+                        <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                            <path d="M0,0 L0,6 L9,3 z" fill="var(--vitality-orange)"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+        </section>
+
+        <section id="principles">
+            <h2>一、任务划分原则</h2>
+            <p>将系统功能分解为多个任务是设计的第一步。良好的划分应遵循软件工程的基本准则：<strong>高内聚</strong>与<strong>低耦合</strong>。</p>
+
+            <h3>1. 高内聚 (High Cohesion)</h3>
+            <p>一个任务内部应专注于完成一个明确、单一的功能或一组紧密相关的功能。</p>
+            <ul>
+                <li><strong>功能内聚</strong>：任务内的所有代码共同完成一个具体的功能（如“读取温度传感器”）。</li>
+                <li><strong>顺序内聚</strong>：任务内的处理步骤按固定顺序执行，且数据在步骤间传递。</li>
+                <li><strong>通信内聚</strong>：任务内的多个操作对相同的数据集进行处理。</li>
+            </ul>
+            <div class="highlight">
+                <strong>最佳实践：</strong> 使用“动词+名词”的形式为任务命名，如 `Task_ReadSensor`, `Task_ControlMotor`，这能直观体现其单一职责。
+            </div>
+
+            <h3>2. 低耦合 (Low Coupling)</h3>
+            <p>任务之间应尽可能独立，通过清晰、简单的接口进行通信，减少相互依赖。</p>
+            <ul>
+                <li><strong>使用RTOS提供的通信机制</strong>：队列（Queue）、信号量（Semaphore）、事件组（Event Group）等，而非全局变量。</li>
+                <li><strong>定义清晰的数据接口</strong>：传递的消息结构应明确、简洁。</li>
+                <li><strong>避免直接调用其他任务的函数</strong>，应通过发送消息来请求服务。</li>
+            </ul>
+            <div class="svg-container">
+                <svg width="500" height="220" viewBox="0 0 500 220">
+                    <rect x="50" y="30" width="100" height="60" rx="8" fill="var(--tech-blue)" opacity="0.7"/>
+                    <text x="100" y="65" text-anchor="middle" fill="white" font-size="14">任务A</text>
+                    <rect x="350" y="30" width="100" height="60" rx="8" fill="var(--tech-blue)" opacity="0.7"/>
+                    <text x="400" y="65" text-anchor="middle" fill="white" font-size="14">任务B</text>
+                    <rect x="50" y="130" width="100" height="60" rx="8" fill="var(--fresh-green)" opacity="0.7"/>
+                    <text x="100" y="165" text-anchor="middle" fill="white" font-size="14">任务C</text>
+                    <rect x="350" y="130" width="100" height="60" rx="8" fill="var(--fresh-green)" opacity="0.7"/>
+                    <text x="400" y="165" text-anchor="middle" fill="white" font-size="14">任务D</text>
+                    <ellipse cx="250" cy="100" rx="120" ry="40" fill="none" stroke="var(--vitality-orange)" stroke-width="2" stroke-dasharray="5,5"/>
+                    <text x="250" y="105" text-anchor="middle" fill="var(--vitality-orange)" font-size="14">通过队列/信号量通信</text>
+                    <line x1="160" y1="90" x2="340" y2="90" stroke="var(--light-text)" stroke-width="1" stroke-dasharray="3,3"/>
+                    <line x1="160" y1="150" x2="340" y2="150" stroke="var(--light-text)" stroke-width="1" stroke-dasharray="3,3"/>
+                    <text x="250" y="200" text-anchor="middle" fill="var(--light-text)" font-size="12">低耦合架构：任务间无直接调用，仅通过标准机制交互</text>
+                </svg>
+            </div>
+        </section>
+
+        <section id="priority">
+            <h2>二、任务优先级分配策略</h2>
+            <p>FreeRTOS采用固定优先级抢占式调度。优先级分配直接影响系统的实时响应能力。</p>
+
+            <h3>优先级分配原则</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>优先级</th>
+                        <th>任务类型</th>
+                        <th>分配依据</th>
+                        <th>示例</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>最高 (如 configMAX_PRIORITIES-1)</strong></td>
+                        <td>硬实时关键任务</td>
+                        <td>对截止时间有严格要求，错过会导致系统故障。</td>
+                        <td>紧急故障处理、电机急停、安全监控</td>
+                    </tr>
+                    <tr>
+                        <td><strong>高</strong></td>
+                        <td>软实时任务</td>
+                        <td>需要快速响应，但偶尔错过截止时间可容忍。</td>
+                        <td>用户界面响应、关键传感器数据处理</td>
+                    </tr>
+                    <tr>
+                        <td><strong>中</strong></td>
+                        <td>普通周期性任务</td>
+                        <td>按固定周期执行，计算量适中。</td>
+                        <td>数据滤波、常规状态更新、通信协议处理</td>
+                    </tr>
+                    <tr>
+                        <td><strong>低</strong></td>
+                        <td>后台任务</td>
+                        <td>无实时性要求，可在CPU空闲时执行。</td>
+                        <td>数据日志记录、非关键统计、内存清理</td>
+                    </tr>
+                    <tr>
+                        <td><strong>最低 (0 或 idle优先级)</strong></td>
+                        <td>空闲任务</td>
+                        <td>系统自动创建，可挂接钩子函数。</td>
+                        <td>FreeRTOS的Idle Task</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>实用策略：速率单调调度 (RMS)</h3>
+            <p>对于周期性任务，一个经典策略是<strong>速率单调调度（Rate Monotonic Scheduling）</strong>：<strong>周期越短的任务，优先级越高。</strong></p>
+            <div class="tip">
+                <strong>注意：</strong> FreeRTOS优先级数字越大表示优先级越高。应避免创建过多不同优先级，通常5-10个优先级层次足以应对大多数应用。
+            </div>
+            <div class="code-block">
+<pre>
+// 示例：在FreeRTOS中创建不同优先级的任务
+#define TASK_HIGH_PRIORITY     (configMAX_PRIORITIES - 1) // 最高
+#define TASK_MEDIUM_PRIORITY   (configMAX_PRIORITIES - 3)
+#define TASK_LOW_PRIORITY      (1)
+
+void vTaskCritical( void *pvParameters ) {
+    // 硬实时任务
+    for(;;) {
+        vTaskDelay(pdMS_TO_TICKS(10)); // 10ms周期，高优先级
+        // 执行关键操作
+    }
+}
+
+void vTaskPeriodic( void *pvParameters ) {
+    // 普通周期性任务
+    for(;;) {
+        vTaskDelay(pdMS_TO_TICKS(100)); // 100ms周期，中优先级
+        // 执行常规操作
+    }
+}
+
+// 创建任务
+xTaskCreate(vTaskCritical, "CritTask", 1024, NULL, TASK_HIGH_PRIORITY, NULL);
+xTaskCreate(vTaskPeriodic, "PeriTask", 1024, NULL, TASK_MEDIUM_PRIORITY, NULL);
+</pre>
+            </div>
+        </section>
+
+        <section id="problems">
+            <h2>三、避免任务饥饿与优先级反转</h2>
+
+            <h3>1. 任务饥饿 (Task Starvation)</h3>
+            <p>低优先级任务因始终无法获得CPU时间而无法执行的现象。</p>
+            <p><strong>成因：</strong> 高优先级任务过多或执行时间过长，且调度策略为严格抢占。</p>
+            <p><strong>解决方案：</strong></p>
+            <ul>
+                <li><strong>合理评估任务执行时间</strong>，优化高优先级任务代码，减少其占用CPU的时间。</li>
+                <li>对于计算密集型任务，可考虑在适当位置调用 <code>taskYIELD()</code> 主动让出CPU。</li>
+                <li>使用<strong>时间片轮转（Round Robin）</strong>：为相同优先级的任务配置时间片，确保它们都能分到时间。</li>
+            </ul>
+
+            <h3>2. 优先级反转 (Priority Inversion)</h3>
+            <p>高优先级任务因等待被低优先级任务占有的资源，而被迫等待，导致中优先级任务抢先执行的异常情况。</p>
+            <div class="svg-container">
+                <svg width="550" height="260" viewBox="0 0 550 260">
+                    <rect x="50" y="10" width="450" height="40" rx="5" fill="#FFE4E1" stroke="#FF6B6B" stroke-width="2"/>
+                    <text x="70" y="35" fill="#333" font-size="14"><strong>高优先级任务 H</strong> (等待信号量S)</text>
+                    <rect x="50" y="70" width="450" height="40" rx="5" fill="#FFF0D6" stroke="#FFA726" stroke-width="2"/>
+                    <text x="70" y="95" fill="#333" font-size="14"><strong>中优先级任务 M</strong> (就绪，可运行)</text>
+                    <rect x="50" y="130" width="450" height="40" rx="5" fill="#E1F5FE" stroke="#29B6F6" stroke-width="2"/>
+                    <text x="70" y="155" fill="#333" font-size="14"><strong>低优先级任务 L</strong> (持有信号量S)</text>
+                    <line x1="100" y1="170" x2="100" y2="210" stroke="var(--light-text)" stroke-width="2"/>
+                    <line x1="300" y1="170" x2="300" y2="210" stroke="var(--light-text)" stroke-width="2"/>
+                    <line x1="400" y1="170" x2="400" y2="210" stroke="var(--light-text)" stroke-width="2"/>
+                    <text x="100" y="230" text-anchor="middle" fill="var(--vitality-orange)" font-size="12">L持有S</text>
+                    <text x="300" y="230" text-anchor="middle" fill="var(--vitality-orange)" font-size="12">M抢占L</text>
+                    <text x="400" y="230" text-anchor="middle" fill="var(--vitality-orange)" font-size="12">L释放S</text>
+                    <text x="200" y="250" text-anchor="middle" fill="var(--tech-blue)" font-size="14"><strong>结果：H 被 M 阻塞，发生优先级反转！</strong></text>
+                </svg>
+            </div>
+            <p><strong>解决方案：</strong></p>
+            <ul>
+                <li><strong>优先级继承（Priority Inheritance）</strong>：当高优先级任务等待低优先级任务持有的资源时，临时将低优先级任务的优先级提升到与高优先级任务相同。FreeRTOS的互斥信号量（Mutex）支持此特性。</li>
+                <li><strong>优先级天花板（Priority Ceiling）</strong>：为资源预先设定一个“天花板优先级”，任何任务获取该资源后，其优先级立即提升至天花板优先级。</li>
+            </ul>
+            <div class="code-block">
+<pre>
+// 使用支持优先级继承的互斥信号量避免优先级反转
+SemaphoreHandle_t xMutex;
+
+void vHighPriorityTask( void *pvParameters ) {
+    for(;;) {
+        // 请求互斥锁，如果锁被低优先级任务持有，该低优先级任务会继承本任务的优先级
+        if(xSemaphoreTake(xMutex, portMAX_DELAY) == pdTRUE) {
+            // 访问共享资源
+            xSemaphoreGive(xMutex); // 释放锁
+        }
+        vTaskDelay(1);
+    }
+}
+
+void vCreateMutex(void) {
+    // 创建互斥信号量，类型为 semSEMAPHORE_QUEUE_ITEM_LENGTH
+    xMutex = xSemaphoreCreateMutex();
+    // 或者使用递归互斥量 xSemaphoreCreateRecursiveMutex();
+}
+</pre>
+            </div>
+        </section>
+
+        <section id="summary">
+            <h2>四、本章总结与检查清单</h2>
+            <p>设计FreeRTOS任务时，请遵循以下检查清单：</p>
+            <ol>
+                <li><strong>任务划分是否“高内聚”？</strong> 每个任务是否职责单一、功能明确？</li>
+                <li><strong>任务间是否“低耦合”？</strong> 是否使用队列、信号量等机制通信，而非大量全局变量？</li>
+                <li><strong>优先级分配是否合理？</strong> 是否根据实时性要求（截止时间、周期）分配？优先级层次是否精简？</li>
+                <li><strong>是否考虑了任务饥饿？</strong> 高优先级任务是否过于“贪婪”？是否可以使用时间片轮转？</li>
+                <li><strong>是否防范了优先级反转？</strong> 访问共享资源时，是否使用了支持优先级继承的互斥量？</li>
+                <li><strong>堆栈大小是否足够？</strong> 是否通过工具（如FreeRTOS的堆栈溢出检测）验证过？</li>
+            </ol>
+            <div class="highlight">
+                <p><strong>核心思想：</strong> 良好的任务设计是平衡的艺术。在实时性、资源消耗、代码复杂度之间找到最佳平衡点，才能构建出既稳定可靠又易于维护的嵌入式系统。</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>课程内容精心设计，理论与实践结合，助你掌握FreeRTOS精髓。</p>
+        <p class="footer-text">蓝海资料掘金营</p>
+        <p style="margin-top:15px; font-size:0.9rem;">© 2023 嵌入式系统专家课程. 保留所有权利。</p>
+    </footer>
+</body>
+</html>

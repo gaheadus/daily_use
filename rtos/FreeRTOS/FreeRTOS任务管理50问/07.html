@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS任务优先级设置：uxTaskPrioritySet函数</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #bbdefb 50%, #f8bbd0 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(45deg, #42a5f5, #ab47bc);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        section {
+            margin-bottom: 40px;
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        h2 {
+            color: #42a5f5;
+            border-bottom: 3px solid #ffcc80;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        h3 {
+            color: #ab47bc;
+            margin: 20px 0 15px;
+            font-size: 1.4em;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th {
+            background: #42a5f5;
+            color: white;
+            padding: 15px;
+            text-align: left;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        tr:nth-child(even) {
+            background: #f5f5f5;
+        }
+
+        tr:hover {
+            background: #e3f2fd;
+        }
+
+        pre {
+            background: #f8f8f8;
+            border-left: 4px solid #42a5f5;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+            border-radius: 5px;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+
+        code {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 25px 0;
+        }
+
+        .note {
+            background: #e8f5e9;
+            border-left: 4px solid #66bb6a;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .warning {
+            background: #ffebee;
+            border-left: 4px solid #ef5350;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        footer {
+            background: linear-gradient(45deg, #42a5f5, #ab47bc);
+            color: white;
+            text-align: center;
+            padding: 25px;
+            font-size: 1.1em;
+            margin-top: 40px;
+        }
+
+        .function-signature {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 1.1em;
+        }
+
+        .example-box {
+            background: #fff8e1;
+            border: 2px dashed #ffb300;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>FreeRTOS任务优先级设置</h1>
+            <div class="subtitle">uxTaskPrioritySet函数的使用方法详解</div>
+        </header>
+
+        <div class="content">
+            <section>
+                <h2>uxTaskPrioritySet函数概述</h2>
+                <p>uxTaskPrioritySet是FreeRTOS中用于动态修改任务优先级的重要函数。它允许在运行时调整任务的优先级，为嵌入式系统提供了灵活的任务调度能力。</p>
+                
+                <div class="function-signature">
+                    void vTaskPrioritySet( TaskHandle_t xTask, UBaseType_t uxNewPriority );
+                </div>
+                
+                <p>该函数属于FreeRTOS任务管理API的一部分，位于task.h头文件中。通过合理使用此函数，可以实现动态的任务调度策略，适应不同的运行场景。</p>
+            </section>
+
+            <section>
+                <h2>函数参数详解</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>参数</th>
+                            <th>类型</th>
+                            <th>描述</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>xTask</td>
+                            <td>TaskHandle_t</td>
+                            <td>要修改优先级的任务句柄。使用NULL表示修改当前任务优先级</td>
+                        </tr>
+                        <tr>
+                            <td>uxNewPriority</td>
+                            <td>UBaseType_t</td>
+                            <td>新的优先级值，范围取决于configMAX_PRIORITIES配置</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="note">
+                    <strong>注意：</strong>FreeRTOS中数值越大的优先级越高。0为最低优先级，configMAX_PRIORITIES-1为最高优先级。
+                </div>
+            </section>
+
+            <section>
+                <h2>使用场景与示例</h2>
+                
+                <h3>场景1：修改当前任务优先级</h3>
+                <div class="example-box">
+                    <pre><code>void vTaskExample( void * pvParameters )
+{
+    // 获取当前任务优先级
+    UBaseType_t uxCurrentPriority = uxTaskPriorityGet( NULL );
+    
+    // 提高当前任务优先级
+    vTaskPrioritySet( NULL, uxCurrentPriority + 2 );
+    
+    // 任务主体代码
+    for( ;; )
+    {
+        // 任务逻辑
+        vTaskDelay( pdMS_TO_TICKS( 1000 ) );
+    }
+}</code></pre>
+                </div>
+
+                <h3>场景2：修改其他任务优先级</h3>
+                <div class="example-box">
+                    <pre><code>// 全局任务句柄
+TaskHandle_t xDisplayTaskHandle;
+
+void vControlTask( void * pvParameters )
+{
+    // 创建显示任务
+    xTaskCreate( vDisplayTask, "Display", 1000, NULL, 2, &xDisplayTaskHandle );
+    
+    for( ;; )
+    {
+        // 当需要紧急显示时，提高显示任务优先级
+        if( bEmergencyCondition )
+        {
+            vTaskPrioritySet( xDisplayTaskHandle, 5 ); // 提高到优先级5
+        }
+        else
+        {
+            vTaskPrioritySet( xDisplayTaskHandle, 2 ); // 恢复普通优先级
+        }
+        
+        vTaskDelay( pdMS_TO_TICKS( 500 ) );
+    }
+}</code></pre>
+                </div>
+            </section>
+
+            <section>
+                <h2>优先级调度原理</h2>
+                <div class="svg-container">
+                    <svg width="600" height="300" viewBox="0 0 600 300">
+                        <!-- 背景 -->
+                        <rect x="0" y="0" width="600" height="300" fill="#e3f2fd" rx="10"/>
+                        
+                        <!-- 标题 -->
+                        <text x="300" y="40" text-anchor="middle" font-family="Arial" font-size="18" font-weight="bold" fill="#1565c0">FreeRTOS任务优先级调度原理</text>
+                        
+                        <!-- 高优先级任务 -->
+                        <rect x="50" y="80" width="500" height="50" rx="8" fill="#42a5f5"/>
+                        <text x="300" y="110" text-anchor="middle" font-family="Arial" font-size="14" fill="white">高优先级任务 (优先级 5-10)</text>
+                        
+                        <!-- 中优先级任务 -->
+                        <rect x="100" y="150" width="400" height="50" rx="8" fill="#66bb6a"/>
+                        <text x="300" y="180" text-anchor="middle" font-family="Arial" font-size="14" fill="white">中优先级任务 (优先级 3-4)</text>
+                        
+                        <!-- 低优先级任务 -->
+                        <rect x="150" y="220" width="300" height="50" rx="8" fill="#ffa726"/>
+                        <text x="300" y="250" text-anchor="middle" font-family="Arial" font-size="14" fill="white">低优先级任务 (优先级 0-2)</text>
+                        
+                        <!-- 调度箭头 -->
+                        <polygon points="580,105 560,95 560,115" fill="#d32f2f"/>
+                        <line x1="50" y1="105" x2="580" y2="105" stroke="#d32f2f" stroke-width="2"/>
+                        <text x="520" y="100" text-anchor="middle" font-family="Arial" font-size="12" fill="#d32f2f">调度方向</text>
+                    </svg>
+                </div>
+                
+                <p>FreeRTOS使用固定优先级抢占式调度算法：</p>
+                <ul>
+                    <li>高优先级任务总是优先于低优先级任务执行</li>
+                    <li>相同优先级的任务使用时间片轮转调度</li>
+                    <li>uxTaskPrioritySet可以动态改变这种调度关系</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>最佳实践与注意事项</h2>
+                
+                <h3>最佳实践</h3>
+                <ul>
+                    <li>在修改优先级前保存原优先级，便于恢复</li>
+                    <li>避免频繁修改优先级，减少调度开销</li>
+                    <li>使用互斥锁保护共享资源，而不是依赖优先级</li>
+                    <li>合理设计优先级层次，避免优先级反转</li>
+                </ul>
+
+                <h3>注意事项</h3>
+                <div class="warning">
+                    <strong>警告：</strong>
+                    <ul>
+                        <li>优先级数值必须在0到(configMAX_PRIORITIES - 1)范围内</li>
+                        <li>修改正在运行的任务优先级会立即触发重新调度</li>
+                        <li>过高的优先级可能导致低优先级任务饥饿</li>
+                        <li>注意优先级继承机制对互斥锁的影响</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section>
+                <h2>常见问题解答</h2>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>问题</th>
+                            <th>解答</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>uxTaskPrioritySet会立即生效吗？</td>
+                            <td>是的，调用后会立即触发任务重新调度</td>
+                        </tr>
+                        <tr>
+                            <td>可以设置比当前运行任务更高的优先级吗？</td>
+                            <td>可以，这会导致当前任务被抢占</td>
+                        </tr>
+                        <tr>
+                            <td>优先级数值范围是多少？</td>
+                            <td>0到configMAX_PRIORITIES-1，通常建议不超过32</td>
+                        </tr>
+                        <tr>
+                            <td>如何获取任务当前优先级？</td>
+                            <td>使用uxTaskPriorityGet函数</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section>
+                <h2>软件架构示意图</h2>
+                <div class="svg-container">
+                    <svg width="650" height="350" viewBox="0 0 650 350">
+                        <!-- 背景 -->
+                        <rect x="0" y="0" width="650" height="350" fill="#f5f5f5" rx="10" stroke="#bdbdbd" stroke-width="1"/>
+                        
+                        <!-- 标题 -->
+                        <text x="325" y="30" text-anchor="middle" font-family="Arial" font-size="16" font-weight="bold" fill="#424242">FreeRTOS任务优先级管理架构</text>
+                        
+                        <!-- 应用层 -->
+                        <rect x="50" y="50" width="550" height="60" rx="8" fill="#bbdefb"/>
+                        <text x="325" y="85" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold" fill="#1976d2">应用层 (用户任务)</text>
+                        
+                        <!-- FreeRTOS API层 -->
+                        <rect x="80" y="130" width="490" height="60" rx="8" fill="#c8e6c9"/>
+                        <text x="325" y="165" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold" fill="#388e3c">FreeRTOS任务管理API</text>
+                        
+                        <!-- 文本标注 -->
+                        <text x="325" y="185" text-anchor="middle" font-family="Arial" font-size="12" fill="#666">uxTaskPrioritySet | uxTaskPriorityGet | vTaskDelay</text>
+                        
+                        <!-- 内核调度层 -->
+                        <rect x="110" y="210" width="430" height="60" rx="8" fill="#ffccbc"/>
+                        <text x="325" y="245" text-anchor="middle" font-family="Arial" font-size="14" font-weight="bold" fill="#e64a19">内核调度器</text>
+                        
+                        <!-- 硬件抽象层 -->
+                        <rect x="140" y="290" width="370" height="40" rx="8" fill="#f8bbd0"/>
+                        <text x="325" y="312" text-anchor="middle" font-family="Arial" font-size="12" font-weight="bold" fill="#c2185b">硬件抽象层 (HAL)</text>
+                        
+                        <!-- 连接线 -->
+                        <line x1="325" y1="110" x2="325" y2="130" stroke="#757575" stroke-width="2"/>
+                        <line x1="325" y1="190" x2="325" y2="210" stroke="#757575" stroke-width="2"/>
+                        <line x1="325" y1="270" x2="325" y2="290" stroke="#757575" stroke-width="2"/>
+                        
+                        <!-- 箭头 -->
+                        <polygon points="325,110 320,120 330,120" fill="#757575"/>
+                        <polygon points="325,190 320,200 330,200" fill="#757575"/>
+                        <polygon points="325,270 320,280 330,280" fill="#757575"/>
+                    </svg>
+                </div>
+                
+                <p>uxTaskPrioritySet函数在FreeRTOS架构中的位置和作用：作为任务管理API的一部分，它连接用户应用和内核调度器，实现对任务优先级的动态控制。</p>
+            </section>
+        </div>
+
+        <footer>
+            蓝海资料掘金营 © 2024 - FreeRTOS专家课程
+        </footer>
+    </div>
+</body>
+</html>

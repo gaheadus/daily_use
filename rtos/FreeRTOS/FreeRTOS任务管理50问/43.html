@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS任务管理50问 - 第43问</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #f9fbe7 50%, #e8f5e9 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px dashed #4db6ac;
+        }
+
+        .header h1 {
+            color: #00695c;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h2 {
+            color: #00796b;
+            font-size: 1.8rem;
+            font-weight: normal;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h3 {
+            color: #00796b;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #80cbc4;
+        }
+
+        .card ul, .card ol {
+            padding-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .card li {
+            margin-bottom: 8px;
+        }
+
+        .code-block {
+            background: #f5f5f5;
+            border-left: 4px solid #4db6ac;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+            overflow-x: auto;
+        }
+
+        pre {
+            white-space: pre-wrap;
+            font-family: 'Consolas', 'Monaco', monospace;
+            line-height: 1.4;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background-color: #e0f2f1;
+            color: #00695c;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background-color: #f1f8e9;
+        }
+
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px dashed #4db6ac;
+            color: #00796b;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .highlight {
+            background-color: #fff9c4;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+
+        .note {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>FreeRTOS任务管理50问</h1>
+            <h2>43、任务与互斥量：互斥量的使用和优先级继承</h2>
+        </div>
+
+        <div class="content">
+            <div class="card">
+                <h3>什么是互斥量？</h3>
+                <p>互斥量（Mutex）是FreeRTOS中用于保护共享资源的一种同步机制。它确保在任何时刻只有一个任务可以访问被保护的资源，从而避免数据竞争和不一致。</p>
+                
+                <div class="note">
+                    <strong>关键特性：</strong>
+                    <ul>
+                        <li>互斥量具有所有权概念</li>
+                        <li>支持优先级继承机制</li>
+                        <li>防止优先级反转问题</li>
+                        <li>递归互斥量允许同一任务多次获取</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>互斥量的创建</h3>
+                <p>在FreeRTOS中，可以使用以下函数创建互斥量：</p>
+                
+                <div class="code-block">
+                    <pre>// 创建互斥量
+SemaphoreHandle_t xMutex;
+
+void setup() {
+    // 创建互斥量
+    xMutex = xSemaphoreCreateMutex();
+    
+    if (xMutex != NULL) {
+        // 互斥量创建成功
+    }
+}</pre>
+                </div>
+                
+                <p>对于递归互斥量：</p>
+                <div class="code-block">
+                    <pre>// 创建递归互斥量
+SemaphoreHandle_t xRecursiveMutex;
+
+xRecursiveMutex = xSemaphoreCreateRecursiveMutex();</pre>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>互斥量的基本操作</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>函数</th>
+                            <th>描述</th>
+                            <th>返回值</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>xSemaphoreTake()</td>
+                            <td>获取互斥量</td>
+                            <td>pdTRUE/pdFALSE</td>
+                        </tr>
+                        <tr>
+                            <td>xSemaphoreGive()</td>
+                            <td>释放互斥量</td>
+                            <td>pdTRUE/pdFALSE</td>
+                        </tr>
+                        <tr>
+                            <td>xSemaphoreTakeRecursive()</td>
+                            <td>递归获取互斥量</td>
+                            <td>pdTRUE/pdFALSE</td>
+                        </tr>
+                        <tr>
+                            <td>xSemaphoreGiveRecursive()</td>
+                            <td>递归释放互斥量</td>
+                            <td>pdTRUE/pdFALSE</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h3>互斥量使用示例</h3>
+                <div class="code-block">
+                    <pre>// 共享资源
+int sharedCounter = 0;
+SemaphoreHandle_t counterMutex;
+
+void Task1(void *pvParameters) {
+    while(1) {
+        // 获取互斥量
+        if(xSemaphoreTake(counterMutex, portMAX_DELAY) == pdTRUE) {
+            // 临界区开始
+            sharedCounter++;
+            printf("Task1: Counter = %d\n", sharedCounter);
+            // 临界区结束
+            
+            // 释放互斥量
+            xSemaphoreGive(counterMutex);
+        }
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+    }
+}
+
+void Task2(void *pvParameters) {
+    while(1) {
+        if(xSemaphoreTake(counterMutex, portMAX_DELAY) == pdTRUE) {
+            sharedCounter--;
+            printf("Task2: Counter = %d\n", sharedCounter);
+            xSemaphoreGive(counterMutex);
+        }
+        vTaskDelay(1500 / portTICK_PERIOD_MS);
+    }
+}</pre>
+                </div>
+            </div>
+
+            <div class="card full-width">
+                <h3>优先级继承机制</h3>
+                <p>优先级继承是互斥量的重要特性，用于解决优先级反转问题：</p>
+                
+                <div class="svg-container">
+                    <svg width="800" height="300" viewBox="0 0 800 300">
+                        <!-- 时间轴 -->
+                        <line x1="50" y1="250" x2="750" y2="250" stroke="#00796b" stroke-width="2"/>
+                        
+                        <!-- 高优先级任务 -->
+                        <rect x="100" y="50" width="100" height="40" fill="#e57373" stroke="#c62828" stroke-width="2"/>
+                        <text x="150" y="75" text-anchor="middle" fill="white" font-weight="bold">高优先级任务</text>
+                        
+                        <!-- 中优先级任务 -->
+                        <rect x="350" y="150" width="100" height="40" fill="#81c784" stroke="#388e3c" stroke-width="2"/>
+                        <text x="400" y="175" text-anchor="middle" fill="white" font-weight="bold">中优先级任务</text>
+                        
+                        <!-- 低优先级任务 -->
+                        <rect x="200" y="200" width="100" height="40" fill="#64b5f6" stroke="#1976d2" stroke-width="2"/>
+                        <text x="250" y="225" text-anchor="middle" fill="white" font-weight="bold">低优先级任务</text>
+                        
+                        <!-- 互斥量 -->
+                        <rect x="250" y="100" width="60" height="30" fill="#ffb74d" stroke="#f57c00" stroke-width="2"/>
+                        <text x="280" y="120" text-anchor="middle" fill="white" font-size="12">互斥量</text>
+                        
+                        <!-- 箭头和说明 -->
+                        <line x1="300" y1="115" x2="350" y2="115" stroke="#9e9e9e" stroke-width="2" marker-end="url(#arrowhead)"/>
+                        <text x="325" y="105" text-anchor="middle" fill="#757575" font-size="12">优先级继承</text>
+                        
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#9e9e9e"/>
+                            </marker>
+                        </defs>
+                    </svg>
+                </div>
+                
+                <p><span class="highlight">优先级反转场景：</span></p>
+                <ol>
+                    <li>低优先级任务获取互斥量</li>
+                    <li>高优先级任务就绪，但需要等待互斥量</li>
+                    <li>中优先级任务抢占低优先级任务</li>
+                    <li>高优先级任务被中优先级任务阻塞</li>
+                </ol>
+                
+                <p><span class="highlight">优先级继承解决方案：</span></p>
+                <ul>
+                    <li>当高优先级任务等待互斥量时，低优先级任务临时继承高优先级</li>
+                    <li>低优先级任务尽快完成并释放互斥量</li>
+                    <li>高优先级任务获得互斥量并恢复原优先级</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h3>互斥量使用最佳实践</h3>
+                <ul>
+                    <li>保持临界区代码尽可能短</li>
+                    <li>不要在临界区内调用可能阻塞的函数</li>
+                    <li>确保获取和释放成对出现</li>
+                    <li>使用递归互斥量处理嵌套调用</li>
+                    <li>合理设置等待超时时间</li>
+                    <li>注意死锁情况的预防</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h3>常见问题与解决方案</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>问题</th>
+                            <th>现象</th>
+                            <th>解决方案</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>优先级反转</td>
+                            <td>高优先级任务被低优先级任务阻塞</td>
+                            <td>使用支持优先级继承的互斥量</td>
+                        </tr>
+                        <tr>
+                            <td>死锁</td>
+                            <td>任务相互等待对方释放资源</td>
+                            <td>统一资源获取顺序，使用超时机制</td>
+                        </tr>
+                        <tr>
+                            <td>资源饥饿</td>
+                            <td>某些任务长时间无法获取资源</td>
+                            <td>合理设置任务优先级，使用公平调度</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card full-width">
+                <h3>FreeRTOS互斥量实现架构</h3>
+                <div class="svg-container">
+                    <svg width="700" height="400" viewBox="0 0 700 400">
+                        <!-- 应用层 -->
+                        <rect x="50" y="50" width="600" height="60" fill="#bbdefb" stroke="#1976d2" stroke-width="2"/>
+                        <text x="350" y="85" text-anchor="middle" fill="#0d47a1" font-weight="bold" font-size="16">应用层 (任务使用互斥量)</text>
+                        
+                        <!-- FreeRTOS API层 -->
+                        <rect x="100" y="130" width="500" height="60" fill="#c8e6c9" stroke="#388e3c" stroke-width="2"/>
+                        <text x="350" y="165" text-anchor="middle" fill="#1b5e20" font-weight="bold" font-size="16">FreeRTOS API层</text>
+                        
+                        <!-- 文本标注 -->
+                        <text x="350" y="190" text-anchor="middle" fill="#2e7d32" font-size="12">xSemaphoreCreateMutex, xSemaphoreTake, xSemaphoreGive</text>
+                        
+                        <!-- 内核服务层 -->
+                        <rect x="150" y="210" width="400" height="60" fill="#ffecb3" stroke="#ffa000" stroke-width="2"/>
+                        <text x="350" y="245" text-anchor="middle" fill="#ff6f00" font-weight="bold" font-size="16">内核服务层</text>
+                        
+                        <text x="350" y="270" text-anchor="middle" fill="#e65100" font-size="12">任务调度、优先级继承、阻塞机制</text>
+                        
+                        <!-- 硬件抽象层 -->
+                        <rect x="200" y="290" width="300" height="60" fill="#f8bbd0" stroke="#c2185b" stroke-width="2"/>
+                        <text x="350" y="325" text-anchor="middle" fill="#880e4f" font-weight="bold" font-size="16">硬件抽象层</text>
+                        
+                        <text x="350" y="350" text-anchor="middle" fill="#ad1457" font-size="12">临界区保护、中断控制、硬件定时器</text>
+                        
+                        <!-- 连接线 -->
+                        <line x1="350" y1="110" x2="350" y2="130" stroke="#757575" stroke-width="2"/>
+                        <line x1="350" y1="190" x2="350" y2="210" stroke="#757575" stroke-width="2"/>
+                        <line x1="350" y1="270" x2="350" y2="290" stroke="#757575" stroke-width="2"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            蓝海资料掘金营
+        </div>
+    </div>
+</body>
+</html>

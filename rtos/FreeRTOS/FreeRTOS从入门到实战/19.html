@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS从入门到实战 - 低功耗与Tickless模式</title>
+    <style>
+        :root {
+            --tech-blue: #3498db;
+            --vitality-orange: #f39c12;
+            --fresh-green: #2ecc71;
+            --light-bg: #f8f9fa;
+            --dark-text: #2c3e50;
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            color: var(--dark-text);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            padding: 30px 20px;
+            background: linear-gradient(to right, var(--tech-blue), var(--fresh-green));
+            color: white;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            box-shadow: var(--card-shadow);
+        }
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        main {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+        section {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: var(--card-shadow);
+            border-left: 6px solid var(--tech-blue);
+        }
+        section:nth-child(2) {
+            border-left-color: var(--vitality-orange);
+        }
+        section:nth-child(3) {
+            border-left-color: var(--fresh-green);
+        }
+        h2 {
+            color: var(--tech-blue);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px dashed #eee;
+            font-size: 1.8rem;
+        }
+        h3 {
+            color: var(--vitality-orange);
+            margin: 15px 0 10px;
+        }
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        ul, ol {
+            padding-left: 25px;
+            margin-bottom: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background-color: var(--tech-blue);
+            color: white;
+            font-weight: 600;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .code-block {
+            background: #2d3a4b;
+            color: #e0e0e0;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 25px 0;
+        }
+        .architecture {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px dashed #ccc;
+        }
+        .tip-box {
+            background: #e8f4fc;
+            border-left: 5px solid var(--tech-blue);
+            padding: 18px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 25px;
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            border-top: 2px solid #eee;
+        }
+        .footer-text {
+            font-weight: bold;
+            color: var(--tech-blue);
+            font-size: 1.3rem;
+            letter-spacing: 2px;
+        }
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>FreeRTOS从入门到实战</h1>
+        <div class="subtitle">第19讲：低功耗与Tickless模式</div>
+        <div class="subtitle">RTOS下的低功耗需求、Tickless模式原理、配置与实现方法，适用于电池供电设备</div>
+    </header>
+
+    <main>
+        <section>
+            <h2>一、RTOS下的低功耗需求</h2>
+            <p>在电池供电的嵌入式设备（如物联网传感器、可穿戴设备、远程控制器）中，功耗直接决定了设备的续航能力。传统的RTOS以固定的节拍（Tick）中断来驱动任务调度，即使系统空闲，CPU也会被周期性唤醒，导致不必要的能量消耗。</p>
+            <div class="tip-box">
+                <strong>核心矛盾：</strong> RTOS的实时调度需要周期性Tick，而低功耗要求系统在空闲时尽可能进入深度睡眠。
+            </div>
+            <h3>主要功耗来源：</h3>
+            <ul>
+                <li><strong>周期性Tick中断</strong>：即使无任务运行，CPU也会被定时唤醒。</li>
+                <li><strong>外设工作</strong>：未使用的模块保持供电状态。</li>
+                <li><strong>CPU运行模式</strong>：始终处于活跃状态，未进入低功耗模式。</li>
+            </ul>
+            <h3>低功耗设计目标：</h3>
+            <ol>
+                <li>在空闲时关闭或降低CPU频率。</li>
+                <li>禁用未使用的外设时钟。</li>
+                <li>利用硬件提供的睡眠/停机模式。</li>
+                <li>减少或消除不必要的周期性中断。</li>
+            </ol>
+        </section>
+
+        <section>
+            <h2>二、Tickless模式原理</h2>
+            <p>Tickless（无节拍）模式是FreeRTOS提供的一种低功耗技术，其核心思想是：当系统进入空闲状态且没有即将到来的定时器事件时，<strong>完全关闭RTOS的周期性Tick中断</strong>，并让CPU进入深度睡眠。只有当下一个任务需要唤醒（如定时器到期、外部中断）时，才通过一个单独的唤醒定时器来恢复系统节拍。</p>
+            
+            <div class="svg-container">
+                <svg width="100%" height="220" viewBox="0 0 800 220" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="10" y="80" width="180" height="60" rx="8" fill="#3498db" opacity="0.8"/>
+                    <text x="100" y="115" text-anchor="middle" fill="white" font-weight="bold">正常模式</text>
+                    <text x="100" y="140" text-anchor="middle" fill="white" font-size="14">Tick周期性中断</text>
+                    
+                    <rect x="310" y="80" width="180" height="60" rx="8" fill="#f39c12" opacity="0.8"/>
+                    <text x="400" y="115" text-anchor="middle" fill="white" font-weight="bold">空闲检测</text>
+                    <text x="400" y="140" text-anchor="middle" fill="white" font-size="14">无任务运行</text>
+                    
+                    <rect x="610" y="80" width="180" height="60" rx="8" fill="#2ecc71" opacity="0.8"/>
+                    <text x="700" y="115" text-anchor="middle" fill="white" font-weight="bold">Tickless睡眠</text>
+                    <text x="700" y="140" text-anchor="middle" fill="white" font-size="14">关闭Tick，深度睡眠</text>
+                    
+                    <path d="M200 110 L300 110" stroke="#2c3e50" stroke-width="2" marker-end="url(#arrow)"/>
+                    <path d="M500 110 L600 110" stroke="#2c3e50" stroke-width="2" marker-end="url(#arrow)"/>
+                    <defs>
+                        <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                            <path d="M0,0 L0,6 L9,3 z" fill="#2c3e50"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+
+            <h3>工作原理步骤：</h3>
+            <ol>
+                <li><strong>空闲任务执行</strong>：当所有用户任务都被挂起（阻塞）时，FreeRTOS调度器运行空闲任务。</li>
+                <li><strong>计算睡眠时间</strong>：空闲任务调用<code>portSUPPRESS_TICKS_AND_SLEEP()</code>函数，根据下一个即将到期的软件定时器或任务延时，计算出可以睡眠的最大时间。</li>
+                <li><strong>配置唤醒定时器</strong>：配置一个硬件定时器（如RTC、低功耗定时器）在指定的睡眠时间后产生中断，唤醒系统。</li>
+                <li><strong>进入低功耗模式</strong>：关闭SysTick中断，让CPU进入深度睡眠（如STM32的Stop模式）。</li>
+                <li><strong>唤醒与补偿</strong>：唤醒后，根据睡眠的时长，补偿RTOS的Tick计数和软件定时器。</li>
+            </ol>
+
+            <div class="architecture">
+                <h3>软件架构图</h3>
+                <div class="svg-container">
+                    <svg width="100%" height="300" viewBox="0 0 800 300" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="50" y="20" width="700" height="260" rx="10" fill="none" stroke="#ccc" stroke-width="2"/>
+                        <text x="400" y="40" text-anchor="middle" font-weight="bold" fill="#2c3e50">Tickless模式软件架构</text>
+                        
+                        <rect x="100" y="70" width="150" height="50" rx="6" fill="#3498db" opacity="0.7"/>
+                        <text x="175" y="100" text-anchor="middle" fill="white">应用任务</text>
+                        
+                        <rect x="100" y="140" width="150" height="50" rx="6" fill="#3498db" opacity="0.7"/>
+                        <text x="175" y="170" text-anchor="middle" fill="white">FreeRTOS内核</text>
+                        <text x="175" y="190" text-anchor="middle" fill="white" font-size="12">调度器、队列、定时器</text>
+                        
+                        <rect x="100" y="210" width="150" height="50" rx="6" fill="#f39c12" opacity="0.7"/>
+                        <text x="175" y="240" text-anchor="middle" fill="white">空闲任务</text>
+                        
+                        <rect x="350" y="140" width="150" height="50" rx="6" fill="#2ecc71" opacity="0.7"/>
+                        <text x="425" y="170" text-anchor="middle" fill="white">Tickless底层</text>
+                        <text x="425" y="190" text-anchor="middle" fill="white" font-size="12">portSUPPRESS_TICKS_AND_SLEEP</text>
+                        
+                        <rect x="350" y="210" width="150" height="50" rx="6" fill="#2ecc71" opacity="0.7"/>
+                        <text x="425" y="240" text-anchor="middle" fill="white">硬件抽象层</text>
+                        <text x="425" y="260" text-anchor="middle" fill="white" font-size="12">定时器、电源管理</text>
+                        
+                        <rect x="600" y="140" width="150" height="120" rx="6" fill="#9b59b6" opacity="0.7"/>
+                        <text x="675" y="180" text-anchor="middle" fill="white">MCU硬件</text>
+                        <text x="675" y="210" text-anchor="middle" fill="white" font-size="12">CPU、定时器</text>
+                        <text x="675" y="230" text-anchor="middle" fill="white" font-size="12">电源模式</text>
+                        
+                        <path d="M250 95 L340 165" stroke="#2c3e50" stroke-width="1.5" stroke-dasharray="5,5"/>
+                        <path d="M250 165 L340 165" stroke="#2c3e50" stroke-width="1.5"/>
+                        <path d="M250 235 L340 235" stroke="#2c3e50" stroke-width="1.5"/>
+                        <path d="M500 165 L590 200" stroke="#2c3e50" stroke-width="1.5"/>
+                        <path d="M500 235 L590 235" stroke="#2c3e50" stroke-width="1.5"/>
+                        
+                        <circle cx="340" cy="165" r="5" fill="#2c3e50"/>
+                        <circle cx="340" cy="235" r="5" fill="#2c3e50"/>
+                        <circle cx="500" cy="165" r="5" fill="#2c3e50"/>
+                        <circle cx="500" cy="235" r="5" fill="#2c3e50"/>
+                    </svg>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>三、配置与实现方法</h2>
+            <p>在FreeRTOS中启用Tickless模式需要进行正确的配置和硬件适配。以下以ARM Cortex-M系列MCU为例说明关键步骤。</p>
+            
+            <h3>1. FreeRTOSConfig.h 关键配置</h3>
+            <div class="code-block">
+<pre>/* FreeRTOSConfig.h */
+#define configUSE_TICKLESS_IDLE         1   // 启用Tickless模式
+#define configEXPECTED_IDLE_TIME_BEFORE_SLEEP  2  // 预期最小空闲tick数
+#define configUSE_TICKLESS_IDLE_SIMPLE_DEBUG   0   // 调试输出
+
+/* 系统时钟频率 */
+#define configCPU_CLOCK_HZ              ( SystemCoreClock )
+#define configTICK_RATE_HZ              ( ( TickType_t ) 1000 )  // Tick频率1kHz
+
+/* 最低功耗模式支持 */
+extern void vPortSuppressTicksAndSleep( TickType_t xExpectedIdleTime );
+#define portSUPPRESS_TICKS_AND_SLEEP( xIdleTime ) vPortSuppressTicksAndSleep( xIdleTime )</pre>
+            </div>
+
+            <h3>2. 实现 portSUPPRESS_TICKS_AND_SLEEP 函数</h3>
+            <div class="code-block">
+<pre>/* port.c 或自定义文件 */
+#include "FreeRTOS.h"
+#include "task.h"
+
+void vPortSuppressTicksAndSleep( TickType_t xExpectedIdleTime )
+{
+    uint32_t ulLowPowerTimeMs;
+    TickType_t xModifiableIdleTime;
+    
+    /* 确保睡眠时间足够长，以抵消进入/退出低功耗模式的开销 */
+    if( xExpectedIdleTime > configEXPECTED_IDLE_TIME_BEFORE_SLEEP )
+    {
+        /* 关闭SysTick中断 */
+        SysTick->CTRL &= ~SysTick_CTRL_TICKINT_Msk;
+        
+        /* 计算实际睡眠时间（毫秒） */
+        ulLowPowerTimeMs = ( xExpectedIdleTime - 1 ) * portTICK_PERIOD_MS;
+        
+        /* 配置唤醒定时器（例如使用RTC或LPTIM） */
+        HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, ulLowPowerTimeMs, RTC_WAKEUPCLOCK_CK_SPRE_16BITS);
+        
+        /* 进入停止模式（Stop Mode） */
+        HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI);
+        
+        /* 唤醒后，重新配置系统时钟（如果停止模式下时钟被关闭） */
+        SystemClock_Config();
+        
+        /* 重新使能SysTick中断 */
+        SysTick->CTRL |= SysTick_CTRL_TICKINT_Msk;
+        
+        /* 补偿跳过的Tick数 */
+        vTaskStepTick( xExpectedIdleTime );
+    }
+}</pre>
+            </div>
+
+            <h3>3. 硬件定时器配置（以STM32 RTC为例）</h3>
+            <table>
+                <thead>
+                    <tr><th>步骤</th><th>操作</th><th>说明</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>1</td><td>初始化RTC</td><td>配置RTC时钟源（LSE/LSI），使能唤醒定时器。</td></tr>
+                    <tr><td>2</td><td>设置唤醒时间</td><td>根据<code>ulLowPowerTimeMs</code>计算RTC唤醒定时器重载值。</td></tr>
+                    <tr><td>3</td><td>使能唤醒中断</td><td>配置NVIC，设置唤醒中断优先级。</td></tr>
+                    <tr><td>4</td><td>中断服务程序</td><td>清除中断标志，无需其他操作（CPU会自动唤醒）。</td></tr>
+                </tbody>
+            </table>
+
+            <h3>4. 功耗模式对比</h3>
+            <table>
+                <thead>
+                    <tr><th>模式</th><th>CPU状态</th><th>外设时钟</th><th>唤醒源</th><th>典型电流</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>运行(Run)</td><td>开启</td><td>开启</td><td>N/A</td><td>10-50 mA</td></tr>
+                    <tr><td>睡眠(Sleep)</td><td>停止</td><td>开启</td><td>任意中断</td><td>5-20 mA</td></tr>
+                    <tr><td>停止(Stop)</td><td>停止</td><td>大部分关闭</td><td>外部中断、RTC</td><td>10-100 µA</td></tr>
+                    <tr><td>待机(Standby)</td><td>关闭</td><td>关闭</td><td>复位、WKUP引脚</td><td>1-5 µA</td></tr>
+                </tbody>
+            </table>
+
+            <div class="tip-box">
+                <strong>最佳实践建议：</strong>
+                <ul>
+                    <li>根据应用场景选择合适的最低功耗模式（Stop模式最常用）。</li>
+                    <li>确保唤醒定时器的精度满足系统要求。</li>
+                    <li>测试并补偿睡眠期间的时间漂移。</li>
+                    <li>合理设置<code>configEXPECTED_IDLE_TIME_BEFORE_SLEEP</code>，避免频繁进入/退出低功耗模式。</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>本课程内容由嵌入式系统专家精心设计，适用于电池供电的物联网设备开发。</p>
+        <p class="footer-text">蓝海资料掘金营</p>
+        <p>© 2023 - 探索嵌入式技术的无限可能</p>
+    </footer>
+</body>
+</html>

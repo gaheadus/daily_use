@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FreeRTOS任务管理50问 - 任务删除的资源释放</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #bbdefb 50%, #f8bbd0 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px dashed #4fc3f7;
+        }
+
+        .header h1 {
+            color: #1565c0;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h2 {
+            color: #ec407a;
+            font-size: 1.8rem;
+            font-weight: 500;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h3 {
+            color: #1565c0;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4fc3f7;
+        }
+
+        .card ul, .card ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .card li {
+            margin-bottom: 8px;
+        }
+
+        .code-block {
+            background: #f5f5f5;
+            border-left: 4px solid #4fc3f7;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+            overflow-x: auto;
+        }
+
+        pre {
+            white-space: pre-wrap;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background-color: #4fc3f7;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .warning {
+            background-color: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .tip {
+            background-color: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px dashed #4fc3f7;
+            color: #1565c0;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>FreeRTOS任务管理50问</h1>
+            <h2>31、任务删除的资源释放：删除任务时的资源清理</h2>
+        </div>
+
+        <div class="content">
+            <div class="card">
+                <h3>任务删除概述</h3>
+                <p>在FreeRTOS中，任务删除是一个重要的操作，它不仅仅是停止任务的执行，更重要的是要释放任务占用的所有资源，防止内存泄漏和资源浪费。</p>
+                
+                <div class="svg-container">
+                    <svg width="300" height="200" viewBox="0 0 300 200">
+                        <rect x="50" y="20" width="200" height="40" rx="5" fill="#4fc3f7" opacity="0.8"/>
+                        <text x="150" y="45" text-anchor="middle" fill="white" font-weight="bold">任务创建</text>
+                        
+                        <rect x="50" y="80" width="200" height="40" rx="5" fill="#4caf50" opacity="0.8"/>
+                        <text x="150" y="105" text-anchor="middle" fill="white" font-weight="bold">任务运行</text>
+                        
+                        <rect x="50" y="140" width="200" height="40" rx="5" fill="#f44336" opacity="0.8"/>
+                        <text x="150" y="165" text-anchor="middle" fill="white" font-weight="bold">任务删除</text>
+                        
+                        <path d="M150 60 L150 80" stroke="#666" stroke-width="2" marker-end="url(#arrowhead)"/>
+                        <path d="M150 120 L150 140" stroke="#666" stroke-width="2" marker-end="url(#arrowhead)"/>
+                        
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#666"/>
+                            </marker>
+                        </defs>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>任务删除函数</h3>
+                <p>FreeRTOS提供了两种任务删除方式：</p>
+                <ul>
+                    <li><strong>vTaskDelete()</strong> - 删除其他任务或自己</li>
+                    <li><strong>vTaskDelete(NULL)</strong> - 删除当前任务</li>
+                </ul>
+                
+                <div class="code-block">
+                    <pre>// 删除指定任务
+void vTaskDelete( TaskHandle_t xTaskToDelete );
+
+// 删除当前任务
+vTaskDelete( NULL );</pre>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>资源清理流程</h3>
+                <p>当任务被删除时，FreeRTOS会自动清理以下资源：</p>
+                <ol>
+                    <li>任务控制块(TCB)</li>
+                    <li>任务栈空间</li>
+                    <li>从就绪表、阻塞表、挂起表中移除</li>
+                    <li>任务通知状态(如果使用)</li>
+                    <li>任务标签(如果设置)</li>
+                </ol>
+                
+                <div class="tip">
+                    <strong>提示：</strong> 任务删除后，其任务句柄变为无效，不应再被使用。
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>需要手动清理的资源</h3>
+                <p>以下资源需要应用程序手动清理：</p>
+                <ul>
+                    <li>动态分配的内存</li>
+                    <li>打开的文件描述符</li>
+                    <li>硬件外设占用</li>
+                    <li>信号量、队列等内核对象</li>
+                    <li>网络连接等外部资源</li>
+                </ul>
+                
+                <div class="warning">
+                    <strong>警告：</strong> 如果任务持有信号量、互斥量等资源，删除前必须确保这些资源被正确释放，否则可能导致系统死锁。
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>任务删除最佳实践</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>场景</th>
+                            <th>建议做法</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>任务正常结束</td>
+                            <td>在任务函数末尾调用vTaskDelete(NULL)</td>
+                        </tr>
+                        <tr>
+                            <td>删除其他任务</td>
+                            <td>确保目标任务处于安全状态，不持有关键资源</td>
+                        </tr>
+                        <tr>
+                            <td>任务持有互斥量</td>
+                            <td>先释放互斥量再删除任务，或使用互斥量继承优先级</td>
+                        </tr>
+                        <tr>
+                            <td>动态内存使用</td>
+                            <td>在任务删除钩子函数中释放动态分配的内存</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h3>任务删除钩子函数</h3>
+                <p>FreeRTOS提供了任务删除钩子函数，可以在任务被删除前执行自定义清理操作：</p>
+                
+                <div class="code-block">
+                    <pre>// 在FreeRTOSConfig.h中启用钩子函数
+#define configUSE_TASK_DELETE_HOOK 1
+
+// 实现钩子函数
+void vApplicationTaskDeleteHook( void *pvTaskToDelete, 
+                                 volatile BaseType_t *pxPendYield )
+{
+    // 执行资源清理操作
+    // 释放动态内存、关闭文件等
+    
+    // 示例：清理任务特定资源
+    MyTaskCleanup(pvTaskToDelete);
+}</pre>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>任务删除架构图</h3>
+                <div class="svg-container">
+                    <svg width="350" height="300" viewBox="0 0 350 300">
+                        <!-- 任务删除流程 -->
+                        <rect x="50" y="20" width="250" height="40" rx="5" fill="#bbdefb"/>
+                        <text x="175" y="45" text-anchor="middle" fill="#0d47a1" font-weight="bold">调用vTaskDelete()</text>
+                        
+                        <path d="M175 60 L175 80" stroke="#666" stroke-width="2" marker-end="url(#arrow)"/>
+                        
+                        <rect x="50" y="80" width="250" height="40" rx="5" fill="#c8e6c9"/>
+                        <text x="175" y="105" text-anchor="middle" fill="#1b5e20" font-weight="bold">执行删除钩子函数</text>
+                        
+                        <path d="M175 120 L175 140" stroke="#666" stroke-width="2" marker-end="url(#arrow)"/>
+                        
+                        <rect x="50" y="140" width="250" height="40" rx="5" fill="#ffcdd2"/>
+                        <text x="175" y="165" text-anchor="middle" fill="#b71c1c" font-weight="bold">释放TCB和栈空间</text>
+                        
+                        <path d="M175 180 L175 200" stroke="#666" stroke-width="2" marker-end="url(#arrow)"/>
+                        
+                        <rect x="50" y="200" width="250" height="40" rx="5" fill="#e1bee7"/>
+                        <text x="175" y="225" text-anchor="middle" fill="#4a148c" font-weight="bold">从调度器列表中移除</text>
+                        
+                        <path d="M175 240 L175 260" stroke="#666" stroke-width="2" marker-end="url(#arrow)"/>
+                        
+                        <rect x="50" y="260" width="250" height="40" rx="5" fill="#fff9c4"/>
+                        <text x="175" y="285" text-anchor="middle" fill="#f57f17" font-weight="bold">任务删除完成</text>
+                        
+                        <defs>
+                            <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#666"/>
+                            </marker>
+                        </defs>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>示例代码</h3>
+                <p>以下是一个完整的任务删除示例：</p>
+                
+                <div class="code-block">
+                    <pre>#include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
+
+// 任务函数
+void vExampleTask( void *pvParameters )
+{
+    // 任务初始化
+    // 分配资源、打开文件等
+    
+    for( ;; )
+    {
+        // 任务主循环
+        
+        // 检查是否需要删除任务
+        if( xShouldDeleteTask == pdTRUE )
+        {
+            // 清理任务持有的资源
+            vReleaseResources();
+            
+            // 删除当前任务
+            vTaskDelete( NULL );
+        }
+        
+        vTaskDelay( pdMS_TO_TICKS( 100 ) );
+    }
+}
+
+// 删除钩子函数
+void vApplicationTaskDeleteHook( void *pvTaskToDelete, 
+                                 volatile BaseType_t *pxPendYield )
+{
+    // 执行额外的资源清理
+    // 例如：释放动态内存、关闭网络连接等
+    
+    // 注意：pvTaskToDelete指向要删除任务的TCB
+}
+
+// 创建任务
+void vCreateExampleTask( void )
+{
+    TaskHandle_t xTaskHandle;
+    
+    xTaskCreate( vExampleTask,     // 任务函数
+                 "Example",        // 任务名称
+                 1024,             // 栈大小
+                 NULL,             // 参数
+                 tskIDLE_PRIORITY + 1, // 优先级
+                 &xTaskHandle );   // 任务句柄
+}
+
+// 安全删除任务函数
+void vSafeDeleteTask( TaskHandle_t xTaskToDelete )
+{
+    // 检查任务是否存在
+    if( xTaskToDelete != NULL )
+    {
+        // 可以在这里添加额外的安全检查
+        
+        // 删除任务
+        vTaskDelete( xTaskToDelete );
+    }
+}</pre>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>常见问题与解决方案</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>问题</th>
+                            <th>原因</th>
+                            <th>解决方案</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>内存泄漏</td>
+                            <td>任务删除前未释放动态内存</td>
+                            <td>使用删除钩子函数或在任务退出前手动释放</td>
+                        </tr>
+                        <tr>
+                            <td>系统死锁</td>
+                            <td>任务删除时持有互斥量</td>
+                            <td>使用互斥量继承优先级或确保先释放互斥量</td>
+                        </tr>
+                        <tr>
+                            <td>资源未释放</td>
+                            <td>文件描述符、网络连接未关闭</td>
+                            <td>在删除钩子函数中统一清理</td>
+                        </tr>
+                        <tr>
+                            <td>无效任务句柄</td>
+                            <td>删除后继续使用任务句柄</td>
+                            <td>删除后将任务句柄设为NULL</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="footer">
+            蓝海资料掘金营
+        </div>
+    </div>
+</body>
+</html>
