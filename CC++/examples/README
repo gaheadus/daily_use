@@ -1,0 +1,58 @@
+04/09/03 -- djh
+
+README - this file
+
+Makefile - makefile to build all of the programs in this directory.
+
+arrays_ptrs.c - program to demonstrate similarities of arrays and
+                pointer references.
+
+command_args.c - program to demonstrate how to access the command line
+                 arguments to a C program (when run from the Unix
+                 command line).
+
+count_char.c - program to demonstrate simple character I/O and
+               processing.
+
+count_char2.c - similar to count_char.c except that it uses a for loop
+                instead of a while loop.
+
+filecopy.c - program to copy from stdin to stdout.
+
+filecopy2.c - similar to filecopy.c but using a more compact notation
+              in which an I/O and assignment operation are embedded in
+              the test portion of a while loop.
+
+func_ptrs.c - program to demonstrate passing "by reference" and the
+              use of a pointer to a function.
+
+hello.c - variant on the standard "hello world" program to include an
+          output decision based on user input as well as a basic
+          function call.
+
+hello2.h,
+hello2a.c,
+hello2b.c - functionality of hello.c divided into separate modules
+            (files) to demonstrate the use of #include files, and
+	    separate compilation.
+
+io.c - This is the sample C I/O code provided as part of programming
+       assignment #1.
+
+mem_mgt.c - program to demonstrate structure definition, structure
+            pointer declaration, allocation/deallocation of memory,
+            and the dangers of careless pointer management/use.  Note
+            that this code contains examples of what NOT to do.
+
+struct_ptrs.c - program to show the use of the "->" shorthand for
+                accessing the member of a structure via pointer
+                dereference.  Also demonstrates the importance of
+                understanding operator precedence.
+
+swap.c - program to demonstrate the notion of "pass by value".
+
+temps.c,
+temps2.c,
+temps3.c,
+temps4.c - programs to demonstrate some simple, iterative, arithmetic
+           processing and output.

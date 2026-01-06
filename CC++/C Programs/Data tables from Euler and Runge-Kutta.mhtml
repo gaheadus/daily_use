@@ -1,0 +1,92 @@
+From: <Saved by Blink>
+Snapshot-Content-Location: https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teaching/Euler_RK_tables.html
+Subject: Data tables from Euler and Runge-Kutta
+Date: Tue, 6 Jan 2026 22:04:10 +0800
+MIME-Version: 1.0
+Content-Type: multipart/related;
+	type="text/html";
+	boundary="----MultipartBoundary--tG4ZmsijdedFvvlAB6GAohi2oDaF7fQwZDHviA53lf----"
+
+
+------MultipartBoundary--tG4ZmsijdedFvvlAB6GAohi2oDaF7fQwZDHviA53lf----
+Content-Type: text/html
+Content-ID: <frame-4B91ED5A485833D83EECA4594D39A82F@mhtml.blink>
+Content-Transfer-Encoding: quoted-printable
+Content-Location: https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teaching/Euler_RK_tables.html
+
+<html><head><meta http-equiv=3D"Content-Type" content=3D"text/html; charset=
+=3Dwindows-1252">
+   <title> Data tables from Euler and Runge-Kutta</title>
+</head>
+<body background=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/bk3.=
+gif">
+<p>
+<br>
+<br>
+<br>
+This table compares the results of numerical calculations, using Euler and =
+second order Runge-Kutta to solve
+<br clear=3D""><table border=3D"0" width=3D"100%"><tbody><tr><td>
+<table align=3D"center"><tbody><tr><td nowrap=3D"" align=3D"center">
+y<font face=3D"symbol">=A2</font> =3D 1<font face=3D"symbol">-</font>2xy ; =
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;y(0) =3D 0</td></tr></tbody></table>
+</td><td width=3D"1%"></td></tr></tbody></table>
+=20
+The analytic result is also included. </p>
+<p>
+<font size=3D"+4"><table align=3D"center" cellspacing=3D"10" cellpadding=3D=
+"15" border=3D"1">
+<tbody><tr>
+<td valign=3D"top">
+<b>x<sub>n</sub></b><br>
+<br>
+<br>
+<hr size=3D"3" width=3D"100%">
+<center>0.0</center><br>
+<center>0.1</center><br>
+<center>0.2</center><br>
+<center>0.3</center><br>
+<center>0.4</center><br>
+<center>0.5</center><br>
+</td>
+<td valign=3D"top">
+<b>y<sub>n</sub></b><br>
+<b>Euler</b><br>
+<br>
+<hr size=3D"3" width=3D"100%">
+<center>0.00000</center><br>
+<center>0.10000</center><br>
+<center>0.19800</center><br>
+<center>0.29008</center><br>
+<center>0.37268</center><br>
+<center>0.44287</center><br>
+</td>
+<td valign=3D"top">
+<b>y<sub>n</sub></b><br>
+<b>2nd order Runge-Kutta</b><br>
+<br>
+<hr size=3D"3" width=3D"100%">
+<center>0.000000</center><br>
+<center>0.099500</center><br>
+<center>0.195045</center><br>
+<center>0.282988</center><br>
+<center>0.360273</center><br>
+<center>0.424645</center><br>
+</td>
+<td valign=3D"top">
+<b>y(x<sub>n</sub>)</b><br>
+<b>Analytic</b><br>
+<br>
+<hr size=3D"3" width=3D"100%">
+<center>0.00000</center><br>
+<center>0.09934</center><br>
+<center>0.19475</center><br>
+<center>0.28263</center><br>
+<center>0.35994</center><br>
+<center>0.42444</center><br>
+</td>
+</tr>
+</tbody></table></font>
+
+</p></body></html>
+------MultipartBoundary--tG4ZmsijdedFvvlAB6GAohi2oDaF7fQwZDHviA53lf------

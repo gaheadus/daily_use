@@ -1,0 +1,409 @@
+From: <Saved by Blink>
+Snapshot-Content-Location: https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teaching/Programs01.html
+Subject: C Programs
+Date: Tue, 6 Jan 2026 21:58:20 +0800
+MIME-Version: 1.0
+Content-Type: multipart/related;
+	type="text/html";
+	boundary="----MultipartBoundary--OqhmMB3zAJKhAr8cLT9u9NEtJEse15ZQDwqmW4yhL4----"
+
+
+------MultipartBoundary--OqhmMB3zAJKhAr8cLT9u9NEtJEse15ZQDwqmW4yhL4----
+Content-Type: text/html
+Content-ID: <frame-4B91ED5A485833D83EECA4594D39A82F@mhtml.blink>
+Content-Transfer-Encoding: quoted-printable
+Content-Location: https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teaching/Programs01.html
+
+<html><head><meta http-equiv=3D"Content-Type" content=3D"text/html; charset=
+=3Dwindows-1252">
+   <title> C Programs </title>
+</head>
+<body background=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/hele=
+ne40.jpg">
+
+<p>
+
+<br>&nbsp;
+</p><center><table border=3D"" cols=3D"3" width=3D"100%" nosave=3D"">
+<tbody><tr nosave=3D"">
+<td align=3D"CENTER" valign=3D"CENTER" width=3D"10%" nosave=3D""><i>Downloa=
+d code</i></td>
+<td width=3D"10%" nosave=3D"">
+<center><i>Easy to read</i></center>
+</td>
+<td><center><i>A brief description</i></center></td>
+</tr>
+
+<tr>
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/hello.c">hello.c</a></center>
+</td>
+
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/hello.c.html">hello.c</a></center>
+</td>
+
+<td>A simple "Hello World" program&nbsp;
+</td></tr>
+
+
+<tr>
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/sqroot.c">sqroot.c</a></center>
+</td>
+
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/sqroot.c.html">sqroot.c</a></center>
+</td>
+
+<td>A program to read in a number and calculate the square root&nbsp;
+</td></tr>
+
+
+<tr>
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/func.c">function.c</a></center>
+</td>
+
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/func.c.html">function.c</a></center>
+</td>
+
+<td>This program is an example of how to use functions in C&nbsp;
+</td></tr>
+
+
+<tr>
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/pointers_value_and_deref.c">pointer_values.c</a></center>
+</td>
+
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/pointers_value_and_deref.c.html">pointer_values.c</a></center>
+</td>
+
+<td>A program to show the difference between a pointer and=20
+its dereferenced value. &nbsp;
+</td></tr>
+
+
+<tr>
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/swap.c">swap.c</a></center>
+</td>
+
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/swap.c.html">swap.c</a></center>
+</td>
+
+<td>This program uses a function and pointers to swap the value of two=20
+variables in the calling environment. &nbsp;
+</td></tr>
+
+<tr>
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/strng.c">strings.c</a></center>
+</td>
+
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/strng.c.html">strings.c</a></center>
+</td>
+
+<td>A short program that prints out parts of a string, accessed using a=20
+pointer. &nbsp;
+</td></tr>
+
+
+<tr>
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/bis.c">bisection.c</a></center>
+</td>
+
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/bis.c.html">bisection.c</a></center>
+</td>
+
+<td>The bisection program from the 16.01.01 lecture. &nbsp;
+</td></tr>
+
+
+<tr>
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/Programs01.html"></a></center>
+</td>
+
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/Euler_RK_tables.html"> Data tables</a></center>
+</td>
+
+<td>
+Tables of data comparing=20
+<i>analytic</i>, <i>Euler</i> and <i>second order Runge-Kutta</i> results f=
+or=20
+<br clear=3D""><table border=3D"0" width=3D"100%"><tbody><tr><td>
+<table align=3D"0"><tbody><tr><td nowrap=3D"" align=3D"center">
+y<font face=3D"symbol">=A2</font> =3D 1<font face=3D"symbol">-</font>2xy=20
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;y(0) =3D 0</td></tr></tbody></table>
+</td><td width=3D"1%"></td></tr></tbody></table>&nbsp;
+</td></tr>
+
+<tr>
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/euler.c">Euler.c</a></center>
+</td>
+
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/euler.c.html">Euler.c</a></center>
+</td>
+
+<td>The Euler program. This program solves the ODE=20
+<table border=3D"0" width=3D"100%"><tbody><tr><td>
+<table align=3D"left"><tbody><tr><td nowrap=3D"" align=3D"center">
+</td><td nowrap=3D"" align=3D"center">
+dy<hr noshade=3D"">dt<br></td><td nowrap=3D"" align=3D"center">
+ =3D <font face=3D"symbol">-</font>y(t) ,=20
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;y(0) =3D 1</td></tr></tbody></table>
+</td><td width=3D"1%"></td></tr></tbody></table>
+Try changing the step size and compare the results the analytic solution ..=
+.=20
+you should see something like <a href=3D"https://www.maths.tcd.ie/~ryan/Tea=
+chingArchive/161/teaching/euler.gif">this plot</a> &nbsp;
+</td></tr>
+
+
+<tr>
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/harm_osc_rk.c">Runge-Kutta.c</a></center>
+</td>
+
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/harm_osc_rk.c.html">Runge-Kutta.c</a></center>
+</td>
+
+<td>A program to use <i>fourth order Runge-Kutta</i> to solve the=20
+Harmonic oscillator (with friction). The plots corresponding to different=
+=20
+2<font face=3D"symbol">b</font> and <font face=3D"symbol">w</font><sup>2</s=
+up> are=20
+<a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teaching/harm=
+_osc.html">here</a>. &nbsp;
+</td></tr>
+
+<tr>
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/simpson.c">Simpson.c</a></center>
+</td>
+
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/simpson.c.html">Simpson.c</a></center>
+</td>
+
+<td>The C code to implement <i>Simpson's Rule</i> for the problem
+<table border=3D"0" width=3D"100%"><tbody><tr><td>
+<table align=3D"center"><tbody><tr><td nowrap=3D"nowrap" align=3D"center">
+</td><td align=3D"left" class=3D"cl"><font face=3D"symbol">=F3<br>=F5
+</font></td><td nowrap=3D"nowrap" align=3D"center">
+<font size=3D"-1">2</font><!--sup--><br><br>
+<font size=3D"-1">0</font>&nbsp;<br></td><td nowrap=3D"nowrap" align=3D"cen=
+ter">
+x<sup>4</sup> dx</td></tr></tbody></table>
+</td></tr></tbody></table>. The number of steps is taken to be 20. &nbsp;
+</td></tr>
+
+<tr>
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/mem_addr.c">mem_map.c</a></center>
+</td>
+
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/mem_addr.c.html">mem_map.c</a></center>
+</td>
+
+<td> The program used for 1 last memory map example! &nbsp;
+</td></tr>
+
+
+<tr>
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/matdif.c">matrix_add.c</a></center>
+</td>
+
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/matdif.c.html">matrix_add.c</a></center>
+</td>
+
+<td> Program that adds two matrices in a function and returns the resulting
+matrix from the function &nbsp;
+</td></tr>
+
+<tr>
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/Jill-structures.c">Employee1.c</a></center>
+</td>
+
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/Jill-structures.c.html">Employee1.c</a></center>
+</td>
+
+<td> Program using structures to store and manipulate information about=20
+employee(s) of a company. This is the first in a series of like programs=20
+to illustrate the use of structures. &nbsp;
+</td></tr>
+
+<tr>
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/Allemps-structures.c">Employee2.c</a></center>
+</td>
+
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/Allemps-structures.c.html">Employee2.c</a></center>
+</td>
+
+<td> Version for many employees &nbsp;
+</td></tr>
+
+<tr>
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/ptr_Allemps-structures.c">Employee3.c</a></center>
+</td>
+
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/ptr_Allemps-structures.c.html">Employee3.c</a></center>
+</td>
+
+<td> Version using pointers. &nbsp;
+</td></tr>
+
+
+<tr>
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/bubblesort.c">bubble.c</a></center>
+</td>
+
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/bubblesort.c.html">bubble.c</a></center>
+</td>
+
+<td> The bubble sort program. The array, <b>a</b> is initialised -=20
+you can change the values.  &nbsp;
+</td></tr>
+
+<tr>
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/selection.c">selectionsort.c</a></center>
+</td>
+
+<td>
+<center><a href=3D"https://www.maths.tcd.ie/~ryan/TeachingArchive/161/teach=
+ing/selection.c.html">selectionsort.c</a></center>
+</td>
+
+<td> The selection sort program. Note the swap function is not called for e=
+ach
+value of the index <b>i</b> but only once the largest number in the list ha=
+s=20
+been found. We keep track of where this largest number is by saving its arr=
+ay
+ index in <b>current_max_index</b>. Note the value of this largest number i=
+s=20
+never used.   &nbsp;
+</td></tr>
+
+</tbody></table></center>
+
+
+
+<p></p>
+
+
+
+
+
+</body></html>
+------MultipartBoundary--OqhmMB3zAJKhAr8cLT9u9NEtJEse15ZQDwqmW4yhL4----
+Content-Type: image/jpeg
+Content-Transfer-Encoding: base64
+Content-Location: https://www.maths.tcd.ie/~ryan/TeachingArchive/161/helene40.jpg
+
+/9j/4AAQSkZJRgABAQEBLAEsAAD/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEP
+ERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4e
+Hh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCABxAHEDASIA
+AhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQA
+AAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3
+ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWm
+p6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEA
+AwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSEx
+BhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElK
+U1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3
+uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD7BJOX
+YyFVBxwBTd6f8/DfkP8ACnH7r/74/pSSSOGYBlAUZ571ojnk7f1/wQUhjhZ2J+n/ANagZCszysAC
+R0pQ25oWPUgn9KRuYX/3/wCtAX/r5Cb0/wCe7/l/9anIQxwsrk/T/wCtSuXLkKygAZORTm2q+5mA
+4xzSKs7/ANf5kRJaOIk87xTuRJMQew/lTRzFF/v/ANacfvzfQfypkLZP+tgzhFLSsCR6Um9f+e7/
+AJf/AFqdHtbYQwyB0oy4kGWUqSR0pFa2/r/MYSTGzpMxx7UrkIcNOw/D/wCtQeI5f96n/wDLx/wD
++tAkR70/5+G/If4UuTs3pKWAIHQU2OVyEJKHccYHUU9vuv8A74/pT2YJ3V/6/MlooorM6CIg7ZNo
+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
+Pn+hKKWiioOgQ9KDRRQAlKOlFFAC0UUUAf/Z
+
+------MultipartBoundary--OqhmMB3zAJKhAr8cLT9u9NEtJEse15ZQDwqmW4yhL4------
