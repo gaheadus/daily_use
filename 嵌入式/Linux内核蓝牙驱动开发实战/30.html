@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蓝牙驱动调试技巧 - Linux内核蓝牙驱动开发实战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #f9fbe7 50%, #e8f5e9 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #4fc3f7 0%, #81c784 50%, #4db6ac 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            border-bottom: 5px solid #26a69a;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        nav {
+            background: #26a69a;
+            padding: 15px;
+        }
+
+        nav ul {
+            display: flex;
+            justify-content: center;
+            list-style: none;
+            flex-wrap: wrap;
+        }
+
+        nav li {
+            margin: 0 15px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+        nav a:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        main {
+            padding: 30px;
+        }
+
+        section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid #4fc3f7;
+        }
+
+        h2 {
+            color: #00796b;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px dashed #81c784;
+        }
+
+        h3 {
+            color: #0097a7;
+            margin: 15px 0 10px;
+        }
+
+        p {
+            margin-bottom: 15px;
+        }
+
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background-color: #4fc3f7;
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f5f5f5;
+        }
+
+        tr:hover {
+            background-color: #e0f2f1;
+        }
+
+        pre {
+            background: #f5f5f5;
+            border-left: 4px solid #4fc3f7;
+            padding: 15px;
+            overflow-x: auto;
+            margin: 15px 0;
+            border-radius: 5px;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+
+        code {
+            background: #e8f5e9;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+
+        .svg-container {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f9fbe7;
+            border-radius: 10px;
+        }
+
+        .tip-box {
+            background: #e1f5fe;
+            border-left: 4px solid #0288d1;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .warning-box {
+            background: #ffecb3;
+            border-left: 4px solid #ffa000;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        footer {
+            background: linear-gradient(135deg, #4fc3f7 0%, #81c784 50%, #4db6ac 100%);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: 30px;
+            font-weight: bold;
+            border-top: 5px solid #26a69a;
+        }
+
+        .section-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border-top: 5px solid #81c784;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h3 {
+            color: #00796b;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            nav ul {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            nav li {
+                margin: 5px 0;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>蓝牙驱动调试技巧</h1>
+            <p class="subtitle">Linux内核蓝牙驱动开发实战 - 第30课</p>
+        </header>
+
+        <nav>
+            <ul>
+                <li><a href="#intro">课程简介</a></li>
+                <li><a href="#logs">内核日志分析</a></li>
+                <li><a href="#dynamic">动态调试开启</a></li>
+                <li><a href="#tracepoint">Tracepoint使用</a></li>
+                <li><a href="#summary">总结</a></li>
+            </ul>
+        </nav>
+
+        <main>
+            <section id="intro">
+                <h2>课程简介</h2>
+                <p>在Linux内核蓝牙驱动开发过程中，调试是至关重要的环节。本课程将深入讲解三种核心调试技巧：内核日志分析、动态调试开启和Tracepoint使用。掌握这些技巧将帮助您快速定位和解决蓝牙驱动中的各种问题。</p>
+                
+                <div class="svg-container">
+                    <svg width="600" height="200" viewBox="0 0 600 200">
+                        <rect x="50" y="50" width="100" height="100" rx="10" fill="#4fc3f7" opacity="0.8"/>
+                        <text x="100" y="110" text-anchor="middle" fill="white" font-weight="bold">内核日志</text>
+                        
+                        <rect x="200" y="50" width="100" height="100" rx="10" fill="#81c784" opacity="0.8"/>
+                        <text x="250" y="110" text-anchor="middle" fill="white" font-weight="bold">动态调试</text>
+                        
+                        <rect x="350" y="50" width="100" height="100" rx="10" fill="#4db6ac" opacity="0.8"/>
+                        <text x="400" y="110" text-anchor="middle" fill="white" font-weight="bold">Tracepoint</text>
+                        
+                        <line x1="150" y1="100" x2="200" y2="100" stroke="#26a69a" stroke-width="3"/>
+                        <line x1="300" y1="100" x2="350" y2="100" stroke="#26a69a" stroke-width="3"/>
+                        
+                        <text x="300" y="180" text-anchor="middle" fill="#00796b" font-size="16" font-weight="bold">蓝牙驱动调试技术栈</text>
+                    </svg>
+                </div>
+            </section>
+
+            <section id="logs">
+                <h2>内核日志分析</h2>
+                <p>内核日志是调试蓝牙驱动的基础工具，它记录了系统运行期间的各种事件和错误信息。</p>
+                
+                <h3>常用日志查看命令</h3>
+                <table>
+                    <tr>
+                        <th>命令</th>
+                        <th>功能描述</th>
+                        <th>示例</th>
+                    </tr>
+                    <tr>
+                        <td><code>dmesg</code></td>
+                        <td>查看内核环形缓冲区中的消息</td>
+                        <td><code>dmesg | grep -i bluetooth</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>journalctl</code></td>
+                        <td>查看系统日志（systemd系统）</td>
+                        <td><code>journalctl -u bluetooth</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>cat /var/log/syslog</code></td>
+                        <td>查看系统日志文件</td>
+                        <td><code>grep -i bluetooth /var/log/syslog</code></td>
+                    </tr>
+                </table>
+                
+                <h3>蓝牙驱动日志级别</h3>
+                <p>Linux内核定义了不同的日志级别，用于控制日志的输出详细程度：</p>
+                <ul>
+                    <li><code>KERN_EMERG</code> - 紧急情况，系统可能无法使用</li>
+                    <li><code>KERN_ALERT</code> - 需要立即采取行动</li>
+                    <li><code>KERN_CRIT</code> - 关键情况</li>
+                    <li><code>KERN_ERR</code> - 错误条件</li>
+                    <li><code>KERN_WARNING</code> - 警告条件</li>
+                    <li><code>KERN_NOTICE</code> - 正常但重要的情况</li>
+                    <li><code>KERN_INFO</code> - 信息性消息</li>
+                    <li><code>KERN_DEBUG</code> - 调试级消息</li>
+                </ul>
+                
+                <h3>蓝牙驱动日志示例</h3>
+                <pre><code># 蓝牙驱动中的典型日志输出示例
+[  125.632145] Bluetooth: Core ver 2.22
+[  125.632178] Bluetooth: HCI device and connection manager initialized
+[  125.632183] Bluetooth: HCI socket layer initialized
+[  125.632186] Bluetooth: L2CAP socket layer initialized
+[  125.632192] Bluetooth: SCO socket layer initialized
+[  125.652178] Bluetooth: HCI UART driver ver 2.3
+[  125.652185] Bluetooth: HCI UART protocol H4 registered
+[  125.652190] Bluetooth: HCI UART protocol BCSP registered
+[  125.652341] Bluetooth: hci0: BCM: chip id 70
+[  125.653345] Bluetooth: hci0: BCM: features 0x07
+[  125.668341] Bluetooth: hci0: BCM4324B0
+[  125.668351] Bluetooth: hci0: BCM4324B0 (001.002.014) build 0000</code></pre>
+                
+                <div class="tip-box">
+                    <strong>提示：</strong> 使用 <code>dmesg -w</code> 可以实时监控内核日志输出，特别适合观察设备插拔时的日志变化。
+                </div>
+            </section>
+
+            <section id="dynamic">
+                <h2>动态调试开启</h2>
+                <p>动态调试（Dynamic Debug）是Linux内核提供的一种灵活调试机制，允许在运行时控制特定代码路径的调试信息输出。</p>
+                
+                <h3>动态调试基本原理</h3>
+                <p>动态调试通过<code>pr_debug()</code>、<code>dev_dbg()</code>等函数在代码中插入调试点，然后通过<code>/sys/kernel/debug/dynamic_debug/control</code>文件控制这些调试点的启用和禁用。</p>
+                
+                <h3>动态调试常用命令</h3>
+                <table>
+                    <tr>
+                        <th>命令</th>
+                        <th>功能</th>
+                    </tr>
+                    <tr>
+                        <td><code>echo 'file bluetooth.c +p' > /sys/kernel/debug/dynamic_debug/control</code></td>
+                        <td>启用bluetooth.c文件中所有pr_debug输出</td>
+                    </tr>
+                    <tr>
+                        <td><code>echo 'func hci_send_cmd +p' > /sys/kernel/debug/dynamic_debug/control</code></td>
+                        <td>启用hci_send_cmd函数中的调试输出</td>
+                    </tr>
+                    <tr>
+                        <td><code>echo -n 'file hci_core.c -p' > /sys/kernel/debug/dynamic_debug/control</code></td>
+                        <td>禁用hci_core.c文件中的调试输出</td>
+                    </tr>
+                    <tr>
+                        <td><code>cat /sys/kernel/debug/dynamic_debug/control | grep hci</code></td>
+                        <td>查看所有与hci相关的动态调试点状态</td>
+                    </tr>
+                </table>
+                
+                <h3>蓝牙驱动中的动态调试示例</h3>
+                <pre><code>// 在蓝牙驱动代码中使用dev_dbg进行调试
+static int hci_send_acl(struct hci_dev *hdev, struct sk_buff *skb)
+{
+    struct hci_conn *conn;
+    __le16 handle;
+    
+    // 动态调试点
+    dev_dbg(&hdev->dev, "Send ACL data, len=%d\n", skb->len);
+    
+    // ... 函数实现 ...
+}
+
+// 启用该调试点
+echo 'func hci_send_acl +p' > /sys/kernel/debug/dynamic_debug/control</code></pre>
+                
+                <h3>内核配置要求</h3>
+                <p>要使用动态调试功能，需要在内核配置中启用：</p>
+                <pre><code>CONFIG_DYNAMIC_DEBUG=y</code></pre>
+                
+                <div class="warning-box">
+                    <strong>注意：</strong> 动态调试会显著增加内核日志量，在生产环境中应谨慎使用，避免影响系统性能。
+                </div>
+            </section>
+
+            <section id="tracepoint">
+                <h2>Tracepoint使用</h2>
+                <p>Tracepoint是Linux内核中一种低开销的静态探测点机制，特别适合用于性能分析和问题诊断。</p>
+                
+                <h3>Tracepoint工作原理</h3>
+                <p>Tracepoint在内核代码的关键位置插入探测点，当Tracepoint启用时，会执行附加的回调函数收集数据；禁用时几乎不产生性能开销。</p>
+                
+                <div class="svg-container">
+                    <svg width="600" height="300" viewBox="0 0 600 300">
+                        <rect x="50" y="50" width="500" height="200" rx="10" fill="#e1f5fe" stroke="#4fc3f7" stroke-width="2"/>
+                        
+                        <text x="300" y="80" text-anchor="middle" fill="#00796b" font-weight="bold" font-size="18">Tracepoint 架构</text>
+                        
+                        <rect x="80" y="110" width="120" height="40" rx="5" fill="#81c784" opacity="0.8"/>
+                        <text x="140" y="135" text-anchor="middle" fill="white" font-size="14">内核代码</text>
+                        
+                        <rect x="250" y="110" width="120" height="40" rx="5" fill="#4fc3f7" opacity="0.8"/>
+                        <text x="310" y="135" text-anchor="middle" fill="white" font-size="14">Tracepoint</text>
+                        
+                        <rect x="420" y="110" width="120" height="40" rx="5" fill="#ffb74d" opacity="0.8"/>
+                        <text x="480" y="135" text-anchor="middle" fill="white" font-size="14">回调函数</text>
+                        
+                        <line x1="200" y1="130" x2="250" y2="130" stroke="#26a69a" stroke-width="2"/>
+                        <line x1="370" y1="130" x2="420" y2="130" stroke="#26a69a" stroke-width="2"/>
+                        
+                        <path d="M 300 170 L 300 190 L 150 190 L 150 170 Z" fill="#e8f5e9" stroke="#81c784" stroke-width="2"/>
+                        <text x="225" y="185" text-anchor="middle" fill="#00796b" font-size="12">启用时执行回调</text>
+                        
+                        <path d="M 300 170 L 300 220 L 450 220 L 450 170 Z" fill="#ffecb3" stroke="#ffa000" stroke-width="2"/>
+                        <text x="375" y="200" text-anchor="middle" fill="#00796b" font-size="12">禁用时无开销</text>
+                    </svg>
+                </div>
+                
+                <h3>蓝牙相关Tracepoint</h3>
+                <p>Linux内核为蓝牙子系统提供了多个Tracepoint：</p>
+                <ul>
+                    <li><code>hci_cmd</code> - HCI命令跟踪</li>
+                    <li><code>hci_event</code> - HCI事件跟踪</li>
+                    <li><code>l2cap_send</code> - L2CAP数据发送</li>
+                    <li><code>l2cap_recv</code> - L2CAP数据接收</li>
+                    <li><code>sco_send</code> - SCO数据发送</li>
+                    <li><code>sco_recv</code> - SCO数据接收</li>
+                </ul>
+                
+                <h3>Tracepoint使用示例</h3>
+                <pre><code># 查看可用的蓝牙Tracepoint
+find /sys/kernel/debug/tracing/events -name "*bluetooth*" -type d
+
+# 启用hci_cmd Tracepoint
+echo 1 > /sys/kernel/debug/tracing/events/bluetooth/hci_cmd/enable
+
+# 开始追踪
+echo 1 > /sys/kernel/debug/tracing/tracing_on
+
+# ... 执行蓝牙操作 ...
+
+# 停止追踪
+echo 0 > /sys/kernel/debug/tracing/tracing_on
+
+# 查看追踪结果
+cat /sys/kernel/debug/tracing/trace</code></pre>
+                
+                <h3>使用perf工具分析Tracepoint</h3>
+                <pre><code># 记录蓝牙相关事件
+perf record -e bluetooth:* -a -o bluetooth_trace.data
+
+# 分析记录结果
+perf report -i bluetooth_trace.data
+
+# 实时监控蓝牙事件
+perf trace --no-syscalls --event bluetooth:*</code></pre>
+                
+                <div class="tip-box">
+                    <strong>高级技巧：</strong> 可以结合Tracepoint和BPF（eBPF）程序，实现更复杂的内核行为分析和性能监控。
+                </div>
+            </section>
+
+            <section id="summary">
+                <h2>调试技巧总结</h2>
+                <p>三种调试技术各有优势，适用于不同的调试场景：</p>
+                
+                <div class="section-grid">
+                    <div class="card">
+                        <h3>内核日志分析</h3>
+                        <p><strong>适用场景：</strong> 初步问题诊断、系统启动问题、驱动加载问题</p>
+                        <p><strong>优点：</strong> 简单直接，无需额外配置</p>
+                        <p><strong>缺点：</strong> 日志量大时难以筛选关键信息</p>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>动态调试</h3>
+                        <p><strong>适用场景：</strong> 代码路径跟踪、特定函数调试、运行时问题诊断</p>
+                        <p><strong>优点：</strong> 灵活控制，可按需启用</p>
+                        <p><strong>缺点：</strong> 需要修改代码添加调试点</p>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>Tracepoint</h3>
+                        <p><strong>适用场景：</strong> 性能分析、协议分析、生产环境问题诊断</p>
+                        <p><strong>优点：</strong> 低开销，无需修改代码</p>
+                        <p><strong>缺点：</strong> 需要内核支持，配置相对复杂</p>
+                    </div>
+                </div>
+                
+                <h3>调试策略建议</h3>
+                <ol>
+                    <li><strong>初步诊断：</strong> 首先使用内核日志分析，快速定位问题范围</li>
+                    <li><strong>深入分析：</strong> 针对特定问题启用动态调试，获取详细执行路径</li>
+                    <li><strong>性能优化：</strong> 使用Tracepoint分析性能瓶颈和协议交互</li>
+                    <li><strong>生产环境：</strong> 谨慎使用动态调试，优先考虑Tracepoint</li>
+                </ol>
+                
+                <div class="tip-box">
+                    <strong>最佳实践：</strong> 在实际开发中，建议结合使用这三种技术，根据具体问题选择合适的调试方法。同时，养成良好的日志记录习惯，在代码关键位置添加适当的调试信息。
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>蓝海资料掘金营</p>
+        </footer>
+    </div>
+</body>
+</html>

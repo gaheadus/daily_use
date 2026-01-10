@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蓝牙数据包收发 - Linux内核蓝牙驱动开发实战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #f9fbe7 50%, #e8f5e9 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #4fc3f7 0%, #29b6f6 50%, #03a9f4 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #0288d1;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid #4fc3f7;
+        }
+
+        h2 {
+            color: #0288d1;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px dashed #b3e5fc;
+        }
+
+        h3 {
+            color: #0288d1;
+            margin: 15px 0 10px;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background-color: #e1f5fe;
+            color: #0288d1;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f1f8e9;
+        }
+
+        .code-block {
+            background: #f5f5f5;
+            border-left: 4px solid #4fc3f7;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 5px 5px 0;
+            overflow-x: auto;
+        }
+
+        pre {
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .architecture {
+            background: #f9fbe7;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        footer {
+            background: linear-gradient(135deg, #0288d1 0%, #0277bd 50%, #01579b 100%);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            font-size: 1.1em;
+            margin-top: 30px;
+        }
+
+        .highlight {
+            background-color: #fff9c4;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+
+        .note {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 5px 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>蓝牙数据包收发</h1>
+            <p class="subtitle">数据包封装解析、发送队列管理、接收缓冲区处理</p>
+        </header>
+
+        <div class="content">
+            <section>
+                <h2>概述</h2>
+                <p>蓝牙数据包收发是蓝牙协议栈中的核心功能，涉及数据包的封装与解析、发送队列的管理以及接收缓冲区的处理。在Linux内核蓝牙驱动开发中，这些功能的实现直接影响蓝牙通信的性能和稳定性。</p>
+                
+                <div class="svg-container">
+                    <svg width="600" height="200" viewBox="0 0 600 200">
+                        <rect x="50" y="80" width="100" height="40" fill="#4fc3f7" stroke="#0288d1" stroke-width="2" rx="5"/>
+                        <text x="100" y="105" text-anchor="middle" fill="white" font-weight="bold">应用层</text>
+                        
+                        <rect x="200" y="80" width="100" height="40" fill="#4fc3f7" stroke="#0288d1" stroke-width="2" rx="5"/>
+                        <text x="250" y="105" text-anchor="middle" fill="white" font-weight="bold">协议栈</text>
+                        
+                        <rect x="350" y="80" width="100" height="40" fill="#4fc3f7" stroke="#0288d1" stroke-width="2" rx="5"/>
+                        <text x="400" y="105" text-anchor="middle" fill="white" font-weight="bold">HCI层</text>
+                        
+                        <rect x="500" y="80" width="100" height="40" fill="#4fc3f7" stroke="#0288d1" stroke-width="2" rx="5"/>
+                        <text x="550" y="105" text-anchor="middle" fill="white" font-weight="bold">硬件</text>
+                        
+                        <polyline points="150,100 200,100" fill="none" stroke="#0288d1" stroke-width="2"/>
+                        <polyline points="300,100 350,100" fill="none" stroke="#0288d1" stroke-width="2"/>
+                        <polyline points="450,100 500,100" fill="none" stroke="#0288d1" stroke-width="2"/>
+                        
+                        <text x="175" y="70" text-anchor="middle" fill="#0288d1">数据封装</text>
+                        <text x="325" y="70" text-anchor="middle" fill="#0288d1">队列管理</text>
+                        <text x="475" y="70" text-anchor="middle" fill="#0288d1">发送/接收</text>
+                    </svg>
+                </div>
+            </section>
+
+            <section>
+                <h2>数据包封装与解析</h2>
+                <p>蓝牙数据包在不同协议层有不同的格式，需要逐层封装和解析。主要涉及L2CAP、HCI等协议层的数据包处理。</p>
+                
+                <h3>数据包结构</h3>
+                <table>
+                    <tr>
+                        <th>协议层</th>
+                        <th>包头大小</th>
+                        <th>主要字段</th>
+                        <th>功能描述</th>
+                    </tr>
+                    <tr>
+                        <td>L2CAP</td>
+                        <td>4字节</td>
+                        <td>长度、CID</td>
+                        <td>逻辑信道管理和数据分段</td>
+                    </tr>
+                    <tr>
+                        <td>HCI</td>
+                        <td>3-5字节</td>
+                        <td>操作码、参数长度</td>
+                        <td>主机与控制器间通信</td>
+                    </tr>
+                    <tr>
+                        <td>ACL</td>
+                        <td>4字节</td>
+                        <td>连接句柄、PB、BC标志</td>
+                        <td>异步无连接数据传输</td>
+                    </tr>
+                    <tr>
+                        <td>SCO</td>
+                        <td>3字节</td>
+                        <td>连接句柄、状态标志</td>
+                        <td>同步面向连接数据传输</td>
+                    </tr>
+                </table>
+                
+                <h3>数据包封装示例</h3>
+                <div class="code-block">
+                    <pre>// L2CAP数据包封装示例
+struct l2cap_hdr {
+    __le16     len;        // 数据长度
+    __le16     cid;        // 信道标识符
+} __packed;
+
+// HCI ACL数据包封装示例
+struct hci_acl_hdr {
+    __le16     handle;     // 连接句柄
+    __le16     dlen;       // 数据长度
+} __packed;
+
+// 数据包封装函数
+int l2cap_build_data_packet(struct l2cap_chan *chan, struct sk_buff *skb)
+{
+    struct l2cap_hdr *lh;
+    int err;
+    
+    // 添加L2CAP头
+    lh = skb_push(skb, L2CAP_HDR_SIZE);
+    lh->len = cpu_to_le16(skb->len - L2CAP_HDR_SIZE);
+    lh->cid = cpu_to_le16(chan->dcid);
+    
+    // 进一步封装为HCI数据包
+    err = hci_send_acl(chan->conn->hcon, skb);
+    return err;
+}</pre>
+                </div>
+                
+                <h3>数据包解析示例</h3>
+                <div class="code-block">
+                    <pre>// L2CAP数据包解析示例
+static int l2cap_recv_frame(struct l2cap_conn *conn, struct sk_buff *skb)
+{
+    struct l2cap_hdr *lh = (void *) skb->data;
+    u16 len, cid;
+    
+    // 解析L2CAP头
+    len = le16_to_cpu(lh->len);
+    cid = le16_to_cpu(lh->cid);
+    
+    // 移除L2CAP头
+    skb_pull(skb, L2CAP_HDR_SIZE);
+    
+    // 根据CID分发到相应信道
+    switch (cid) {
+    case L2CAP_CID_SIGNALING:
+        return l2cap_sig_channel(conn, skb);
+    case L2CAP_CID_LE_SIGNALING:
+        return l2cap_le_sig_channel(conn, skb);
+    default:
+        return l2cap_data_channel(conn, skb, cid);
+    }
+}</pre>
+                </div>
+            </section>
+
+            <section>
+                <h2>发送队列管理</h2>
+                <p>发送队列管理是确保数据有序、高效发送的关键。Linux内核使用sk_buff结构管理网络数据包，蓝牙驱动需要在此基础上实现队列管理。</p>
+                
+                <h3>队列管理策略</h3>
+                <ul>
+                    <li><span class="highlight">FIFO队列</span>：基本队列，按到达顺序发送</li>
+                    <li><span class="highlight">优先级队列</span>：根据数据重要性分配优先级</li>
+                    <li><span class="highlight">流量控制</span>：防止发送方淹没接收方</li>
+                    <li><span class="highlight">拥塞控制</span>：网络拥塞时调整发送速率</li>
+                </ul>
+                
+                <div class="svg-container">
+                    <svg width="500" height="300" viewBox="0 0 500 300">
+                        <rect x="50" y="50" width="400" height="200" fill="#e1f5fe" stroke="#0288d1" stroke-width="2" rx="10"/>
+                        <text x="250" y="80" text-anchor="middle" fill="#0288d1" font-weight="bold" font-size="18">发送队列管理</text>
+                        
+                        <rect x="80" y="100" width="120" height="40" fill="#4fc3f7" stroke="#0288d1" stroke-width="1" rx="5"/>
+                        <text x="140" y="125" text-anchor="middle" fill="white" font-size="14">高优先级队列</text>
+                        
+                        <rect x="80" y="150" width="120" height="40" fill="#81d4fa" stroke="#0288d1" stroke-width="1" rx="5"/>
+                        <text x="140" y="175" text-anchor="middle" fill="white" font-size="14">中优先级队列</text>
+                        
+                        <rect x="80" y="200" width="120" height="40" fill="#b3e5fc" stroke="#0288d1" stroke-width="1" rx="5"/>
+                        <text x="140" y="225" text-anchor="middle" fill="white" font-size="14">低优先级队列</text>
+                        
+                        <polyline points="200,120 250,120 250,80 350,80 350,120 400,120" fill="none" stroke="#0288d1" stroke-width="2" marker-end="url(#arrowhead)"/>
+                        <polyline points="200,175 300,175 300,140 350,140 350,120" fill="none" stroke="#0288d1" stroke-width="2" marker-end="url(#arrowhead)"/>
+                        <polyline points="200,225 250,225 250,200 350,200 350,120" fill="none" stroke="#0288d1" stroke-width="2" marker-end="url(#arrowhead)"/>
+                        
+                        <rect x="350" y="100" width="80" height="100" fill="#ffcc80" stroke="#0288d1" stroke-width="1" rx="5"/>
+                        <text x="390" y="155" text-anchor="middle" fill="white" font-size="14">发送调度器</text>
+                        
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#0288d1"/>
+                            </marker>
+                        </defs>
+                    </svg>
+                </div>
+                
+                <h3>队列管理实现</h3>
+                <div class="code-block">
+                    <pre>// 发送队列管理结构
+struct bt_send_queue {
+    struct sk_buff_head high_pri;   // 高优先级队列
+    struct sk_buff_head normal_pri; // 普通优先级队列
+    struct sk_buff_head low_pri;    // 低优先级队列
+    spinlock_t lock;                // 队列锁
+    atomic_t pending_packets;       // 待发送包计数
+    int max_queue_size;             // 最大队列大小
+};
+
+// 初始化发送队列
+int bt_send_queue_init(struct bt_send_queue *queue, int max_size)
+{
+    skb_queue_head_init(&queue->high_pri);
+    skb_queue_head_init(&queue->normal_pri);
+    skb_queue_head_init(&queue->low_pri);
+    spin_lock_init(&queue->lock);
+    atomic_set(&queue->pending_packets, 0);
+    queue->max_queue_size = max_size;
+    return 0;
+}
+
+// 数据包入队
+int bt_send_queue_put(struct bt_send_queue *queue, struct sk_buff *skb, int priority)
+{
+    unsigned long flags;
+    
+    // 检查队列是否已满
+    if (atomic_read(&queue->pending_packets) >= queue->max_queue_size) {
+        kfree_skb(skb);
+        return -ENOBUFS;
+    }
+    
+    spin_lock_irqsave(&queue->lock, flags);
+    
+    // 根据优先级放入不同队列
+    switch (priority) {
+    case BT_PRIORITY_HIGH:
+        skb_queue_tail(&queue->high_pri, skb);
+        break;
+    case BT_PRIORITY_NORMAL:
+        skb_queue_tail(&queue->normal_pri, skb);
+        break;
+    case BT_PRIORITY_LOW:
+        skb_queue_tail(&queue->low_pri, skb);
+        break;
+    default:
+        spin_unlock_irqrestore(&queue->lock, flags);
+        kfree_skb(skb);
+        return -EINVAL;
+    }
+    
+    atomic_inc(&queue->pending_packets);
+    spin_unlock_irqrestore(&queue->lock, flags);
+    
+    // 触发发送任务
+    schedule_work(&send_work);
+    return 0;
+}
+
+// 数据包出队（发送调度）
+struct sk_buff *bt_send_queue_get(struct bt_send_queue *queue)
+{
+    struct sk_buff *skb = NULL;
+    unsigned long flags;
+    
+    spin_lock_irqsave(&queue->lock, flags);
+    
+    // 按优先级顺序获取数据包
+    if (!skb_queue_empty(&queue->high_pri)) {
+        skb = skb_dequeue(&queue->high_pri);
+    } else if (!skb_queue_empty(&queue->normal_pri)) {
+        skb = skb_dequeue(&queue->normal_pri);
+    } else if (!skb_queue_empty(&queue->low_pri)) {
+        skb = skb_dequeue(&queue->low_pri);
+    }
+    
+    if (skb)
+        atomic_dec(&queue->pending_packets);
+    
+    spin_unlock_irqrestore(&queue->lock, flags);
+    return skb;
+}</pre>
+                </div>
+            </section>
+
+            <section>
+                <h2>接收缓冲区处理</h2>
+                <p>接收缓冲区处理负责管理从蓝牙控制器接收的数据，包括缓冲区分配、数据重组和向上层协议传递。</p>
+                
+                <h3>接收缓冲区管理策略</h3>
+                <ol>
+                    <li><span class="highlight">预分配缓冲区池</span>：减少运行时内存分配开销</li>
+                    <li><span class="highlight">动态缓冲区调整</span>：根据流量自动调整缓冲区大小</li>
+                    <li><span class="highlight">零拷贝技术</span>：减少数据拷贝操作，提高性能</li>
+                    <li><span class="highlight">流量控制</span>：防止缓冲区溢出</li>
+                </ol>
+                
+                <div class="architecture">
+                    <h3>接收处理架构</h3>
+                    <div class="svg-container">
+                        <svg width="550" height="250" viewBox="0 0 550 250">
+                            <rect x="50" y="50" width="100" height="40" fill="#4fc3f7" stroke="#0288d1" stroke-width="2" rx="5"/>
+                            <text x="100" y="75" text-anchor="middle" fill="white" font-weight="bold">硬件中断</text>
+                            
+                            <rect x="200" y="50" width="100" height="40" fill="#4fc3f7" stroke="#0288d1" stroke-width="2" rx="5"/>
+                            <text x="250" y="75" text-anchor="middle" fill="white" font-weight="bold">接收缓冲区</text>
+                            
+                            <rect x="350" y="50" width="100" height="40" fill="#4fc3f7" stroke="#0288d1" stroke-width="2" rx="5"/>
+                            <text x="400" y="75" text-anchor="middle" fill="white" font-weight="bold">协议解析</text>
+                            
+                            <rect x="50" y="150" width="100" height="40" fill="#4fc3f7" stroke="#0288d1" stroke-width="2" rx="5"/>
+                            <text x="100" y="175" text-anchor="middle" fill="white" font-weight="bold">数据重组</text>
+                            
+                            <rect x="200" y="150" width="100" height="40" fill="#4fc3f7" stroke="#0288d1" stroke-width="2" rx="5"/>
+                            <text x="250" y="175" text-anchor="middle" fill="white" font-weight="bold">上层传递</text>
+                            
+                            <rect x="350" y="150" width="100" height="40" fill="#4fc3f7" stroke="#0288d1" stroke-width="2" rx="5"/>
+                            <text x="400" y="175" text-anchor="middle" fill="white" font-weight="bold">应用层</text>
+                            
+                            <polyline points="150,70 200,70" fill="none" stroke="#0288d1" stroke-width="2" marker-end="url(#arrowhead2)"/>
+                            <polyline points="300,70 350,70" fill="none" stroke="#0288d1" stroke-width="2" marker-end="url(#arrowhead2)"/>
+                            <polyline points="150,170 200,170" fill="none" stroke="#0288d1" stroke-width="2" marker-end="url(#arrowhead2)"/>
+                            <polyline points="300,170 350,170" fill="none" stroke="#0288d1" stroke-width="2" marker-end="url(#arrowhead2)"/>
+                            <polyline points="400,90 400,150" fill="none" stroke="#0288d1" stroke-width="2" marker-end="url(#arrowhead2)"/>
+                            
+                            <defs>
+                                <marker id="arrowhead2" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                    <polygon points="0 0, 10 3.5, 0 7" fill="#0288d1"/>
+                                </marker>
+                            </defs>
+                        </svg>
+                    </div>
+                </div>
+                
+                <h3>接收缓冲区实现</h3>
+                <div class="code-block">
+                    <pre>// 接收缓冲区管理结构
+struct bt_recv_buffer {
+    struct sk_buff_head queue;      // 接收队列
+    atomic_t count;                 // 缓冲区中的数据包数量
+    int max_buffers;               // 最大缓冲区数量
+    size_t buffer_size;            // 每个缓冲区的大小
+    struct work_struct process_work; // 处理工作队列
+};
+
+// 初始化接收缓冲区
+int bt_recv_buffer_init(struct bt_recv_buffer *rbuf, int max_buf, size_t buf_size)
+{
+    skb_queue_head_init(&rbuf->queue);
+    atomic_set(&rbuf->count, 0);
+    rbuf->max_buffers = max_buf;
+    rbuf->buffer_size = buf_size;
+    INIT_WORK(&rbuf->process_work, bt_recv_process_work);
+    return 0;
+}
+
+// 接收数据包处理（中断上下文）
+void bt_recv_irq_handler(struct bt_recv_buffer *rbuf, const u8 *data, size_t len)
+{
+    struct sk_buff *skb;
+    
+    // 检查缓冲区限制
+    if (atomic_read(&rbuf->count) >= rbuf->max_buffers) {
+        printk(KERN_WARNING "蓝牙接收缓冲区已满，丢弃数据包\n");
+        return;
+    }
+    
+    // 分配sk_buff
+    skb = alloc_skb(len + BT_RECV_HEADROOM, GFP_ATOMIC);
+    if (!skb) {
+        printk(KERN_ERR "无法分配接收缓冲区\n");
+        return;
+    }
+    
+    // 预留协议头空间
+    skb_reserve(skb, BT_RECV_HEADROOM);
+    
+    // 拷贝数据到sk_buff
+    skb_put_data(skb, data, len);
+    
+    // 设置协议类型
+    skb->protocol = htons(ETH_P_BLUETOOTH);
+    
+    // 添加到接收队列
+    skb_queue_tail(&rbuf->queue, skb);
+    atomic_inc(&rbuf->count);
+    
+    // 调度处理工作
+    schedule_work(&rbuf->process_work);
+}
+
+// 接收数据处理（进程上下文）
+static void bt_recv_process_work(struct work_struct *work)
+{
+    struct bt_recv_buffer *rbuf = container_of(work, struct bt_recv_buffer, process_work);
+    struct sk_buff *skb;
+    
+    while ((skb = skb_dequeue(&rbuf->queue))) {
+        // 处理接收到的数据包
+        bt_recv_process_packet(skb);
+        atomic_dec(&rbuf->count);
+    }
+}
+
+// 处理接收到的数据包
+static void bt_recv_process_packet(struct sk_buff *skb)
+{
+    struct hci_dev *hdev;
+    struct hci_acl_hdr *hdr;
+    u16 handle, dlen;
+    
+    // 获取HCI设备
+    hdev = hci_get_dev_by_index(0);
+    if (!hdev) {
+        kfree_skb(skb);
+        return;
+    }
+    
+    // 解析ACL数据包头
+    if (skb->len < HCI_ACL_HDR_SIZE) {
+        kfree_skb(skb);
+        return;
+    }
+    
+    hdr = (void *) skb->data;
+    handle = le16_to_cpu(hdr->handle);
+    dlen = le16_to_cpu(hdr->dlen);
+    
+    // 移除HCI头
+    skb_pull(skb, HCI_ACL_HDR_SIZE);
+    
+    // 进一步处理L2CAP数据包
+    l2cap_recv_frame(hdev, skb);
+    
+    hci_dev_put(hdev);
+}</pre>
+                </div>
+                
+                <div class="note">
+                    <p><strong>性能优化提示：</strong>在高流量场景下，可以考虑使用NAPI(New API)技术来减少中断处理开销，提高接收性能。</p>
+                </div>
+            </section>
+
+            <section>
+                <h2>总结</h2>
+                <p>蓝牙数据包收发是Linux内核蓝牙驱动中的核心功能，涉及复杂的数据包处理流程和资源管理。通过合理的数据包封装解析、高效的发送队列管理和优化的接收缓冲区处理，可以构建高性能、稳定的蓝牙通信系统。</p>
+                
+                <h3>关键要点</h3>
+                <ul>
+                    <li>理解各协议层的数据包格式和封装顺序</li>
+                    <li>实现多优先级发送队列以满足不同服务质量需求</li>
+                    <li>采用适当的缓冲区管理策略平衡性能和资源使用</li>
+                    <li>注意中断上下文和进程上下文的正确使用</li>
+                    <li>实现适当的流量控制和错误处理机制</li>
+                </ul>
+            </section>
+        </div>
+
+        <footer>
+            <p>蓝海资料掘金营</p>
+        </footer>
+    </div>
+</body>
+</html>

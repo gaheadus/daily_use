@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蓝牙驱动性能优化 - Linux内核蓝牙驱动开发实战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #bbdefb 50%, #f8bbd0 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #4fc3f7;
+        }
+        
+        h1 {
+            color: #0277bd;
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        h2 {
+            color: #0288d1;
+            margin: 25px 0 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px dashed #4fc3f7;
+        }
+        
+        h3 {
+            color: #039be5;
+            margin: 20px 0 10px;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid #4fc3f7;
+        }
+        
+        .highlight {
+            background-color: #e1f5fe;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #0288d1;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        th {
+            background-color: #4fc3f7;
+            color: white;
+            font-weight: bold;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f5f5f5;
+        }
+        
+        tr:hover {
+            background-color: #e1f5fe;
+        }
+        
+        pre {
+            background: #f5f5f5;
+            border-left: 4px solid #4fc3f7;
+            padding: 15px;
+            overflow-x: auto;
+            margin: 15px 0;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        
+        code {
+            background: #e3f2fd;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        .svg-container {
+            text-align: center;
+            margin: 25px 0;
+        }
+        
+        .architecture {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #0277bd;
+            font-weight: bold;
+            border-top: 2px solid #4fc3f7;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: #4fc3f7;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin: 0 5px 10px 0;
+        }
+        
+        .note {
+            background: #fff9c4;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #ffd600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>蓝牙驱动性能优化</h1>
+            <p>内存池使用、DMA传输优化、中断处理优化</p>
+            <div>
+                <span class="badge">Linux内核</span>
+                <span class="badge">蓝牙协议</span>
+                <span class="badge">嵌入式开发</span>
+                <span class="badge">性能优化</span>
+            </div>
+        </header>
+        
+        <section>
+            <h2>引言</h2>
+            <div class="card">
+                <p>在嵌入式系统中，蓝牙驱动的性能直接影响设备的响应速度、功耗和用户体验。本章将深入探讨三种关键的蓝牙驱动性能优化技术：内存池使用、DMA传输优化和中断处理优化。这些技术能够显著减少系统开销，提高数据传输效率，并降低CPU负载。</p>
+            </div>
+            
+            <div class="svg-container">
+                <svg width="800" height="200" viewBox="0 0 800 200">
+                    <rect x="50" y="80" width="100" height="40" rx="5" fill="#4fc3f7" stroke="#0277bd" stroke-width="2"/>
+                    <text x="100" y="105" text-anchor="middle" fill="white" font-weight="bold">内存池</text>
+                    
+                    <rect x="200" y="80" width="100" height="40" rx="5" fill="#4fc3f7" stroke="#0277bd" stroke-width="2"/>
+                    <text x="250" y="105" text-anchor="middle" fill="white" font-weight="bold">DMA传输</text>
+                    
+                    <rect x="350" y="80" width="100" height="40" rx="5" fill="#4fc3f7" stroke="#0277bd" stroke-width="2"/>
+                    <text x="400" y="105" text-anchor="middle" fill="white" font-weight="bold">中断处理</text>
+                    
+                    <rect x="500" y="80" width="100" height="40" rx="5" fill="#4fc3f7" stroke="#0277bd" stroke-width="2"/>
+                    <text x="550" y="105" text-anchor="middle" fill="white" font-weight="bold">性能提升</text>
+                    
+                    <path d="M150 100 L200 100" stroke="#0277bd" stroke-width="2" marker-end="url(#arrow)"/>
+                    <path d="M300 100 L350 100" stroke="#0277bd" stroke-width="2" marker-end="url(#arrow)"/>
+                    <path d="M450 100 L500 100" stroke="#0277bd" stroke-width="2" marker-end="url(#arrow)"/>
+                    
+                    <defs>
+                        <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                            <path d="M0,0 L0,6 L9,3 z" fill="#0277bd"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+        </section>
+        
+        <section>
+            <h2>1. 内存池使用</h2>
+            <div class="card">
+                <h3>1.1 内存池的概念与优势</h3>
+                <p>内存池是一种预先分配和管理内存块的技术，用于避免频繁的内存分配和释放操作。在蓝牙驱动中，使用内存池可以：</p>
+                <ul>
+                    <li>减少内存碎片</li>
+                    <li>提高内存分配速度</li>
+                    <li>降低内存管理开销</li>
+                    <li>提高系统稳定性</li>
+                </ul>
+                
+                <h3>1.2 Linux内核内存池API</h3>
+                <p>Linux内核提供了多种内存管理机制，以下是与内存池相关的主要API：</p>
+                
+                <table>
+                    <tr>
+                        <th>函数</th>
+                        <th>描述</th>
+                        <th>使用场景</th>
+                    </tr>
+                    <tr>
+                        <td><code>mempool_create()</code></td>
+                        <td>创建内存池</td>
+                        <td>初始化阶段创建固定大小的内存池</td>
+                    </tr>
+                    <tr>
+                        <td><code>mempool_alloc()</code></td>
+                        <td>从内存池分配内存</td>
+                        <td>需要快速分配固定大小内存时</td>
+                    </tr>
+                    <tr>
+                        <td><code>mempool_free()</code></td>
+                        <td>释放内存到内存池</td>
+                        <td>不再需要内存块时</td>
+                    </tr>
+                    <tr>
+                        <td><code>mempool_destroy()</code></td>
+                        <td>销毁内存池</td>
+                        <td>驱动卸载或系统关闭时</td>
+                    </tr>
+                </table>
+                
+                <h3>1.3 蓝牙驱动中的内存池实现示例</h3>
+                <pre><code>#include &lt;linux/mempool.h&gt;
+#include &lt;linux/slab.h&gt;
+
+#define BT_POOL_SIZE 64
+#define BT_PACKET_SIZE 512
+
+/* 蓝牙驱动内存池结构 */
+struct bt_mempool {
+    mempool_t *pool;
+    struct kmem_cache *cache;
+};
+
+/* 创建蓝牙内存池 */
+static struct bt_mempool *bt_mempool_create(void)
+{
+    struct bt_mempool *mp;
+    
+    mp = kzalloc(sizeof(*mp), GFP_KERNEL);
+    if (!mp)
+        return NULL;
+    
+    /* 创建slab缓存 */
+    mp->cache = kmem_cache_create("bt_packet_cache", 
+                                 BT_PACKET_SIZE, 0, 
+                                 SLAB_HWCACHE_ALIGN, NULL);
+    if (!mp->cache) {
+        kfree(mp);
+        return NULL;
+    }
+    
+    /* 创建内存池 */
+    mp->pool = mempool_create_slab_pool(BT_POOL_SIZE, mp->cache);
+    if (!mp->pool) {
+        kmem_cache_destroy(mp->cache);
+        kfree(mp);
+        return NULL;
+    }
+    
+    return mp;
+}
+
+/* 分配蓝牙数据包 */
+static void *bt_alloc_packet(struct bt_mempool *mp)
+{
+    return mempool_alloc(mp->pool, GFP_ATOMIC);
+}
+
+/* 释放蓝牙数据包 */
+static void bt_free_packet(struct bt_mempool *mp, void *packet)
+{
+    mempool_free(packet, mp->pool);
+}
+
+/* 销毁内存池 */
+static void bt_mempool_destroy(struct bt_mempool *mp)
+{
+    if (mp) {
+        mempool_destroy(mp->pool);
+        kmem_cache_destroy(mp->cache);
+        kfree(mp);
+    }
+}</code></pre>
+                
+                <div class="note">
+                    <p><strong>注意：</strong>在实际蓝牙驱动中，需要根据具体的数据包大小和数量调整内存池参数，以达到最佳性能。</p>
+                </div>
+            </div>
+        </section>
+        
+        <section>
+            <h2>2. DMA传输优化</h2>
+            <div class="card">
+                <h3>2.1 DMA工作原理</h3>
+                <p>直接内存访问（DMA）允许外设直接与内存交换数据，无需CPU介入。在蓝牙驱动中，DMA可以：</p>
+                <ul>
+                    <li>减少CPU中断负载</li>
+                    <li>提高数据传输效率</li>
+                    <li>降低系统功耗</li>
+                </ul>
+                
+                <div class="svg-container">
+                    <svg width="700" height="300" viewBox="0 0 700 300">
+                        <rect x="50" y="50" width="120" height="60" rx="5" fill="#bbdefb" stroke="#0277bd" stroke-width="2"/>
+                        <text x="110" y="85" text-anchor="middle" fill="#0277bd" font-weight="bold">蓝牙设备</text>
+                        
+                        <rect x="250" y="50" width="120" height="60" rx="5" fill="#bbdefb" stroke="#0277bd" stroke-width="2"/>
+                        <text x="310" y="85" text-anchor="middle" fill="#0277bd" font-weight="bold">DMA控制器</text>
+                        
+                        <rect x="450" y="50" width="120" height="60" rx="5" fill="#bbdefb" stroke="#0277bd" stroke-width="2"/>
+                        <text x="510" y="85" text-anchor="middle" fill="#0277bd" font-weight="bold">系统内存</text>
+                        
+                        <rect x="300" y="150" width="100" height="60" rx="5" fill="#ffccbc" stroke="#0277bd" stroke-width="2"/>
+                        <text x="350" y="185" text-anchor="middle" fill="#0277bd" font-weight="bold">CPU</text>
+                        
+                        <path d="M170 80 L250 80" stroke="#0277bd" stroke-width="2" marker-end="url(#arrow2)"/>
+                        <path d="M370 80 L450 80" stroke="#0277bd" stroke-width="2" marker-end="url(#arrow2)"/>
+                        <path d="M350 150 L350 110" stroke="#0277bd" stroke-width="2" stroke-dasharray="5,5"/>
+                        
+                        <text x="210" y="75" text-anchor="middle" fill="#d84315">DMA请求</text>
+                        <text x="410" y="75" text-anchor="middle" fill="#d84315">数据传输</text>
+                        <text x="380" y="135" text-anchor="middle" fill="#d84315">配置/控制</text>
+                        
+                        <defs>
+                            <marker id="arrow2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                                <path d="M0,0 L0,6 L9,3 z" fill="#0277bd"/>
+                            </marker>
+                        </defs>
+                    </svg>
+                </div>
+                
+                <h3>2.2 DMA缓冲区管理</h3>
+                <p>在蓝牙驱动中，合理管理DMA缓冲区至关重要：</p>
+                
+                <table>
+                    <tr>
+                        <th>缓冲区类型</th>
+                        <th>特点</th>
+                        <th>适用场景</th>
+                    </tr>
+                    <tr>
+                        <td>一致性DMA缓冲区</td>
+                        <td>CPU和DMA都可以缓存，需要同步操作</td>
+                        <td>频繁读写的小数据块</td>
+                    </tr>
+                    <tr>
+                        <td>流式DMA缓冲区</td>
+                        <td>单向传输，不需要缓存一致性</td>
+                        <td>大数据块传输</td>
+                    </tr>
+                    <tr>
+                        <td>分散/聚集DMA</td>
+                        <td>处理非连续内存区域</td>
+                        <td>网络数据包处理</td>
+                    </tr>
+                </table>
+                
+                <h3>2.3 DMA优化实现示例</h3>
+                <pre><code>#include &lt;linux/dma-mapping.h&gt;
+
+/* 蓝牙DMA描述符 */
+struct bt_dma_desc {
+    dma_addr_t dma_handle;     /* DMA物理地址 */
+    void *cpu_addr;            /* CPU虚拟地址 */
+    size_t size;               /* 缓冲区大小 */
+    int direction;             /* 数据传输方向 */
+};
+
+/* 分配DMA缓冲区 */
+static int bt_dma_alloc(struct bt_dma_desc *desc, 
+                       size_t size, 
+                       int direction)
+{
+    desc->size = size;
+    desc->direction = direction;
+    
+    /* 分配一致性DMA缓冲区 */
+    desc->cpu_addr = dma_alloc_coherent(NULL, size, 
+                                       &desc->dma_handle, 
+                                       GFP_KERNEL);
+    if (!desc->cpu_addr)
+        return -ENOMEM;
+    
+    return 0;
+}
+
+/* 准备DMA传输 */
+static void bt_dma_prepare(struct bt_dma_desc *desc, 
+                          void *data, 
+                          size_t len)
+{
+    /* 对于发送操作，将数据复制到DMA缓冲区 */
+    if (desc->direction == DMA_TO_DEVICE) {
+        memcpy(desc->cpu_addr, data, len);
+    }
+    
+    /* 刷新DMA缓冲区缓存 */
+    dma_sync_single_for_device(NULL, desc->dma_handle, 
+                              len, desc->direction);
+}
+
+/* 完成DMA传输 */
+static void bt_dma_complete(struct bt_dma_desc *desc, 
+                           void *data, 
+                           size_t len)
+{
+    /* 对于接收操作，从DMA缓冲区读取数据 */
+    if (desc->direction == DMA_FROM_DEVICE) {
+        /* 使CPU缓存无效，确保读取最新数据 */
+        dma_sync_single_for_cpu(NULL, desc->dma_handle, 
+                               len, desc->direction);
+        memcpy(data, desc->cpu_addr, len);
+    }
+}
+
+/* 释放DMA缓冲区 */
+static void bt_dma_free(struct bt_dma_desc *desc)
+{
+    if (desc->cpu_addr) {
+        dma_free_coherent(NULL, desc->size, 
+                         desc->cpu_addr, 
+                         desc->dma_handle);
+        desc->cpu_addr = NULL;
+        desc->dma_handle = 0;
+    }
+}</code></pre>
+                
+                <div class="highlight">
+                    <p><strong>优化技巧：</strong>对于频繁的小数据包传输，可以考虑使用DMA描述符环（Descriptor Ring）来减少设置DMA的开销。</p>
+                </div>
+            </div>
+        </section>
+        
+        <section>
+            <h2>3. 中断处理优化</h2>
+            <div class="card">
+                <h3>3.1 中断处理的基本原理</h3>
+                <p>中断是外设通知CPU有事件需要处理的重要机制。在蓝牙驱动中，优化中断处理可以：</p>
+                <ul>
+                    <li>减少中断延迟</li>
+                    <li>提高系统响应性</li>
+                    <li>降低功耗</li>
+                </ul>
+                
+                <h3>3.2 中断处理优化策略</h3>
+                
+                <table>
+                    <tr>
+                        <th>优化策略</th>
+                        <th>描述</th>
+                        <th>效果</th>
+                    </tr>
+                    <tr>
+                        <td>中断合并</td>
+                        <td>将多个中断事件合并为一个中断处理</td>
+                        <td>减少中断次数，降低CPU负载</td>
+                    </tr>
+                    <tr>
+                        <td>中断线程化</td>
+                        <td>将中断处理程序移到内核线程中执行</td>
+                        <td>减少中断关闭时间，提高系统响应性</td>
+                    </tr>
+                    <tr>
+                        <td>NAPI机制</td>
+                        <td>采用轮询方式处理网络数据</td>
+                        <td>减少高负载下的中断风暴</td>
+                    </tr>
+                    <tr>
+                        <td>中断亲和性</td>
+                        <td>将中断绑定到特定CPU核心</td>
+                        <td>提高缓存命中率，减少核心间通信</td>
+                    </tr>
+                </table>
+                
+                <h3>3.3 中断处理优化实现</h3>
+                <pre><code>#include &lt;linux/interrupt.h&gt;
+#include &lt;linux/workqueue.h&gt;
+
+/* 蓝牙驱动中断上下文 */
+struct bt_interrupt_ctx {
+    struct work_struct work;           /* 工作队列 */
+    struct workqueue_struct *wq;       /* 工作队列结构 */
+    unsigned long events;              /* 待处理事件 */
+    spinlock_t lock;                   /* 保护events的锁 */
+};
+
+/* 中断处理函数 - 顶半部 */
+static irqreturn_t bt_interrupt(int irq, void *dev_id)
+{
+    struct bt_driver *bt = dev_id;
+    unsigned long flags;
+    
+    /* 读取中断状态寄存器 */
+    u32 status = readl(bt->reg_base + BT_INT_STATUS);
+    
+    /* 快速处理关键中断 */
+    if (status & BT_INT_CRITICAL) {
+        /* 紧急处理... */
+        writel(BT_INT_CRITICAL, bt->reg_base + BT_INT_CLEAR);
+    }
+    
+    /* 将非紧急中断事件记录到工作队列 */
+    if (status & BT_INT_NORMAL) {
+        spin_lock_irqsave(&bt->irq_ctx.lock, flags);
+        bt->irq_ctx.events |= status;
+        spin_unlock_irqrestore(&bt->irq_ctx.lock, flags);
+        
+        /* 调度工作队列处理 */
+        queue_work(bt->irq_ctx.wq, &bt->irq_ctx.work);
+    }
+    
+    return IRQ_HANDLED;
+}
+
+/* 中断处理 - 底半部（工作队列） */
+static void bt_interrupt_work(struct work_struct *work)
+{
+    struct bt_interrupt_ctx *ctx = container_of(work, 
+                                               struct bt_interrupt_ctx, 
+                                               work);
+    unsigned long events;
+    unsigned long flags;
+    
+    /* 获取待处理事件 */
+    spin_lock_irqsave(&ctx->lock, flags);
+    events = ctx->events;
+    ctx->events = 0;
+    spin_unlock_irqrestore(&ctx->lock, flags);
+    
+    /* 处理各种中断事件 */
+    if (events & BT_INT_RX_READY) {
+        bt_process_rx_data();
+    }
+    
+    if (events & BT_INT_TX_DONE) {
+        bt_process_tx_complete();
+    }
+    
+    if (events & BT_INT_ERROR) {
+        bt_handle_error();
+    }
+}
+
+/* 初始化中断处理 */
+static int bt_interrupt_init(struct bt_driver *bt)
+{
+    int ret;
+    
+    /* 初始化中断上下文 */
+    spin_lock_init(&bt->irq_ctx.lock);
+    INIT_WORK(&bt->irq_ctx.work, bt_interrupt_work);
+    
+    /* 创建工作队列 */
+    bt->irq_ctx.wq = create_singlethread_workqueue("bt_irq");
+    if (!bt->irq_ctx.wq) {
+        return -ENOMEM;
+    }
+    
+    /* 注册中断处理程序 */
+    ret = request_irq(bt->irq, bt_interrupt, 
+                     IRQF_SHARED | IRQF_NO_THREAD, 
+                     "bluetooth", bt);
+    if (ret) {
+        destroy_workqueue(bt->irq_ctx.wq);
+        return ret;
+    }
+    
+    /* 设置中断亲和性（可选） */
+    if (bt->irq_affinity_mask) {
+        irq_set_affinity_hint(bt->irq, bt->irq_affinity_mask);
+    }
+    
+    return 0;
+}
+
+/* 清理中断处理 */
+static void bt_interrupt_cleanup(struct bt_driver *bt)
+{
+    if (bt->irq_affinity_mask) {
+        irq_set_affinity_hint(bt->irq, NULL);
+    }
+    
+    free_irq(bt->irq, bt);
+    
+    if (bt->irq_ctx.wq) {
+        flush_workqueue(bt->irq_ctx.wq);
+        destroy_workqueue(bt->irq_ctx.wq);
+        bt->irq_ctx.wq = NULL;
+    }
+}</code></pre>
+                
+                <div class="note">
+                    <p><strong>性能提示：</strong>对于高吞吐量场景，考虑使用线程化中断（threaded IRQ）或NAPI机制来进一步提高中断处理效率。</p>
+                </div>
+            </div>
+        </section>
+        
+        <section>
+            <h2>4. 综合优化架构</h2>
+            <div class="architecture">
+                <div class="svg-container">
+                    <svg width="800" height="500" viewBox="0 0 800 500">
+                        <!-- 应用层 -->
+                        <rect x="50" y="30" width="700" height="60" rx="5" fill="#c8e6c9" stroke="#2e7d32" stroke-width="2"/>
+                        <text x="400" y="65" text-anchor="middle" fill="#2e7d32" font-weight="bold" font-size="18">应用层</text>
+                        
+                        <!-- 蓝牙协议栈 -->
+                        <rect x="50" y="110" width="700" height="120" rx="5" fill="#bbdefb" stroke="#1565c0" stroke-width="2"/>
+                        <text x="400" y="135" text-anchor="middle" fill="#1565c0" font-weight="bold" font-size="16">蓝牙协议栈 (HCI, L2CAP, RFCOMM等)</text>
+                        
+                        <!-- 优化层 -->
+                        <rect x="50" y="250" width="700" height="120" rx="5" fill="#ffecb3" stroke="#ff8f00" stroke-width="2"/>
+                        <text x="400" y="275" text-anchor="middle" fill="#ff8f00" font-weight="bold" font-size="16">性能优化层</text>
+                        
+                        <!-- 优化组件 -->
+                        <rect x="80" y="290" width="180" height="60" rx="5" fill="#ffccbc" stroke="#d84315" stroke-width="2"/>
+                        <text x="170" y="325" text-anchor="middle" fill="#d84315" font-weight="bold">内存池管理</text>
+                        
+                        <rect x="310" y="290" width="180" height="60" rx="5" fill="#ffccbc" stroke="#d84315" stroke-width="2"/>
+                        <text x="400" y="325" text-anchor="middle" fill="#d84315" font-weight="bold">DMA传输优化</text>
+                        
+                        <rect x="540" y="290" width="180" height="60" rx="5" fill="#ffccbc" stroke="#d84315" stroke-width="2"/>
+                        <text x="630" y="325" text-anchor="middle" fill="#d84315" font-weight="bold">中断处理优化</text>
+                        
+                        <!-- 硬件抽象层 -->
+                        <rect x="50" y="390" width="700" height="60" rx="5" fill="#e1bee7" stroke="#7b1fa2" stroke-width="2"/>
+                        <text x="400" y="425" text-anchor="middle" fill="#7b1fa2" font-weight="bold" font-size="16">硬件抽象层 (HAL)</text>
+                        
+                        <!-- 连接线 -->
+                        <path d="M400 90 L400 110" stroke="#1565c0" stroke-width="2" marker-end="url(#arrow3)"/>
+                        <path d="M400 230 L400 250" stroke="#ff8f00" stroke-width="2" marker-end="url(#arrow3)"/>
+                        <path d="M400 370 L400 390" stroke="#7b1fa2" stroke-width="2" marker-end="url(#arrow3)"/>
+                        
+                        <!-- 数据流 -->
+                        <path d="M750 320 L750 200 L650 200 L650 170" stroke="#5d4037" stroke-width="2" stroke-dasharray="5,5" marker-end="url(#arrow3)"/>
+                        <text x="700" y="190" text-anchor="middle" fill="#5d4037" font-size="14">数据流</text>
+                        
+                        <defs>
+                            <marker id="arrow3" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                                <path d="M0,0 L0,6 L9,3 z" fill="#1565c0"/>
+                            </marker>
+                        </defs>
+                    </svg>
+                </div>
+                
+                <h3>4.1 优化效果评估</h3>
+                <p>通过综合应用上述优化技术，蓝牙驱动性能可以得到显著提升：</p>
+                
+                <table>
+                    <tr>
+                        <th>优化技术</th>
+                        <th>性能指标改善</th>
+                        <th>典型提升幅度</th>
+                    </tr>
+                    <tr>
+                        <td>内存池使用</td>
+                        <td>内存分配延迟降低，碎片减少</td>
+                        <td>30-50%</td>
+                    </tr>
+                    <tr>
+                        <td>DMA传输优化</td>
+                        <td>CPU负载降低，吞吐量提高</td>
+                        <td>40-60%</td>
+                    </tr>
+                    <tr>
+                        <td>中断处理优化</td>
+                        <td>系统响应性提高，中断延迟降低</td>
+                        <td>20-40%</td>
+                    </tr>
+                    <tr>
+                        <td>综合优化</td>
+                        <td>整体性能提升，功耗降低</td>
+                        <td>50-80%</td>
+                    </tr>
+                </table>
+                
+                <h3>4.2 性能监控与调试</h3>
+                <p>为了确保优化效果，需要建立有效的性能监控机制：</p>
+                
+                <pre><code>/* 性能统计结构 */
+struct bt_perf_stats {
+    u64 packets_tx;           /* 发送数据包计数 */
+    u64 packets_rx;           /* 接收数据包计数 */
+    u64 dma_errors;           /* DMA错误计数 */
+    u64 irq_count;            /* 中断计数 */
+    u32 avg_irq_latency;      /* 平均中断延迟(us) */
+    u32 max_irq_latency;      /* 最大中断延迟(us) */
+    u32 memory_alloc_time;    /* 内存分配时间(ns) */
+};
+
+/* 在/proc文件系统中暴露性能统计 */
+static int bt_proc_show(struct seq_file *m, void *v)
+{
+    struct bt_driver *bt = m->private;
+    
+    seq_printf(m, "Bluetooth Driver Performance Stats:\n");
+    seq_printf(m, "  TX Packets: %llu\n", bt->stats.packets_tx);
+    seq_printf(m, "  RX Packets: %llu\n", bt->stats.packets_rx);
+    seq_printf(m, "  DMA Errors: %llu\n", bt->stats.dma_errors);
+    seq_printf(m, "  IRQ Count: %llu\n", bt->stats.irq_count);
+    seq_printf(m, "  Avg IRQ Latency: %u us\n", bt->stats.avg_irq_latency);
+    seq_printf(m, "  Max IRQ Latency: %u us\n", bt->stats.max_irq_latency);
+    seq_printf(m, "  Memory Alloc Time: %u ns\n", bt->stats.memory_alloc_time);
+    
+    return 0;
+}</code></pre>
+            </div>
+        </section>
+        
+        <section>
+            <h2>5. 总结</h2>
+            <div class="card">
+                <p>蓝牙驱动性能优化是一个系统工程，需要从多个维度进行考虑：</p>
+                <ol>
+                    <li><strong>内存管理优化</strong>：通过内存池技术减少动态内存分配开销</li>
+                    <li><strong>数据传输优化</strong>：利用DMA减少CPU参与，提高传输效率</li>
+                    <li><strong>中断处理优化</strong>：采用合理的上下半部机制，降低中断延迟</li>
+                    <li><strong>综合架构设计</strong>：各优化技术协同工作，实现整体性能提升</li>
+                </ol>
+                
+                <div class="highlight">
+                    <p>在实际开发中，需要根据具体的硬件平台和应用场景，灵活选择和组合这些优化技术，并通过性能监控工具持续评估优化效果，不断迭代改进。</p>
+                </div>
+            </div>
+        </section>
+        
+        <footer>
+            <p>蓝海资料掘金营</p>
+        </footer>
+    </div>
+</body>
+</html>

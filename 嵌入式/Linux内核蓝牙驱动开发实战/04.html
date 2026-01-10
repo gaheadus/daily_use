@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蓝牙HCI协议层详解 - Linux内核蓝牙驱动开发实战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            font-size: 2.8em;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .subtitle {
+            font-size: 1.3em;
+            opacity: 0.9;
+        }
+
+        .content-section {
+            background: white;
+            padding: 30px;
+            margin-bottom: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease;
+        }
+
+        .content-section:hover {
+            transform: translateY(-5px);
+        }
+
+        h2 {
+            color: #4facfe;
+            border-bottom: 3px solid #4facfe;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        h3 {
+            color: #00c6ff;
+            margin: 20px 0 15px;
+            font-size: 1.4em;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: #f8f9fa;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        th {
+            background: linear-gradient(45deg, #4facfe, #00f2fe);
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background-color: #e3f2fd;
+        }
+
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .architecture {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .highlight {
+            background: linear-gradient(45deg, #ffd89b, #19547b);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            margin-top: 50px;
+            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .note-box {
+            background: #e3f2fd;
+            border-left: 5px solid #2196f3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .color-palette {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+
+        .color-box {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+
+        .color-1 { background: #4facfe; }
+        .color-2 { background: #00f2fe; }
+        .color-3 { background: #667eea; }
+        .color-4 { background: #764ba2; }
+        .color-5 { background: #ffd89b; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>蓝牙HCI协议层详解</h1>
+            <div class="subtitle">Linux内核蓝牙驱动开发实战 - 第四章</div>
+        </header>
+
+        <section class="content-section">
+            <h2>HCI协议层概述</h2>
+            <p>主机控制器接口（Host Controller Interface，HCI）是蓝牙协议栈中的核心组成部分，它定义了主机（Host）与蓝牙控制器（Controller）之间的通信协议。HCI层为上层协议提供了统一的接口，使得不同的蓝牙控制器能够与主机进行标准化的交互。</p>
+            
+            <div class="architecture">
+                <svg width="600" height="200" viewBox="0 0 600 200">
+                    <rect x="50" y="50" width="100" height="40" fill="#4facfe" stroke="#333" stroke-width="2" rx="5"/>
+                    <text x="100" y="75" text-anchor="middle" fill="white" font-weight="bold">应用层</text>
+                    
+                    <rect x="200" y="50" width="100" height="40" fill="#00f2fe" stroke="#333" stroke-width="2" rx="5"/>
+                    <text x="250" y="75" text-anchor="middle" fill="white" font-weight="bold">L2CAP</text>
+                    
+                    <rect x="350" y="50" width="100" height="40" fill="#667eea" stroke="#333" stroke-width="2" rx="5"/>
+                    <text x="400" y="75" text-anchor="middle" fill="white" font-weight="bold">HCI</text>
+                    
+                    <rect x="450" y="120" width="100" height="40" fill="#764ba2" stroke="#333" stroke-width="2" rx="5"/>
+                    <text x="500" y="145" text-anchor="middle" fill="white" font-weight="bold">控制器</text>
+                    
+                    <line x1="150" y1="70" x2="200" y2="70" stroke="#333" stroke-width="2"/>
+                    <line x1="300" y1="70" x2="350" y2="70" stroke="#333" stroke-width="2"/>
+                    <line x1="400" y1="90" x2="450" y2="140" stroke="#333" stroke-width="2"/>
+                    
+                    <text x="175" y="65" text-anchor="middle" fill="#333">数据流</text>
+                    <text x="325" y="65" text-anchor="middle" fill="#333">数据流</text>
+                    <text x="425" y="115" text-anchor="middle" fill="#333">HCI命令</text>
+                </svg>
+            </div>
+            
+            <div class="note-box">
+                <strong>注意：</strong> HCI协议提供了三种类型的数据包：命令包（Command Packet）、事件包（Event Packet）和数据包（Data Packet）。每种数据包都有特定的格式和用途。
+            </div>
+        </section>
+
+        <section class="content-section">
+            <h2>HCI命令格式</h2>
+            <p>HCI命令包由主机发送给控制器，用于配置控制器、查询状态和执行各种蓝牙操作。每个HCI命令都有固定的格式：</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>字段</th>
+                        <th>大小（字节）</th>
+                        <th>描述</th>
+                        <th>示例</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>操作码（OpCode）</td>
+                        <td>2</td>
+                        <td>标识具体的HCI命令</td>
+                        <td>0x0C03 (Reset命令)</td>
+                    </tr>
+                    <tr>
+                        <td>参数总长度</td>
+                        <td>1</td>
+                        <td>参数域的总字节数</td>
+                        <td>0x00 (无参数)</td>
+                    </tr>
+                    <tr>
+                        <td>参数域</td>
+                        <td>可变</td>
+                        <td>命令的具体参数</td>
+                        <td>因命令而异</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>操作码结构</h3>
+            <p>操作码由两个部分组成：</p>
+            <ul>
+                <li><span class="highlight">OGF</span>（OpCode Group Field）：操作码组字段，占高6位</li>
+                <li><span class="highlight">OCF</span>（OpCode Command Field）：操作码命令字段，占低10位</li>
+            </ul>
+            
+            <div class="code-block">
+<pre>
+// HCI命令包结构体定义
+struct hci_command_hdr {
+    __le16 opcode;     // 操作码
+    __u8   plen;       // 参数长度
+} __packed;
+
+// 操作码分解宏
+#define opcode_pack(ogf, ocf)  ((__u16) ((ocf & 0x03ff)|(ogf << 10)))
+#define opcode_ogf(op)         (op >> 10)
+#define opcode_ocf(op)         (op & 0x03ff)
+
+// 常用OGF值
+#define OGF_LINK_CTL           0x01    // 链路控制命令
+#define OGF_HOST_CTL           0x03    // 主机控制和基带命令
+#define OGF_INFO_PARAM         0x04    // 信息参数命令
+#define OGF_LE_CTL             0x08    // 低功耗控制命令
+</pre>
+            </div>
+            
+            <h3>常用HCI命令示例</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>命令名称</th>
+                        <th>操作码</th>
+                        <th>OGF</th>
+                        <th>OCF</th>
+                        <th>功能描述</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Reset</td>
+                        <td>0x0C03</td>
+                        <td>0x03</td>
+                        <td>0x0003</td>
+                        <td>重置蓝牙控制器</td>
+                    </tr>
+                    <tr>
+                        <td>Read_BD_ADDR</td>
+                        <td>0x1009</td>
+                        <td>0x04</td>
+                        <td>0x0009</td>
+                        <td>读取蓝牙设备地址</td>
+                    </tr>
+                    <tr>
+                        <td>LE_Set_Scan_Parameters</td>
+                        <td>0x200B</td>
+                        <td>0x08</td>
+                        <td>0x000B</td>
+                        <td>设置低功耗扫描参数</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section class="content-section">
+            <h2>HCI事件处理</h2>
+            <p>HCI事件包由控制器发送给主机，用于通知主机关于控制器状态变化、命令完成状态、异步事件等信息。事件处理是HCI协议层的重要组成部分。</p>
+            
+            <h3>事件包格式</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>字段</th>
+                        <th>大小（字节）</th>
+                        <th>描述</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>事件码</td>
+                        <td>1</td>
+                        <td>标识事件类型</td>
+                    </tr>
+                    <tr>
+                        <td>参数总长度</td>
+                        <td>1</td>
+                        <td>参数域的总字节数</td>
+                    </tr>
+                    <tr>
+                        <td>参数域</td>
+                        <td>可变</td>
+                        <td>事件的具体参数</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>常见事件类型</h3>
+            <ul>
+                <li><span class="highlight">Command Complete</span> (0x0E)：命令完成事件</li>
+                <li><span class="highlight">Command Status</span> (0x0F)：命令状态事件</li>
+                <li><span class="highlight">LE Meta Event</span> (0x3E)：低功耗元事件</li>
+                <li><span class="highlight">Disconnection Complete</span> (0x05)：断开连接完成事件</li>
+            </ul>
+            
+            <div class="code-block">
+<pre>
+// HCI事件包结构体定义
+struct hci_event_hdr {
+    __u8  evt;         // 事件码
+    __u8  plen;        // 参数长度
+} __packed;
+
+// 命令完成事件结构
+struct hci_ev_cmd_complete {
+    __u8  ncmd;        // 可处理的命令数
+    __le16 opcode;     // 完成命令的操作码
+} __packed;
+
+// 命令状态事件结构
+struct hci_ev_cmd_status {
+    __u8  status;      // 状态码
+    __u8  ncmd;        // 可处理的命令数
+    __le16 opcode;     // 命令操作码
+} __packed;
+
+// Linux内核中的事件处理函数示例
+static void hci_cmd_complete_evt(struct hci_dev *hdev, struct sk_buff *skb)
+{
+    struct hci_ev_cmd_complete *ev = (void *) skb->data;
+    skb_pull(skb, sizeof(*ev));
+    
+    // 根据操作码处理不同的命令完成事件
+    switch (__le16_to_cpu(ev->opcode)) {
+    case HCI_OP_RESET:
+        hci_reset_cmd_complete(hdev, skb);
+        break;
+    case HCI_OP_READ_BD_ADDR:
+        hci_read_bd_addr_cmd_complete(hdev, skb);
+        break;
+    // ... 其他命令处理
+    }
+}
+</pre>
+            </div>
+            
+            <h3>事件处理流程</h3>
+            <ol>
+                <li>控制器接收到命令或检测到状态变化</li>
+                <li>生成相应的事件包</li>
+                <li>通过HCI接口发送给主机</li>
+                <li>主机解析事件包并根据事件类型进行处理</li>
+                <li>更新内部状态或通知上层协议</li>
+            </ol>
+        </section>
+
+        <section class="content-section">
+            <h2>HCI数据包解析与封装</h2>
+            <p>在Linux内核蓝牙驱动开发中，HCI数据包的解析与封装是核心任务之一。内核提供了完整的HCI核心层来处理这些操作。</p>
+            
+            <h3>数据包类型</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>包类型</th>
+                        <th>标识符</th>
+                        <th>方向</th>
+                        <th>描述</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>HCI Command Packet</td>
+                        <td>0x01</td>
+                        <td>主机→控制器</td>
+                        <td>主机发送给控制器的命令</td>
+                    </tr>
+                    <tr>
+                        <td>HCI ACL Data Packet</td>
+                        <td>0x02</td>
+                        <td>双向</td>
+                        <td>异步无连接数据</td>
+                    </tr>
+                    <tr>
+                        <td>HCI SCO Data Packet</td>
+                        <td>0x03</td>
+                        <td>双向</td>
+                        <td>同步面向连接数据</td>
+                    </tr>
+                    <tr>
+                        <td>HCI Event Packet</td>
+                        <td>0x04</td>
+                        <td>控制器→主机</td>
+                        <td>控制器发送给主机的事件</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>数据包解析示例</h3>
+            <div class="code-block">
+<pre>
+// HCI ACL数据包头结构
+struct hci_acl_hdr {
+    __le16 handle;     // 连接句柄和标志位
+    __le16 dlen;       // 数据长度
+} __packed;
+
+// HCI数据包解析函数
+static void hci_acldata_packet(struct hci_dev *hdev, struct sk_buff *skb)
+{
+    struct hci_acl_hdr *hdr = (void *) skb->data;
+    __u16 handle = __le16_to_cpu(hdr->handle);
+    __u16 dlen = __le16_to_cpu(hdr->dlen);
+    
+    if (skb->len < HCI_ACL_HDR_SIZE) {
+        bt_err("ACL数据包太短");
+        kfree_skb(skb);
+        return;
+    }
+    
+    // 移除HCI头部
+    skb_pull(skb, HCI_ACL_HDR_SIZE);
+    
+    // 处理ACL数据
+    hci_conn *conn = hci_conn_hash_lookup_handle(hdev, acl_handle(handle));
+    if (conn) {
+        l2cap_recv_acldata(conn, skb, acl_flags(handle));
+    } else {
+        kfree_skb(skb);
+    }
+}
+
+// HCI命令发送函数
+int hci_send_cmd(struct hci_dev *hdev, __u16 opcode, __u32 plen, void *param)
+{
+    struct sk_buff *skb;
+    struct hci_command_hdr *hdr;
+    
+    // 分配SKB缓冲区
+    skb = bt_skb_alloc(HCI_COMMAND_HDR_SIZE + plen, GFP_ATOMIC);
+    if (!skb)
+        return -ENOMEM;
+    
+    // 填充命令头
+    hdr = skb_put(skb, HCI_COMMAND_HDR_SIZE);
+    hdr->opcode = cpu_to_le16(opcode);
+    hdr->plen = plen;
+    
+    // 填充参数
+    if (plen)
+        skb_put_data(skb, param, plen);
+    
+    // 设置包类型并发送
+    hci_skb_pkt_type(skb) = HCI_COMMAND_PKT;
+    hci_send_frame(hdev, skb);
+    
+    return 0;
+}
+</pre>
+            </div>
+            
+            <h3>数据包封装流程</h3>
+            <ol>
+                <li>分配适当大小的SKB缓冲区</li>
+                <li>填充HCI包头信息（类型、长度等）</li>
+                <li>添加有效载荷数据</li>
+                <li>设置包类型标识符</li>
+                <li>通过HCI发送接口传输数据包</li>
+            </ol>
+            
+            <div class="note-box">
+                <strong>开发提示：</strong> 在Linux内核蓝牙驱动开发中，正确解析和封装HCI数据包至关重要。需要特别注意字节序转换、缓冲区管理和错误处理，确保驱动程序的稳定性和性能。
+            </div>
+        </section>
+        
+        <section class="content-section">
+            <h2>总结</h2>
+            <p>HCI协议层是蓝牙技术中连接主机和控制器的桥梁，掌握HCI命令格式、事件处理机制以及数据包解析与封装技术，对于Linux内核蓝牙驱动开发至关重要。通过本章的学习，您应该能够：</p>
+            <ul>
+                <li>理解HCI协议的基本架构和工作原理</li>
+                <li>掌握HCI命令包的格式和常用命令</li>
+                <li>熟悉HCI事件的处理机制和常见事件类型</li>
+                <li>具备HCI数据包解析与封装的实践能力</li>
+                <li>能够在Linux内核中实现基本的HCI通信功能</li>
+            </ul>
+            
+            <div class="color-palette">
+                <div class="color-box color-1"></div>
+                <div class="color-box color-2"></div>
+                <div class="color-box color-3"></div>
+                <div class="color-box color-4"></div>
+                <div class="color-box color-5"></div>
+            </div>
+        </section>
+        
+        <footer>
+            蓝海资料掘金营
+        </footer>
+    </div>
+</body>
+</html>

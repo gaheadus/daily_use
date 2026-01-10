@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蓝牙RFCOMM协议层详解 - Linux内核蓝牙驱动开发实战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #f9fbe7 50%, #e8f5e9 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #4fc3f7 0%, #29b6f6 50%, #03a9f4 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            border-bottom: 5px solid #0288d1;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid #4fc3f7;
+        }
+
+        h2 {
+            color: #0288d1;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px dashed #b3e5fc;
+        }
+
+        h3 {
+            color: #0097a7;
+            margin: 15px 0 10px;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background-color: #4fc3f7;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f5f5f5;
+        }
+
+        tr:hover {
+            background-color: #e1f5fe;
+        }
+
+        .code-block {
+            background: #263238;
+            color: #e0e0e0;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .highlight {
+            background-color: #fff9c4;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #0288d1 0%, #0277bd 100%);
+            color: white;
+            font-size: 1.1em;
+            margin-top: 30px;
+        }
+
+        .note {
+            background: #e1f5fe;
+            border-left: 4px solid #0288d1;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .architecture {
+            width: 100%;
+            height: 300px;
+            background: #fafafa;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>蓝牙RFCOMM协议层详解</h1>
+            <div class="subtitle">Linux内核蓝牙驱动开发实战 - 第六章</div>
+        </header>
+
+        <div class="content">
+            <section id="intro">
+                <h2>RFCOMM协议概述</h2>
+                <p>RFCOMM（Radio Frequency Communication）是蓝牙协议栈中的重要组成部分，它提供了基于L2CAP协议的串行端口仿真。RFCOMM仿真了RS-232串行端口，允许现有的串行端口应用程序通过蓝牙无线连接进行通信。</p>
+                
+                <div class="svg-container">
+                    <svg width="800" height="200" viewBox="0 0 800 200">
+                        <rect x="50" y="50" width="120" height="40" rx="5" fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                        <text x="110" y="75" text-anchor="middle" fill="white" font-weight="bold">应用层</text>
+                        
+                        <rect x="220" y="50" width="120" height="40" rx="5" fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                        <text x="280" y="75" text-anchor="middle" fill="white" font-weight="bold">RFCOMM</text>
+                        
+                        <rect x="390" y="50" width="120" height="40" rx="5" fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                        <text x="450" y="75" text-anchor="middle" fill="white" font-weight="bold">L2CAP</text>
+                        
+                        <rect x="560" y="50" width="120" height="40" rx="5" fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                        <text x="620" y="75" text-anchor="middle" fill="white" font-weight="bold">基带</text>
+                        
+                        <line x1="170" y1="70" x2="220" y2="70" stroke="#0288d1" stroke-width="2"/>
+                        <line x1="340" y1="70" x2="390" y2="70" stroke="#0288d1" stroke-width="2"/>
+                        <line x1="510" y1="70" x2="560" y2="70" stroke="#0288d1" stroke-width="2"/>
+                        
+                        <text x="195" y="65" text-anchor="middle" fill="#0288d1">依赖</text>
+                        <text x="365" y="65" text-anchor="middle" fill="#0288d1">依赖</text>
+                        <text x="535" y="65" text-anchor="middle" fill="#0288d1">依赖</text>
+                    </svg>
+                </div>
+                
+                <div class="note">
+                    <p><strong>注意：</strong>RFCOMM协议在蓝牙协议栈中位于L2CAP之上，为上层应用提供串行端口仿真服务。</p>
+                </div>
+            </section>
+
+            <section id="serial-emulation">
+                <h2>RFCOMM仿真串口</h2>
+                <p>RFCOMM通过仿真RS-232串行接口，使得传统的串行应用程序能够无缝地在蓝牙设备上运行。这种仿真包括数据电路和控制电路。</p>
+                
+                <h3>主要特性</h3>
+                <ul>
+                    <li>支持多达60个同时连接的仿真串口</li>
+                    <li>提供流控制机制（RTS/CTS、DTR/DSR）</li>
+                    <li>支持 modem状态命令（V.24信号）</li>
+                    <li>数据透明传输，不修改任何数据内容</li>
+                    <li>支持多路复用，多个仿真串口共享一个物理连接</li>
+                </ul>
+                
+                <h3>Linux内核中的RFCOMM实现</h3>
+                <p>在Linux内核中，RFCOMM通过字符设备接口向用户空间提供串口仿真功能：</p>
+                
+                <div class="code-block">
+<pre>
+// RFCOMM设备创建示例
+struct rfcomm_dev *rfcomm_dev_create(struct sock *sk, 
+                                    int dev_id,
+                                    unsigned long flags)
+{
+    struct rfcomm_dev *dev;
+    struct rfcomm_dlc *dlc;
+    
+    dev = kzalloc(sizeof(struct rfcomm_dev), GFP_KERNEL);
+    if (!dev)
+        return NULL;
+        
+    dlc = rfcomm_dlc_alloc(GFP_KERNEL);
+    if (!dlc) {
+        kfree(dev);
+        return NULL;
+    }
+    
+    // 初始化设备
+    dev->dlc = dlc;
+    dlc->owner = dev;
+    
+    // 设置设备号和数据通道
+    dev->id = dev_id;
+    dev->flags = flags;
+    
+    // 注册字符设备
+    if (rfcomm_dev_register(dev)) {
+        rfcomm_dlc_free(dlc);
+        kfree(dev);
+        return NULL;
+    }
+    
+    return dev;
+}
+</pre>
+                </div>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>信号线</th>
+                            <th>功能描述</th>
+                            <th>RFCOMM支持</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>RTS (Request To Send)</td>
+                            <td>请求发送数据</td>
+                            <td>✓ 支持</td>
+                        </tr>
+                        <tr>
+                            <td>CTS (Clear To Send)</td>
+                            <td>清除发送，允许发送数据</td>
+                            <td>✓ 支持</td>
+                        </tr>
+                        <tr>
+                            <td>DTR (Data Terminal Ready)</td>
+                            <td>数据终端就绪</td>
+                            <td>✓ 支持</td>
+                        </tr>
+                        <tr>
+                            <td>DSR (Data Set Ready)</td>
+                            <td>数据设备就绪</td>
+                            <td>✓ 支持</td>
+                        </tr>
+                        <tr>
+                            <td>DCD (Data Carrier Detect)</td>
+                            <td>数据载波检测</td>
+                            <td>✓ 支持</td>
+                        </tr>
+                        <tr>
+                            <td>RI (Ring Indicator)</td>
+                            <td>振铃指示</td>
+                            <td>✓ 支持</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="session-management">
+                <h2>RFCOMM会话管理</h2>
+                <p>RFCOMM会话是两个设备之间的逻辑连接，用于承载一个或多个数据链路连接（DLC）。会话管理负责建立、维护和终止这些连接。</p>
+                
+                <h3>会话建立过程</h3>
+                <ol>
+                    <li><span class="highlight">SABM帧</span>：发送设置异步平衡模式命令</li>
+                    <li><span class="highlight">UA响应</span>：无编号确认响应</li>
+                    <li><span class="highlight">参数协商</span>：协商最大帧大小、流控制参数等</li>
+                    <li><span class="highlight">会话激活</span>：会话进入活动状态，可以创建数据链路</li>
+                </ol>
+                
+                <div class="svg-container">
+                    <svg width="700" height="300" viewBox="0 0 700 300">
+                        <!-- 会话建立流程图 -->
+                        <rect x="50" y="50" width="120" height="40" rx="5" fill="#81c784" stroke="#388e3c" stroke-width="2"/>
+                        <text x="110" y="75" text-anchor="middle" fill="white" font-weight="bold">初始状态</text>
+                        
+                        <rect x="230" y="50" width="120" height="40" rx="5" fill="#fff176" stroke="#f57f17" stroke-width="2"/>
+                        <text x="290" y="75" text-anchor="middle" fill="black" font-weight="bold">SABM发送</text>
+                        
+                        <rect x="410" y="50" width="120" height="40" rx="5" fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                        <text x="470" y="75" text-anchor="middle" fill="white" font-weight="bold">UA响应</text>
+                        
+                        <rect x="50" y="150" width="120" height="40" rx="5" fill="#ba68c8" stroke="#7b1fa2" stroke-width="2"/>
+                        <text x="110" y="175" text-anchor="middle" fill="white" font-weight="bold">参数协商</text>
+                        
+                        <rect x="230" y="150" width="120" height="40" rx="5" fill="#4db6ac" stroke="#00796b" stroke-width="2"/>
+                        <text x="290" y="175" text-anchor="middle" fill="white" font-weight="bold">会话激活</text>
+                        
+                        <rect x="410" y="150" width="120" height="40" rx="5" fill="#e57373" stroke="#c62828" stroke-width="2"/>
+                        <text x="470" y="175" text-anchor="middle" fill="white" font-weight="bold">数据传输</text>
+                        
+                        <!-- 连接线 -->
+                        <path d="M 170 70 L 230 70" stroke="#0288d1" stroke-width="2" fill="none"/>
+                        <path d="M 350 70 L 410 70" stroke="#0288d1" stroke-width="2" fill="none"/>
+                        <path d="M 530 70 L 530 150 L 50 150" stroke="#0288d1" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+                        <path d="M 170 170 L 230 170" stroke="#0288d1" stroke-width="2" fill="none"/>
+                        <path d="M 350 170 L 410 170" stroke="#0288d1" stroke-width="2" fill="none"/>
+                        
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#0288d1"/>
+                            </marker>
+                        </defs>
+                    </svg>
+                </div>
+                
+                <h3>会话终止</h3>
+                <p>RFCOMM会话可以通过以下方式终止：</p>
+                <ul>
+                    <li><span class="highlight">正常终止</span>：通过DISC命令和UA响应</li>
+                    <li><span class="highlight">异常终止</span>：超时或链路丢失</li>
+                    <li><span class="highlight">强制终止</span>：DM响应拒绝连接</li>
+                </ul>
+                
+                <div class="code-block">
+<pre>
+// RFCOMM会话管理核心数据结构
+struct rfcomm_session {
+    struct list_head list;
+    struct socket *sock;
+    unsigned long state;
+    unsigned long flags;
+    
+    struct list_head dlcs;
+    int mtu;
+    
+    uint8_t addr[6];  // 蓝牙地址
+    uint8_t role;     // 主/从角色
+    
+    struct timer_list timer;
+    struct work_struct work;
+    
+    spinlock_t lock;
+};
+
+// 会话状态定义
+#define RFCOMM_SESSION_CLOSED   0
+#define RFCOMM_SESSION_CONNECTING 1
+#define RFCOMM_SESSION_CONNECTED  2
+#define RFCOMM_SESSION_DISCONNECTING 3
+</pre>
+                </div>
+            </section>
+
+            <section id="multiplexing">
+                <h2>RFCOMM多路复用技术</h2>
+                <p>RFCOMM支持在单个物理蓝牙连接上同时运行多个逻辑数据通道，这种技术称为多路复用。每个逻辑通道对应一个仿真串口。</p>
+                
+                <h3>多路复用原理</h3>
+                <p>RFCOMM通过数据链路标识符（DLCI）来区分不同的逻辑通道：</p>
+                <ul>
+                    <li>DLCI范围：0-61（其中0和61为控制通道保留）</li>
+                    <li>每个DLCI对应一个独立的仿真串口</li>
+                    <li>支持双向异步通信</li>
+                    <li>独立的流控制和错误恢复机制</li>
+                </ul>
+                
+                <div class="svg-container">
+                    <svg width="800" height="400" viewBox="0 0 800 400">
+                        <!-- 多路复用架构图 -->
+                        <rect x="50" y="50" width="200" height="300" rx="10" fill="#e1f5fe" stroke="#4fc3f7" stroke-width="3"/>
+                        <text x="150" y="80" text-anchor="middle" fill="#0288d1" font-weight="bold" font-size="18">设备A</text>
+                        
+                        <!-- 应用层 -->
+                        <rect x="70" y="100" width="160" height="40" rx="5" fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                        <text x="150" y="125" text-anchor="middle" fill="white" font-weight="bold">应用1</text>
+                        
+                        <rect x="70" y="150" width="160" height="40" rx="5" fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                        <text x="150" y="175" text-anchor="middle" fill="white" font-weight="bold">应用2</text>
+                        
+                        <rect x="70" y="200" width="160" height="40" rx="5" fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                        <text x="150" y="225" text-anchor="middle" fill="white" font-weight="bold">应用3</text>
+                        
+                        <!-- RFCOMM多路复用器 -->
+                        <rect x="70" y="260" width="160" height="60" rx="5" fill="#ff9800" stroke="#f57c00" stroke-width="2"/>
+                        <text x="150" y="280" text-anchor="middle" fill="white" font-weight="bold">RFCOMM</text>
+                        <text x="150" y="300" text-anchor="middle" fill="white" font-size="14">多路复用器</text>
+                        
+                        <!-- 连接线 -->
+                        <line x1="150" y1="140" x2="150" y2="150" stroke="#0288d1" stroke-width="2"/>
+                        <line x1="150" y1="190" x2="150" y2="200" stroke="#0288d1" stroke-width="2"/>
+                        <line x1="150" y1="240" x2="150" y2="260" stroke="#0288d1" stroke-width="2"/>
+                        
+                        <!-- 物理连接 -->
+                        <line x1="250" y1="290" x2="550" y2="290" stroke="#0288d1" stroke-width="3" stroke-dasharray="5,5"/>
+                        <text x="400" y="280" text-anchor="middle" fill="#0288d1" font-weight="bold">蓝牙物理连接</text>
+                        
+                        <!-- 设备B -->
+                        <rect x="550" y="50" width="200" height="300" rx="10" fill="#e1f5fe" stroke="#4fc3f7" stroke-width="3"/>
+                        <text x="650" y="80" text-anchor="middle" fill="#0288d1" font-weight="bold" font-size="18">设备B</text>
+                        
+                        <!-- 应用层 -->
+                        <rect x="570" y="100" width="160" height="40" rx="5" fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                        <text x="650" y="125" text-anchor="middle" fill="white" font-weight="bold">应用1</text>
+                        
+                        <rect x="570" y="150" width="160" height="40" rx="5" fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                        <text x="650" y="175" text-anchor="middle" fill="white" font-weight="bold">应用2</text>
+                        
+                        <rect x="570" y="200" width="160" height="40" rx="5" fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                        <text x="650" y="225" text-anchor="middle" fill="white" font-weight="bold">应用3</text>
+                        
+                        <!-- RFCOMM多路复用器 -->
+                        <rect x="570" y="260" width="160" height="60" rx="5" fill="#ff9800" stroke="#f57c00" stroke-width="2"/>
+                        <text x="650" y="280" text-anchor="middle" fill="white" font-weight="bold">RFCOMM</text>
+                        <text x="650" y="300" text-anchor="middle" fill="white" font-size="14">多路复用器</text>
+                        
+                        <!-- 连接线 -->
+                        <line x1="650" y1="140" x2="650" y2="150" stroke="#0288d1" stroke-width="2"/>
+                        <line x1="650" y1="190" x2="650" y2="200" stroke="#0288d1" stroke-width="2"/>
+                        <line x1="650" y1="240" x2="650" y2="260" stroke="#0288d1" stroke-width="2"/>
+                    </svg>
+                </div>
+                
+                <h3>多路复用实现机制</h3>
+                <p>在Linux内核中，RFCOMM多路复用通过以下方式实现：</p>
+                
+                <div class="code-block">
+<pre>
+// RFCOMM多路复用核心函数
+static int rfcomm_multiplex_data(struct rfcomm_session *s, 
+                                struct sk_buff *skb)
+{
+    struct rfcomm_hdr *hdr = (void *) skb->data;
+    struct rfcomm_dlc *d;
+    u8 dlci = hdr->dlci;
+    
+    // 根据DLCI查找对应的数据链路
+    d = rfcomm_dlc_get(s, dlci);
+    if (!d) {
+        BT_ERR("Unable to find DLCI %d", dlci);
+        kfree_skb(skb);
+        return -ENOENT;
+    }
+    
+    // 处理数据帧
+    if (hdr->type == RFCOMM_UIH) {
+        skb_pull(skb, RFCOMM_HDR_SIZE);
+        rfcomm_dlc_recv(d, skb);
+    } else {
+        // 处理控制帧
+        rfcomm_process_control_frame(s, skb);
+    }
+    
+    return 0;
+}
+
+// DLCI分配和管理
+int rfcomm_dlc_alloc(struct rfcomm_session *s, u8 dlci)
+{
+    struct rfcomm_dlc *d;
+    
+    // 检查DLCI是否已被使用
+    if (rfcomm_dlc_get(s, dlci))
+        return -EEXIST;
+    
+    d = kzalloc(sizeof(*d), GFP_KERNEL);
+    if (!d)
+        return -ENOMEM;
+    
+    d->session = s;
+    d->dlci = dlci;
+    d->state = BT_OPEN;
+    
+    // 添加到会话的DLC列表
+    list_add(&d->list, &s->dlcs);
+    
+    return 0;
+}
+</pre>
+                </div>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>DLCI范围</th>
+                            <th>用途</th>
+                            <th>方向</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>0</td>
+                            <td>控制通道</td>
+                            <td>双向</td>
+                        </tr>
+                        <tr>
+                            <td>1-30</td>
+                            <td>服务器通道（奇数）</td>
+                            <td>主→从</td>
+                        </tr>
+                        <tr>
+                            <td>2-31</td>
+                            <td>客户端通道（偶数）</td>
+                            <td>从→主</td>
+                        </tr>
+                        <tr>
+                            <td>32-61</td>
+                            <td>扩展通道</td>
+                            <td>双向</td>
+                        </tr>
+                        <tr>
+                            <td>61</td>
+                            <td>保留</td>
+                            <td>-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="summary">
+                <h2>本章总结</h2>
+                <p>RFCOMM协议作为蓝牙协议栈中的重要组成部分，为上层应用提供了可靠的串口仿真服务。通过本章学习，我们掌握了：</p>
+                
+                <ul>
+                    <li><span class="highlight">RFCOMM仿真串口</span>的工作原理和实现机制</li>
+                    <li><span class="highlight">RFCOMM会话管理</span>的建立、维护和终止过程</li>
+                    <li><span class="highlight">多路复用技术</span>在RFCOMM中的应用和实现</li>
+                    <li>Linux内核中RFCOMM驱动的核心数据结构和API</li>
+                </ul>
+                
+                <div class="note">
+                    <p><strong>实践建议：</strong>在实际开发中，建议深入理解RFCOMM的状态机和多路复用机制，这对于调试复杂的蓝牙通信问题非常有帮助。</p>
+                </div>
+            </section>
+        </div>
+
+        <footer>
+            蓝海资料掘金营
+        </footer>
+    </div>
+</body>
+</html>

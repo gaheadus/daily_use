@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蓝牙A2DP协议驱动开发实战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #bbdefb 50%, #f8bbd0 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #4fc3f7;
+        }
+
+        h1 {
+            color: #0277bd;
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #0288d1;
+            font-size: 1.8em;
+            margin: 30px 0 15px;
+            padding-left: 15px;
+            border-left: 5px solid #4fc3f7;
+        }
+
+        h3 {
+            color: #039be5;
+            font-size: 1.4em;
+            margin: 20px 0 10px;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .highlight {
+            background: #e1f5fe;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #4fc3f7;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #b3e5fc;
+        }
+
+        th {
+            background-color: #4fc3f7;
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #e1f5fe;
+        }
+
+        tr:hover {
+            background-color: #b3e5fc;
+        }
+
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        pre {
+            background: #f5f5f5;
+            border-left: 4px solid #4fc3f7;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        code {
+            background: #e8f4fd;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            color: #0277bd;
+        }
+
+        .svg-container {
+            text-align: center;
+            margin: 25px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            color: #0277bd;
+            font-weight: bold;
+            border-top: 2px solid #4fc3f7;
+        }
+
+        .note {
+            background: #fff9c4;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #ffd54f;
+        }
+
+        .warning {
+            background: #ffebee;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #ef5350;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>蓝牙A2DP协议驱动开发实战</h1>
+            <p>深入解析Linux内核中蓝牙A2DP协议的音频流建立、数据编码与同步机制实现</p>
+        </header>
+
+        <div class="section">
+            <h2>1. A2DP协议概述</h2>
+            <p>高级音频分发配置文件（A2DP）定义了蓝牙设备间高质量音频传输的协议和流程。A2DP协议基于AVDTP（音频/视频分发传输协议）构建，支持单声道和立体声音频流传输。</p>
+            
+            <div class="svg-container">
+                <svg width="600" height="200" viewBox="0 0 600 200">
+                    <rect x="50" y="50" width="100" height="60" rx="10" fill="#4fc3f7" stroke="#0277bd" stroke-width="2"/>
+                    <text x="100" y="85" text-anchor="middle" fill="white" font-weight="bold">音频源</text>
+                    
+                    <rect x="250" y="50" width="100" height="60" rx="10" fill="#4fc3f7" stroke="#0277bd" stroke-width="2"/>
+                    <text x="300" y="85" text-anchor="middle" fill="white" font-weight="bold">A2DP协议栈</text>
+                    
+                    <rect x="450" y="50" width="100" height="60" rx="10" fill="#4fc3f7" stroke="#0277bd" stroke-width="2"/>
+                    <text x="500" y="85" text-anchor="middle" fill="white" font-weight="bold">音频接收器</text>
+                    
+                    <path d="M150 80 L250 80" stroke="#0277bd" stroke-width="2" marker-end="url(#arrow)"/>
+                    <path d="M350 80 L450 80" stroke="#0277bd" stroke-width="2" marker-end="url(#arrow)"/>
+                    
+                    <defs>
+                        <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                            <path d="M0,0 L0,6 L9,3 z" fill="#0277bd"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+            
+            <div class="highlight">
+                <p><strong>A2DP关键特性：</strong></p>
+                <ul>
+                    <li>支持多种音频编码格式：SBC、MP3、AAC、aptX等</li>
+                    <li>单声道和立体声支持</li>
+                    <li>音频质量配置协商</li>
+                    <li>流控制和管理</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>2. 音频流建立过程</h2>
+            <p>A2DP音频流的建立是一个多阶段的过程，涉及设备发现、能力协商和流配置。</p>
+            
+            <h3>2.1 设备发现与连接</h3>
+            <pre><code>// Linux内核中A2DP设备发现示例
+static int a2dp_discover(struct bt_conn *conn)
+{
+    struct bt_a2dp *a2dp = a2dp_get(conn);
+    
+    if (!a2dp) {
+        BT_ERR("No A2DP context for connection");
+        return -ENOTCONN;
+    }
+    
+    // 发送发现请求
+    return bt_avdtp_discover(conn, &a2dp->discover_param);
+}</code></pre>
+
+            <h3>2.2 能力协商与流配置</h3>
+            <table>
+                <tr>
+                    <th>阶段</th>
+                    <th>描述</th>
+                    <th>内核函数</th>
+                </tr>
+                <tr>
+                    <td>发现</td>
+                    <td>发现远程设备的A2DP能力</td>
+                    <td>bt_avdtp_discover()</td>
+                </tr>
+                <tr>
+                    <td>获取能力</td>
+                    <td>获取特定服务的编码能力</td>
+                    <td>bt_avdtp_get_capabilities()</td>
+                </tr>
+                <tr>
+                    <td>配置</td>
+                    <td>配置音频流参数</td>
+                    <td>bt_avdtp_set_configuration()</td>
+                </tr>
+                <tr>
+                    <td>打开</td>
+                    <td>打开音频流</td>
+                    <td>bt_avdtp_open()</td>
+                </tr>
+                <tr>
+                    <td>开始</td>
+                    <td>开始音频流传输</td>
+                    <td>bt_avdtp_start()</td>
+                </tr>
+            </table>
+
+            <div class="svg-container">
+                <svg width="500" height="300" viewBox="0 0 500 300">
+                    <rect x="50" y="30" width="400" height="240" rx="10" fill="none" stroke="#4fc3f7" stroke-width="2"/>
+                    
+                    <rect x="80" y="60" width="120" height="40" rx="5" fill="#e1f5fe" stroke="#4fc3f7" stroke-width="1"/>
+                    <text x="140" y="85" text-anchor="middle" fill="#0277bd">设备发现</text>
+                    
+                    <rect x="80" y="110" width="120" height="40" rx="5" fill="#e1f5fe" stroke="#4fc3f7" stroke-width="1"/>
+                    <text x="140" y="135" text-anchor="middle" fill="#0277bd">能力协商</text>
+                    
+                    <rect x="80" y="160" width="120" height="40" rx="5" fill="#e1f5fe" stroke="#4fc3f7" stroke-width="1"/>
+                    <text x="140" y="185" text-anchor="middle" fill="#0277bd">流配置</text>
+                    
+                    <rect x="80" y="210" width="120" height="40" rx="5" fill="#e1f5fe" stroke="#4fc3f7" stroke-width="1"/>
+                    <text x="140" y="235" text-anchor="middle" fill="#0277bd">流启动</text>
+                    
+                    <path d="M200 80 L280 80 L280 130 L200 130" stroke="#0277bd" stroke-width="2" fill="none" marker-end="url(#arrow2)"/>
+                    <path d="M200 130 L280 130 L280 180 L200 180" stroke="#0277bd" stroke-width="2" fill="none" marker-end="url(#arrow2)"/>
+                    <path d="M200 180 L280 180 L280 230 L200 230" stroke="#0277bd" stroke-width="2" fill="none" marker-end="url(#arrow2)"/>
+                    
+                    <defs>
+                        <marker id="arrow2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                            <path d="M0,0 L0,6 L9,3 z" fill="#0277bd"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>3. 音频数据编码</h2>
+            <p>A2DP支持多种音频编码格式，SBC（子带编码）是强制支持的格式，其他格式如AAC、MP3、aptX等为可选。</p>
+            
+            <h3>3.1 SBC编码实现</h3>
+            <pre><code>// SBC编码器结构定义
+struct sbc_encoder {
+    int frequency;
+    int channels;
+    int bitpool;
+    int subbands;
+    int blocks;
+    int allocation;
+    
+    // 编码状态变量
+    int position[2][8];
+    int analysis_buffer[2][8][128];
+};
+
+// SBC编码函数
+int sbc_encode(struct sbc_encoder *encoder, 
+               const int16_t *input, 
+               uint8_t *output, 
+               size_t input_len)
+{
+    int frame_count = input_len / (encoder->channels * encoder->subbands);
+    int output_pos = 0;
+    
+    // 添加帧头
+    output[output_pos++] = 0x9C; // 同步字
+    
+    // 编码参数
+    output[output_pos++] = (encoder->frequency << 6) |
+                          (encoder->channels << 5) |
+                          (encoder->subbands << 4) |
+                          (encoder->blocks << 2) |
+                          encoder->allocation;
+    
+    // 编码音频数据
+    for (int frame = 0; frame < frame_count; frame++) {
+        // 实现子带分析、量化和打包
+        output_pos += encode_sbc_frame(encoder, 
+                                      input + frame * encoder->channels * encoder->subbands,
+                                      output + output_pos);
+    }
+    
+    return output_pos;
+}</code></pre>
+
+            <h3>3.2 编码格式对比</h3>
+            <table>
+                <tr>
+                    <th>编码格式</th>
+                    <th>比特率范围</th>
+                    <th>延迟</th>
+                    <th>音质</th>
+                    <th>CPU占用</th>
+                </tr>
+                <tr>
+                    <td>SBC</td>
+                    <td>128-345 kbps</td>
+                    <td>中等</td>
+                    <td>良好</td>
+                    <td>低</td>
+                </tr>
+                <tr>
+                    <td>AAC</td>
+                    <td>128-256 kbps</td>
+                    <td>低</td>
+                    <td>优秀</td>
+                    <td>中等</td>
+                </tr>
+                <tr>
+                    <td>aptX</td>
+                    <td>352 kbps</td>
+                    <td>低</td>
+                    <td>优秀</td>
+                    <td>高</td>
+                </tr>
+                <tr>
+                    <td>LDAC</td>
+                    <td>330-990 kbps</td>
+                    <td>可变</td>
+                    <td>卓越</td>
+                    <td>高</td>
+                </tr>
+            </table>
+            
+            <div class="note">
+                <p><strong>注意：</strong>在实际驱动开发中，需要根据硬件能力和应用场景选择合适的编码格式。SBC作为基础格式必须实现，其他格式可根据需求添加。</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>4. 同步机制实现</h2>
+            <p>A2DP同步机制确保音频数据的连续播放，避免断音和卡顿。主要包括时间戳同步和流量控制。</p>
+            
+            <h3>4.1 时间戳同步</h3>
+            <pre><code>// A2DP时间戳管理
+struct a2dp_timestamp {
+    uint32_t rtp_timestamp;     // RTP时间戳
+    uint32_t ntp_timestamp;     // NTP时间戳（可选）
+    uint32_t sequence_number;   // 序列号
+};
+
+// 计算下一个时间戳
+static uint32_t calculate_next_timestamp(struct a2dp_stream *stream)
+{
+    // 基于采样率和包大小计算时间戳增量
+    uint32_t timestamp_inc = (stream->packet_duration * stream->sample_rate) / 1000000;
+    
+    stream->timestamp += timestamp_inc;
+    stream->sequence_number++;
+    
+    return stream->timestamp;
+}
+
+// 处理时间戳包装
+static uint32_t handle_timestamp_wrap(uint32_t timestamp)
+{
+    // RTP时间戳是32位，需要处理回绕
+    return timestamp & 0xFFFFFFFF;
+}</code></pre>
+
+            <h3>4.2 媒体同步状态机</h3>
+            <div class="svg-container">
+                <svg width="550" height="350" viewBox="0 0 550 350">
+                    <rect x="50" y="50" width="120" height="60" rx="10" fill="#e1f5fe" stroke="#4fc3f7" stroke-width="2"/>
+                    <text x="110" y="85" text-anchor="middle" fill="#0277bd">IDLE</text>
+                    
+                    <rect x="220" y="50" width="120" height="60" rx="10" fill="#e1f5fe" stroke="#4fc3f7" stroke-width="2"/>
+                    <text x="280" y="85" text-anchor="middle" fill="#0277bd">SYNCING</text>
+                    
+                    <rect x="390" y="50" width="120" height="60" rx="10" fill="#e1f5fe" stroke="#4fc3f7" stroke-width="2"/>
+                    <text x="450" y="85" text-anchor="middle" fill="#0277bd">SYNCED</text>
+                    
+                    <rect x="220" y="150" width="120" height="60" rx="10" fill="#e1f5fe" stroke="#4fc3f7" stroke-width="2"/>
+                    <text x="280" y="185" text-anchor="middle" fill="#0277bd">BUFFERING</text>
+                    
+                    <rect x="50" y="250" width="120" height="60" rx="10" fill="#e1f5fe" stroke="#4fc3f7" stroke-width="2"/>
+                    <text x="110" y="285" text-anchor="middle" fill="#0277bd">PLAYING</text>
+                    
+                    <rect x="220" y="250" width="120" height="60" rx="10" fill="#e1f5fe" stroke="#4fc3f7" stroke-width="2"/>
+                    <text x="280" y="285" text-anchor="middle" fill="#0277bd">PAUSED</text>
+                    
+                    <rect x="390" y="250" width="120" height="60" rx="10" fill="#e1f5fe" stroke="#4fc3f7" stroke-width="2"/>
+                    <text x="450" y="285" text-anchor="middle" fill="#0277bd">ERROR</text>
+                    
+                    <!-- 状态转移 -->
+                    <path d="M170 80 L220 80" stroke="#0277bd" stroke-width="2" marker-end="url(#arrow3)"/>
+                    <path d="M340 80 L390 80" stroke="#0277bd" stroke-width="2" marker-end="url(#arrow3)"/>
+                    <path d="M280 110 L280 150" stroke="#0277bd" stroke-width="2" marker-end="url(#arrow3)"/>
+                    <path d="M280 210 L280 250" stroke="#0277bd" stroke-width="2" marker-end="url(#arrow3)"/>
+                    <path d="M170 285 L220 285" stroke="#0277bd" stroke-width="2" marker-end="url(#arrow3)"/>
+                    <path d="M340 285 L390 285" stroke="#0277bd" stroke-width="2" marker-end="url(#arrow3)"/>
+                    
+                    <defs>
+                        <marker id="arrow3" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                            <path d="M0,0 L0,6 L9,3 z" fill="#0277bd"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+
+            <h3>4.3 缓冲区管理</h3>
+            <pre><code>// A2DP音频缓冲区管理
+struct a2dp_buffer {
+    uint8_t *data;
+    size_t size;
+    size_t write_pos;
+    size_t read_pos;
+    size_t watermark;  // 水位线，触发播放/暂停
+    pthread_mutex_t lock;
+};
+
+// 写入音频数据到缓冲区
+int a2dp_buffer_write(struct a2dp_buffer *buf, 
+                      const uint8_t *data, 
+                      size_t len)
+{
+    pthread_mutex_lock(&buf->lock);
+    
+    size_t available = buf->size - (buf->write_pos - buf->read_pos);
+    if (available < len) {
+        // 缓冲区不足，需要丢弃或等待
+        pthread_mutex_unlock(&buf->lock);
+        return -ENOSPC;
+    }
+    
+    // 写入数据（处理环形缓冲区回绕）
+    size_t first_chunk = min(len, buf->size - (buf->write_pos % buf->size));
+    memcpy(buf->data + (buf->write_pos % buf->size), data, first_chunk);
+    
+    if (first_chunk < len) {
+        memcpy(buf->data, data + first_chunk, len - first_chunk);
+    }
+    
+    buf->write_pos += len;
+    
+    // 检查是否需要开始播放
+    if ((buf->write_pos - buf->read_pos) >= buf->watermark) {
+        trigger_playback();
+    }
+    
+    pthread_mutex_unlock(&buf->lock);
+    return 0;
+}</code></pre>
+        </div>
+
+        <div class="section">
+            <h2>5. Linux内核A2DP驱动架构</h2>
+            <p>Linux内核中的A2DP驱动基于BlueZ蓝牙协议栈，通过ALSA音频框架与用户空间交互。</p>
+            
+            <div class="svg-container">
+                <svg width="600" height="400" viewBox="0 0 600 400">
+                    <!-- 用户空间 -->
+                    <rect x="50" y="30" width="500" height="80" rx="10" fill="#e1f5fe" stroke="#4fc3f7" stroke-width="2"/>
+                    <text x="300" y="50" text-anchor="middle" fill="#0277bd" font-weight="bold">用户空间</text>
+                    
+                    <rect x="80" y="60" width="120" height="40" rx="5" fill="#b3e5fc" stroke="#0277bd" stroke-width="1"/>
+                    <text x="140" y="85" text-anchor="middle" fill="#0277bd" font-size="12">音频应用</text>
+                    
+                    <rect x="220" y="60" width="120" height="40" rx="5" fill="#b3e5fc" stroke="#0277bd" stroke-width="1"/>
+                    <text x="280" y="85" text-anchor="middle" fill="#0277bd" font-size="12">PulseAudio</text>
+                    
+                    <rect x="360" y="60" width="120" height="40" rx="5" fill="#b3e5fc" stroke="#0277bd" stroke-width="1"/>
+                    <text x="420" y="85" text-anchor="middle" fill="#0277bd" font-size="12">ALSA Lib</text>
+                    
+                    <!-- 内核空间 -->
+                    <rect x="50" y="130" width="500" height="200" rx="10" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="2"/>
+                    <text x="300" y="150" text-anchor="middle" fill="#7b1fa2" font-weight="bold">内核空间</text>
+                    
+                    <rect x="80" y="170" width="120" height="40" rx="5" fill="#e1bee7" stroke="#7b1fa2" stroke-width="1"/>
+                    <text x="140" y="195" text-anchor="middle" fill="#7b1fa2" font-size="12">ALSA驱动</text>
+                    
+                    <rect x="220" y="170" width="120" height="40" rx="5" fill="#e1bee7" stroke="#7b1fa2" stroke-width="1"/>
+                    <text x="280" y="195" text-anchor="middle" fill="#7b1fa2" font-size="12">A2DP驱动</text>
+                    
+                    <rect x="360" y="170" width="120" height="40" rx="5" fill="#e1bee7" stroke="#7b1fa2" stroke-width="1"/>
+                    <text x="420" y="195" text-anchor="middle" fill="#7b1fa2" font-size="12">BlueZ协议栈</text>
+                    
+                    <rect x="80" y="230" width="120" height="40" rx="5" fill="#e1bee7" stroke="#7b1fa2" stroke-width="1"/>
+                    <text x="140" y="255" text-anchor="middle" fill="#7b1fa2" font-size="12">L2CAP</text>
+                    
+                    <rect x="220" y="230" width="120" height="40" rx="5" fill="#e1bee7" stroke="#7b1fa2" stroke-width="1"/>
+                    <text x="280" y="255" text-anchor="middle" fill="#7b1fa2" font-size="12">HCI驱动</text>
+                    
+                    <rect x="360" y="230" width="120" height="40" rx="5" fill="#e1bee7" stroke="#7b1fa2" stroke-width="1"/>
+                    <text x="420" y="255" text-anchor="middle" fill="#7b1fa2" font-size="12">蓝牙硬件</text>
+                    
+                    <!-- 连接线 -->
+                    <path d="M140 100 L140 130" stroke="#0277bd" stroke-width="2"/>
+                    <path d="M280 100 L280 130" stroke="#0277bd" stroke-width="2"/>
+                    <path d="M420 100 L420 130" stroke="#0277bd" stroke-width="2"/>
+                    
+                    <!-- 内核内部连接 -->
+                    <path d="M140 210 L220 210" stroke="#7b1fa2" stroke-width="2"/>
+                    <path d="M280 210 L360 210" stroke="#7b1fa2" stroke-width="2"/>
+                    <path d="M140 270 L220 270" stroke="#7b1fa2" stroke-width="2"/>
+                    <path d="M280 270 L360 270" stroke="#7b1fa2" stroke-width="2"/>
+                </svg>
+            </div>
+            
+            <h3>5.1 关键数据结构</h3>
+            <pre><code>// Linux内核A2DP驱动主要数据结构
+struct a2dp_endpoint {
+    struct list_head list;
+    
+    // 端点信息
+    u8 seid;
+    u8 type;
+    u8 media_type;
+    u8 tsep;
+    
+    // 能力信息
+    struct sbc_capabilities sbc_cap;
+    struct aac_capabilities aac_cap;
+    
+    // 操作函数
+    int (*open)(struct a2dp_endpoint *ep, struct bt_a2dp *a2dp);
+    int (*close)(struct a2dp_endpoint *ep, struct bt_a2dp *a2dp);
+    int (*start)(struct a2dp_endpoint *ep, struct bt_a2dp *a2dp);
+    int (*suspend)(struct a2dp_endpoint *ep, struct bt_a2dp *a2dp);
+    
+    // 私有数据
+    void *data;
+};
+
+struct bt_a2dp {
+    struct l2cap_conn *conn;
+    
+    // 流状态
+    enum a2dp_stream_state state;
+    
+    // 端点管理
+    struct list_head endpoints;
+    struct a2dp_endpoint *stream_endpoint;
+    
+    // 锁和同步
+    struct mutex lock;
+    struct completion setup_complete;
+    
+    // 音频相关
+    struct snd_pcm *pcm;
+    struct snd_pcm_hardware pcm_hw;
+};</code></pre>
+        </div>
+
+        <div class="section">
+            <h2>6. 调试与优化技巧</h2>
+            
+            <h3>6.1 常见问题排查</h3>
+            <table>
+                <tr>
+                    <th>问题现象</th>
+                    <th>可能原因</th>
+                    <th>解决方案</th>
+                </tr>
+                <tr>
+                    <td>音频断断续续</td>
+                    <td>缓冲区不足或同步问题</td>
+                    <td>增加缓冲区大小，优化时间戳同步</td>
+                </tr>
+                <tr>
+                    <td>连接不稳定</td>
+                    <td>信号干扰或功耗管理</td>
+                    <td>调整发射功率，禁用节能模式</td>
+                </tr>
+                <tr>
+                    <td>音质差</td>
+                    <td>编码参数配置不当</td>
+                    <td>优化编码比特率和其他参数</td>
+                </tr>
+                <tr>
+                    <td>延迟过高</td>
+                    <td>缓冲区过大或处理延迟</td>
+                    <td>减小缓冲区，优化数据处理流程</td>
+                </tr>
+            </table>
+
+            <h3>6.2 性能优化建议</h3>
+            <ul>
+                <li><strong>缓冲区优化：</strong>根据网络状况动态调整缓冲区大小</li>
+                <li><strong>编码优化：</strong>选择合适的编码格式和参数平衡音质和延迟</li>
+                <li><strong>功耗优化：</strong>在空闲时降低发射功率，优化休眠策略</li>
+                <li><strong>内存优化：</strong>使用DMA传输减少CPU占用</li>
+            </ul>
+
+            <div class="warning">
+                <p><strong>警告：</strong>在修改内核驱动时，务必确保代码的稳定性和安全性，避免引入内核崩溃或安全漏洞。</p>
+            </div>
+        </div>
+
+        <footer>
+            <p>蓝海资料掘金营</p>
+        </footer>
+    </div>
+</body>
+</html>

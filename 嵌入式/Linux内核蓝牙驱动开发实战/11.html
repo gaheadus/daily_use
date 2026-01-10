@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蓝牙HCI驱动实现 - Linux内核蓝牙驱动开发实战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #f9fbe7 50%, #e8f5e9 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #4fc3f7 0%, #81c784 50%, #4db6ac 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            border-bottom: 5px solid #26a69a;
+        }
+
+        h1 {
+            font-size: 2.8em;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .subtitle {
+            font-size: 1.3em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        section {
+            margin-bottom: 40px;
+            padding: 25px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border-left: 5px solid #4fc3f7;
+        }
+
+        h2 {
+            color: #00796b;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px dashed #80cbc4;
+        }
+
+        h3 {
+            color: #00897b;
+            margin: 20px 0 15px 0;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        ul, ol {
+            margin-left: 25px;
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0f2f1;
+        }
+
+        th {
+            background-color: #4db6ac;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f1f8e9;
+        }
+
+        tr:hover {
+            background-color: #e0f2f1;
+        }
+
+        pre {
+            background: #f5f5f5;
+            border-left: 4px solid #4db6ac;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+            border-radius: 5px;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+
+        code {
+            background: #e8f5e9;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+
+        .svg-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .architecture {
+            width: 100%;
+            height: 400px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            background: linear-gradient(135deg, #4fc3f7 0%, #81c784 50%, #4db6ac 100%);
+            color: white;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-top: 30px;
+        }
+
+        .note {
+            background: #fff9c4;
+            border-left: 4px solid #ffd54f;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, #a5d6a7 0%, #a5d6a7 100%);
+            background-repeat: no-repeat;
+            background-size: 100% 40%;
+            background-position: 0 90%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>蓝牙HCI驱动实现</h1>
+            <div class="subtitle">HCI初始化、命令发送队列、事件处理回调</div>
+        </header>
+
+        <div class="content">
+            <section>
+                <h2>HCI驱动概述</h2>
+                <p>HCI（Host Controller Interface）是蓝牙协议栈中的关键组件，它定义了主机（Host）与控制器（Controller）之间的通信接口。在Linux内核中，HCI驱动负责管理蓝牙硬件设备，处理命令发送、事件接收和数据传输。</p>
+                
+                <div class="svg-container">
+                    <svg class="architecture" viewBox="0 0 800 300">
+                        <defs>
+                            <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#4fc3f7;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#81c784;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        
+                        <!-- 应用层 -->
+                        <rect x="50" y="30" width="700" height="50" rx="10" ry="10" fill="url(#grad1)" opacity="0.8" />
+                        <text x="400" y="60" text-anchor="middle" fill="white" font-size="18" font-weight="bold">蓝牙应用层</text>
+                        
+                        <!-- 协议栈 -->
+                        <rect x="50" y="100" width="700" height="50" rx="10" ry="10" fill="url(#grad1)" opacity="0.7" />
+                        <text x="400" y="130" text-anchor="middle" fill="white" font-size="18" font-weight="bold">蓝牙协议栈 (L2CAP, RFCOMM, SDP等)</text>
+                        
+                        <!-- HCI层 -->
+                        <rect x="50" y="170" width="700" height="50" rx="10" ry="10" fill="url(#grad1)" opacity="0.6" />
+                        <text x="400" y="200" text-anchor="middle" fill="white" font-size="18" font-weight="bold">HCI层 (主机端)</text>
+                        
+                        <!-- HCI驱动 -->
+                        <rect x="50" y="240" width="700" height="50" rx="10" ry="10" fill="url(#grad1)" opacity="0.5" />
+                        <text x="400" y="270" text-anchor="middle" fill="white" font-size="18" font-weight="bold">HCI驱动 (控制器通信)</text>
+                        
+                        <!-- 箭头 -->
+                        <polygon points="400,85 395,75 405,75" fill="#00796b"/>
+                        <line x1="400" y1="85" x2="400" y2="100" stroke="#00796b" stroke-width="2"/>
+                        
+                        <polygon points="400,155 395,145 405,145" fill="#00796b"/>
+                        <line x1="400" y1="155" x2="400" y2="170" stroke="#00796b" stroke-width="2"/>
+                        
+                        <polygon points="400,225 395,215 405,215" fill="#00796b"/>
+                        <line x1="400" y1="225" x2="400" y2="240" stroke="#00796b" stroke-width="2"/>
+                    </svg>
+                </div>
+                
+                <p>HCI驱动在Linux蓝牙子系统中的位置如上图所示，它作为主机与控制器之间的桥梁，负责：</p>
+                <ul>
+                    <li>初始化蓝牙硬件控制器</li>
+                    <li>管理命令的发送和响应</li>
+                    <li>处理控制器产生的事件</li>
+                    <li>管理数据传输（ACL和SCO）</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>HCI初始化</h2>
+                <p>HCI初始化是驱动加载时的第一个步骤，主要包括硬件检测、资源分配和控制器配置。</p>
+                
+                <h3>初始化流程</h3>
+                <ol>
+                    <li><span class="highlight">硬件检测</span> - 识别蓝牙控制器类型（USB, UART, SDIO等）</li>
+                    <li><span class="highlight">资源分配</span> - 分配必要的内存和数据结构</li>
+                    <li><span class="highlight">控制器复位</span> - 发送复位命令使控制器进入已知状态</li>
+                    <li><span class="highlight">参数配置</span> - 设置控制器的工作参数</li>
+                    <li><span class="highlight">注册HCI设备</span> - 向蓝牙子系统注册设备</li>
+                </ol>
+                
+                <h3>关键数据结构</h3>
+                <table>
+                    <tr>
+                        <th>结构体</th>
+                        <th>描述</th>
+                        <th>主要成员</th>
+                    </tr>
+                    <tr>
+                        <td><code>struct hci_dev</code></td>
+                        <td>代表一个HCI设备</td>
+                        <td>name, type, send, destruct, driver_data</td>
+                    </tr>
+                    <tr>
+                        <td><code>struct hci_core</code></td>
+                        <td>HCI核心数据结构</td>
+                        <td>dev_list, list_lock, cmd_task</td>
+                    </tr>
+                    <tr>
+                        <td><code>struct hci_ops</code></td>
+                        <td>HCI操作函数集</td>
+                        <td>send, flush, setup, open, close</td>
+                    </tr>
+                </table>
+                
+                <h3>初始化代码示例</h3>
+                <pre><code>static int bluecard_hci_open(struct hci_dev *hdev)
+{
+    struct bluecard_info *info = hci_get_drvdata(hdev);
+    
+    if (test_bit(CARD_READY, &info->hw_state)) {
+        /* 设置HCI设备标志 */
+        set_bit(HCI_RUNNING, &hdev->flags);
+        return 0;
+    }
+    
+    return -ENODEV;
+}
+
+static int bluecard_hci_close(struct hci_dev *hdev)
+{
+    struct bluecard_info *info = hci_get_drvdata(hdev);
+    
+    if (!test_bit(HCI_RUNNING, &hdev->flags))
+        return 0;
+    
+    /* 清除运行标志 */
+    clear_bit(HCI_RUNNING, &hdev->flags);
+    
+    return 0;
+}
+
+static int bluecard_hci_send_frame(struct hci_dev *hdev, struct sk_buff *skb)
+{
+    struct bluecard_info *info = hci_get_drvdata(hdev);
+    
+    /* 将数据包放入发送队列 */
+    skb_queue_tail(&info->txq, skb);
+    
+    /* 触发发送任务 */
+    tasklet_schedule(&info->tx_task);
+    
+    return 0;
+}</code></pre>
+            </section>
+
+            <section>
+                <h2>命令发送队列</h2>
+                <p>HCI命令发送队列负责管理发送到控制器的命令，确保命令的有序发送和超时处理。</p>
+                
+                <div class="svg-container">
+                    <svg viewBox="0 0 700 250">
+                        <defs>
+                            <linearGradient id="queueGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#e1f5fe;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#b3e5fc;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        
+                        <!-- 命令队列 -->
+                        <rect x="50" y="30" width="300" height="180" rx="10" ry="10" fill="url(#queueGrad)" stroke="#4fc3f7" stroke-width="2"/>
+                        <text x="200" y="60" text-anchor="middle" fill="#00796b" font-size="16" font-weight="bold">HCI命令队列</text>
+                        
+                        <!-- 队列项 -->
+                        <rect x="80" y="80" width="240" height="25" rx="5" ry="5" fill="#81c784" opacity="0.8"/>
+                        <text x="200" y="97" text-anchor="middle" fill="white" font-size="12">HCI_Reset (0x03|0x0003)</text>
+                        
+                        <rect x="80" y="110" width="240" height="25" rx="5" ry="5" fill="#81c784" opacity="0.7"/>
+                        <text x="200" y="127" text-anchor="middle" fill="white" font-size="12">HCI_Read_BD_ADDR (0x04|0x0009)</text>
+                        
+                        <rect x="80" y="140" width="240" height="25" rx="5" ry="5" fill="#81c784" opacity="0.6"/>
+                        <text x="200" y="157" text-anchor="middle" fill="white" font-size="12">HCI_Read_Buffer_Size (0x04|0x0005)</text>
+                        
+                        <rect x="80" y="170" width="240" height="25" rx="5" ry="5" fill="#81c784" opacity="0.5"/>
+                        <text x="200" y="187" text-anchor="middle" fill="white" font-size="12">HCI_Read_Local_Version (0x04|0x0001)</text>
+                        
+                        <!-- 发送流程 -->
+                        <rect x="400" y="80" width="250" height="100" rx="10" ry="10" fill="#e8f5e9" stroke="#81c784" stroke-width="2"/>
+                        <text x="525" y="105" text-anchor="middle" fill="#00796b" font-size="14" font-weight="bold">发送处理</text>
+                        
+                        <circle cx="450" y="130" r="8" fill="#4db6ac"/>
+                        <text x="465" y="134" font-size="12">出队命令</text>
+                        
+                        <circle cx="450" y="155" r="8" fill="#4db6ac"/>
+                        <text x="465" y="159" font-size="12">设置超时定时器</text>
+                        
+                        <circle cx="600" y="130" r="8" fill="#4db6ac"/>
+                        <text x="530" y="134" font-size="12" text-anchor="middle">发送到硬件</text>
+                        
+                        <circle cx="600" y="155" r="8" fill="#4db6ac"/>
+                        <text x="530" y="159" font-size="12" text-anchor="middle">等待命令完成事件</text>
+                        
+                        <!-- 箭头 -->
+                        <polygon points="355,105 365,100 365,110" fill="#00796b"/>
+                        <line x1="355" y1="105" x2="400" y2="105" stroke="#00796b" stroke-width="2"/>
+                    </svg>
+                </div>
+                
+                <h3>队列管理机制</h3>
+                <ul>
+                    <li><strong>命令入队</strong> - 应用层或协议栈发出的命令被添加到发送队列</li>
+                    <li><strong>顺序发送</strong> - 队列确保命令按顺序发送到控制器</li>
+                    <li><strong>超时处理</strong> - 为每个命令设置超时定时器，处理无响应情况</li>
+                    <li><strong>流量控制</strong> - 根据控制器缓冲区状态控制发送速率</li>
+                </ul>
+                
+                <h3>命令发送代码示例</h3>
+                <pre><code>/* 命令发送函数 */
+int hci_send_cmd(struct hci_dev *hdev, u16 opcode, u32 plen, const void *param)
+{
+    struct sk_buff *skb;
+    struct hci_command_hdr *hdr;
+    
+    /* 分配SKB缓冲区 */
+    skb = bt_skb_alloc(HCI_COMMAND_HDR_SIZE + plen, GFP_ATOMIC);
+    if (!skb)
+        return -ENOMEM;
+    
+    /* 填充命令头 */
+    hdr = skb_put(skb, HCI_COMMAND_HDR_SIZE);
+    hdr->opcode = cpu_to_le16(opcode);
+    hdr->plen   = plen;
+    
+    /* 填充参数 */
+    if (plen)
+        skb_put_data(skb, param, plen);
+    
+    /* 设置数据包类型 */
+    bt_cb(skb)->pkt_type = HCI_COMMAND_PKT;
+    
+    /* 发送命令 */
+    skb->dev = (void *) hdev;
+    hci_send_frame(skb);
+    
+    return 0;
+}
+
+/* 命令队列处理 */
+static void hci_cmd_task(struct work_struct *work)
+{
+    struct hci_dev *hdev = container_of(work, struct hci_dev, cmd_work);
+    struct sk_buff *skb;
+    
+    /* 从队列中获取命令 */
+    skb = skb_dequeue(&hdev->cmd_q);
+    if (!skb)
+        return;
+    
+    /* 发送命令到控制器 */
+    hdev->send(skb);
+    
+    /* 设置命令超时定时器 */
+    if (hdev->sent_cmd)
+        kfree_skb(hdev->sent_cmd);
+    
+    hdev->sent_cmd = skb;
+    mod_timer(&hdev->cmd_timer, jiffies + HCI_CMD_TIMEOUT);
+}</code></pre>
+            </section>
+
+            <section>
+                <h2>事件处理回调</h2>
+                <p>事件处理回调负责处理从控制器接收到的各种事件，包括命令完成事件、状态事件和数据传输事件。</p>
+                
+                <h3>事件类型</h3>
+                <table>
+                    <tr>
+                        <th>事件类型</th>
+                        <th>事件代码</th>
+                        <th>描述</th>
+                    </tr>
+                    <tr>
+                        <td>Command Complete</td>
+                        <td>0x0E</td>
+                        <td>命令完成事件，包含命令执行结果</td>
+                    </tr>
+                    <tr>
+                        <td>Command Status</td>
+                        <td>0x0F</td>
+                        <td>命令状态事件，指示命令是否被接受</td>
+                    </tr>
+                    <tr>
+                        <td>LE Meta Event</td>
+                        <td>0x3E</td>
+                        <td>低功耗蓝牙元事件</td>
+                    </tr>
+                    <tr>
+                        <td>Number of Completed Packets</td>
+                        <td>0x13</td>
+                        <td>数据包完成事件，用于流量控制</td>
+                    </tr>
+                    <tr>
+                        <td>Disconnection Complete</td>
+                        <td>0x05</td>
+                        <td>连接断开完成事件</td>
+                    </tr>
+                </table>
+                
+                <h3>事件处理流程</h3>
+                <ol>
+                    <li><span class="highlight">事件接收</span> - 从控制器接收事件数据包</li>
+                    <li><span class="highlight">事件解析</span> - 解析事件头和参数</li>
+                    <li><span class="highlight">事件分发</span> - 根据事件类型调用相应的处理函数</li>
+                    <li><span class="highlight">状态更新</span> - 更新设备状态和连接状态</li>
+                    <li><span class="highlight">通知上层</span> - 通过回调函数通知协议栈或应用层</li>
+                </ol>
+                
+                <h3>事件处理代码示例</h3>
+                <pre><code>/* 事件处理函数 */
+static void hci_event_func(struct hci_dev *hdev, struct sk_buff *skb)
+{
+    struct hci_event_hdr *hdr = (void *) skb->data;
+    void *data = skb->data + HCI_EVENT_HDR_SIZE;
+    
+    skb_pull(skb, HCI_EVENT_HDR_SIZE);
+    
+    switch (hdr->evt) {
+    case HCI_EV_CMD_COMPLETE:
+        hci_cc_func(hdev, data, skb->len);
+        break;
+        
+    case HCI_EV_CMD_STATUS:
+        hci_cs_func(hdev, data, skb->len);
+        break;
+        
+    case HCI_EV_LE_META:
+        hci_le_meta_func(hdev, data, skb->len);
+        break;
+        
+    case HCI_EV_DISCONN_COMPLETE:
+        hci_disconn_complete_func(hdev, data, skb->len);
+        break;
+        
+    default:
+        BT_DBG("%s unknown event 0x%2.2x", hdev->name, hdr->evt);
+        break;
+    }
+    
+    kfree_skb(skb);
+}
+
+/* 命令完成事件处理 */
+static void hci_cc_func(struct hci_dev *hdev, void *data, u8 len)
+{
+    struct hci_ev_cmd_complete *ev = data;
+    u16 opcode = le16_to_cpu(ev->opcode);
+    
+    /* 清除等待响应的命令 */
+    if (hdev->sent_cmd && 
+        opcode == hci_opcode(hdev->sent_cmd)) {
+        kfree_skb(hdev->sent_cmd);
+        hdev->sent_cmd = NULL;
+        del_timer(&hdev->cmd_timer);
+    }
+    
+    /* 根据操作码处理不同的命令完成 */
+    switch (opcode) {
+    case HCI_OP_RESET:
+        BT_DBG("%s reset complete", hdev->name);
+        break;
+        
+    case HCI_OP_READ_BD_ADDR:
+        memcpy(hdev->bdaddr.b, ev->data, 6);
+        BT_DBG("%s BD_ADDR: %pMR", hdev->name, &hdev->bdaddr);
+        break;
+        
+    case HCI_OP_READ_BUFFER_SIZE:
+        hci_read_buffer_size_complete(hdev, ev->data, len);
+        break;
+    }
+}</code></pre>
+                
+                <div class="note">
+                    <strong>注意：</strong>事件处理函数运行在中断上下文或工作队列中，需要避免长时间阻塞操作。对于复杂的事件处理，应该将工作推迟到工作队列中执行。
+                </div>
+            </section>
+
+            <section>
+                <h2>完整驱动示例</h2>
+                <p>下面是一个简化的HCI驱动示例，展示了初始化、命令发送和事件处理的完整流程：</p>
+                
+                <pre><code>#include <linux/module.h>
+#include <linux/kernel.h>
+#include <linux/init.h>
+#include <net/bluetooth/bluetooth.h>
+#include <net/bluetooth/hci_core.h>
+
+/* 驱动私有数据结构 */
+struct my_hci_data {
+    struct hci_dev *hdev;
+    struct sk_buff_head txq;
+    struct work_struct tx_work;
+    spinlock_t lock;
+};
+
+/* 发送工作处理函数 */
+static void my_hci_tx_work(struct work_struct *work)
+{
+    struct my_hci_data *data = container_of(work, struct my_hci_data, tx_work);
+    struct sk_buff *skb;
+    
+    while ((skb = skb_dequeue(&data->txq))) {
+        /* 这里实现实际的硬件发送逻辑 */
+        /* my_hardware_send(skb); */
+        
+        /* 对于命令包，需要设置超时定时器 */
+        if (bt_cb(skb)->pkt_type == HCI_COMMAND_PKT) {
+            /* 设置命令超时处理 */
+        }
+        
+        kfree_skb(skb);
+    }
+}
+
+/* HCI发送帧函数 */
+static int my_hci_send_frame(struct hci_dev *hdev, struct sk_buff *skb)
+{
+    struct my_hci_data *data = hci_get_drvdata(hdev);
+    
+    skb_queue_tail(&data->txq, skb);
+    schedule_work(&data->tx_work);
+    
+    return 0;
+}
+
+/* 硬件事件接收函数（由硬件中断调用） */
+static void my_hci_recv_event(struct my_hci_data *data, struct sk_buff *skb)
+{
+    /* 设置数据包类型 */
+    bt_cb(skb)->pkt_type = *skb->data;
+    skb_pull(skb, 1);
+    
+    /* 传递给HCI核心处理 */
+    hci_recv_frame(data->hdev, skb);
+}
+
+/* HCI设备操作函数集 */
+static const struct hci_ops my_hci_ops = {
+    .open     = my_hci_open,
+    .close    = my_hci_close,
+    .flush    = my_hci_flush,
+    .send     = my_hci_send_frame,
+    .setup    = my_hci_setup,
+};
+
+/* 驱动探测函数 */
+static int my_hci_probe(struct platform_device *pdev)
+{
+    struct my_hci_data *data;
+    struct hci_dev *hdev;
+    int err;
+    
+    /* 分配HCI设备 */
+    hdev = hci_alloc_dev();
+    if (!hdev)
+        return -ENOMEM;
+    
+    /* 分配私有数据 */
+    data = devm_kzalloc(&pdev->dev, sizeof(*data), GFP_KERNEL);
+    if (!data) {
+        err = -ENOMEM;
+        goto err_alloc_data;
+    }
+    
+    data->hdev = hdev;
+    skb_queue_head_init(&data->txq);
+    INIT_WORK(&data->tx_work, my_hci_tx_work);
+    spin_lock_init(&data->lock);
+    
+    hci_set_drvdata(hdev, data);
+    
+    /* 设置HCI设备属性 */
+    hdev->bus = HCI_PCI;  /* 根据实际硬件类型设置 */
+    hdev->driver_data = data;
+    hdev->open = my_hci_ops.open;
+    hdev->close = my_hci_ops.close;
+    hdev->flush = my_hci_ops.flush;
+    hdev->send = my_hci_ops.send;
+    hdev->setup = my_hci_ops.setup;
+    
+    set_bit(HCI_QUIRK_RAW_DEVICE, &hdev->quirks);
+    
+    /* 注册HCI设备 */
+    err = hci_register_dev(hdev);
+    if (err < 0)
+        goto err_register_dev;
+    
+    platform_set_drvdata(pdev, data);
+    return 0;
+    
+err_register_dev:
+    hci_free_dev(hdev);
+err_alloc_data:
+    return err;
+}
+
+/* 驱动移除函数 */
+static int my_hci_remove(struct platform_device *pdev)
+{
+    struct my_hci_data *data = platform_get_drvdata(pdev);
+    struct hci_dev *hdev = data->hdev;
+    
+    /* 取消注册HCI设备 */
+    hci_unregister_dev(hdev);
+    hci_free_dev(hdev);
+    
+    /* 清理工作队列和发送队列 */
+    cancel_work_sync(&data->tx_work);
+    skb_queue_purge(&data->txq);
+    
+    return 0;
+}
+
+static struct platform_driver my_hci_driver = {
+    .probe = my_hci_probe,
+    .remove = my_hci_remove,
+    .driver = {
+        .name = "my_hci",
+    },
+};
+
+module_platform_driver(my_hci_driver);
+
+MODULE_AUTHOR("蓝海资料掘金营");
+MODULE_DESCRIPTION("自定义HCI驱动示例");
+MODULE_LICENSE("GPL");</code></pre>
+            </section>
+        </div>
+
+        <footer>
+            蓝海资料掘金营
+        </footer>
+    </div>
+</body>
+</html>

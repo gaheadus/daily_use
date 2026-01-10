@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蓝牙低功耗(BLE)驱动开发实战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #bbdefb 50%, #f8bbd0 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #4fc3f7;
+        }
+
+        h1 {
+            color: #0277bd;
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #0288d1;
+            font-size: 1.8rem;
+            margin: 30px 0 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #81d4fa;
+        }
+
+        h3 {
+            color: #039be5;
+            font-size: 1.4rem;
+            margin: 20px 0 10px;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        .highlight-box {
+            background-color: #e1f5fe;
+            border-left: 5px solid #0288d1;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 10px 10px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #b3e5fc;
+        }
+
+        th {
+            background-color: #4fc3f7;
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #e1f5fe;
+        }
+
+        tr:hover {
+            background-color: #b3e5fc;
+        }
+
+        ul, ol {
+            margin: 15px 0 15px 30px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .code-block {
+            background-color: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+
+        .architecture {
+            width: 100%;
+            max-width: 800px;
+            height: auto;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px solid #4fc3f7;
+            color: #0277bd;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .badge {
+            display: inline-block;
+            background-color: #ff9800;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .key-point {
+            background-color: #fff9c4;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 5px solid #ffd600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>蓝牙低功耗(BLE)驱动开发实战</h1>
+            <p>Linux内核蓝牙驱动开发课程 - 第23讲</p>
+        </header>
+
+        <div class="section">
+            <h2>一、BLE协议特点</h2>
+            
+            <div class="highlight-box">
+                <p>蓝牙低功耗(BLE)是蓝牙技术的一个重要分支，专门为低功耗设备设计，广泛应用于物联网、健康监测、智能家居等领域。</p>
+            </div>
+
+            <h3>1.1 BLE核心特性</h3>
+            <ul>
+                <li><strong>超低功耗</strong>：设计目标是在纽扣电池供电下运行数月甚至数年</li>
+                <li><strong>快速连接</strong>：连接建立时间通常在几毫秒内完成</li>
+                <li><strong>简单拓扑</strong>：支持星型拓扑结构，设备角色明确</li>
+                <li><strong>低成本</strong>：硬件和协议栈复杂度较低，成本优势明显</li>
+                <li><strong>兼容性</strong>：与经典蓝牙共享部分频段，但协议不兼容</li>
+            </ul>
+
+            <h3>1.2 BLE与经典蓝牙对比</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>特性</th>
+                        <th>蓝牙低功耗(BLE)</th>
+                        <th>经典蓝牙</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>功耗</td>
+                        <td>极低(μA级)</td>
+                        <td>较高(mA级)</td>
+                    </tr>
+                    <tr>
+                        <td>数据传输率</td>
+                        <td>1Mbps</td>
+                        <td>1-3Mbps</td>
+                    </tr>
+                    <tr>
+                        <td>连接时间</td>
+                        <td>~3ms</td>
+                        <td>~100ms</td>
+                    </tr>
+                    <tr>
+                        <td>典型应用</td>
+                        <td>IoT设备、传感器、信标</td>
+                        <td>音频传输、文件传输</td>
+                    </tr>
+                    <tr>
+                        <td>拓扑结构</td>
+                        <td>星型</td>
+                        <td>点对点、散射网</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="svg-container">
+                <svg class="architecture" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="50" y="50" width="700" height="300" fill="#e3f2fd" stroke="#2196f3" stroke-width="2" rx="10"/>
+                    
+                    <!-- BLE协议栈层次 -->
+                    <rect x="80" y="80" width="640" height="40" fill="#bbdefb" stroke="#1976d2" stroke-width="1"/>
+                    <text x="100" y="105" font-family="Arial" font-size="14" fill="#0d47a1">应用层 (Application)</text>
+                    
+                    <rect x="80" y="130" width="640" height="40" fill="#90caf9" stroke="#1976d2" stroke-width="1"/>
+                    <text x="100" y="155" font-family="Arial" font-size="14" fill="#0d47a1">主机层 (Host - GATT, GAP, ATT, SMP)</text>
+                    
+                    <rect x="80" y="180" width="640" height="40" fill="#64b5f6" stroke="#1976d2" stroke-width="1"/>
+                    <text x="100" y="205" font-family="Arial" font-size="14" fill="#0d47a1">HCI层 (Host Controller Interface)</text>
+                    
+                    <rect x="80" y="230" width="640" height="40" fill="#42a5f5" stroke="#1976d2" stroke-width="1"/>
+                    <text x="100" y="255" font-family="Arial" font-size="14" fill="#0d47a1">控制器层 (Controller - LL, PHY)</text>
+                    
+                    <rect x="80" y="280" width="640" height="40" fill="#2196f3" stroke="#1976d2" stroke-width="1"/>
+                    <text x="100" y="305" font-family="Arial" font-size="14" fill="white">物理层 (Physical Radio)</text>
+                    
+                    <!-- 连接线 -->
+                    <line x1="400" y1="120" x2="400" y2="130" stroke="#1976d2" stroke-width="2"/>
+                    <line x1="400" y1="170" x2="400" y2="180" stroke="#1976d2" stroke-width="2"/>
+                    <line x1="400" y1="220" x2="400" y2="230" stroke="#1976d2" stroke-width="2"/>
+                    <line x1="400" y1="270" x2="400" y2="280" stroke="#1976d2" stroke-width="2"/>
+                </svg>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>二、广告包处理</h2>
+            
+            <div class="key-point">
+                <p>广告包是BLE设备被发现和连接的基础，理解广告包的结构和处理机制对BLE驱动开发至关重要。</p>
+            </div>
+
+            <h3>2.1 广告包结构</h3>
+            <p>BLE广告包由多个AD Structure组成，每个AD Structure包含以下字段：</p>
+            <ul>
+                <li><strong>Length</strong>：数据长度(1字节)</li>
+                <li><strong>AD Type</strong>：数据类型(1字节)</li>
+                <li><strong>AD Data</strong>：实际数据(可变长度)</li>
+            </ul>
+
+            <h3>2.2 常见AD Type</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>AD Type值</th>
+                        <th>描述</th>
+                        <th>示例数据</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>0x01</td>
+                        <td>Flags</td>
+                        <td>0x06 (LE通用发现模式)</td>
+                    </tr>
+                    <tr>
+                        <td>0x08</td>
+                        <td>短本地名称</td>
+                        <td>"MyDevice"</td>
+                    </tr>
+                    <tr>
+                        <td>0x09</td>
+                        <td>完整本地名称</td>
+                        <td>"MyBLEDevice"</td>
+                    </tr>
+                    <tr>
+                        <td>0x16</td>
+                        <td>16位服务UUID</td>
+                        <td>0x180D (心率服务)</td>
+                    </tr>
+                    <tr>
+                        <td>0xFF</td>
+                        <td>厂商自定义数据</td>
+                        <td>厂商特定格式</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>2.3 Linux内核中的广告包处理</h3>
+            <p>在Linux内核中，蓝牙子系统通过HCI层处理广告包：</p>
+            
+            <div class="code-block">
+<pre>
+#include <linux/bluetooth.h>
+#include <net/bluetooth/hci_core.h>
+
+/* 设置广告数据的示例函数 */
+static int set_adv_data(struct hci_dev *hdev)
+{
+    struct hci_request req;
+    struct hci_cp_le_set_adv_data cp;
+    int err;
+    
+    memset(&cp, 0, sizeof(cp));
+    
+    /* 构建广告数据 */
+    u8 data[] = {
+        0x02, 0x01, 0x06,        // Flags: LE通用发现模式
+        0x03, 0x03, 0x18, 0x0D,  // 16位服务UUID: 心率服务
+        0x08, 0x09, 'M', 'y', 'D', 'e', 'v', 'i', 'c', 'e' // 完整本地名称
+    };
+    
+    cp.length = sizeof(data);
+    memcpy(cp.data, data, cp.length);
+    
+    hci_req_init(&req, hdev);
+    hci_req_add(&req, HCI_OP_LE_SET_ADV_DATA, sizeof(cp), &cp);
+    
+    err = hci_req_run(&req, NULL);
+    if (err < 0) {
+        bt_dev_err(hdev, "设置广告数据失败: %d", err);
+        return err;
+    }
+    
+    return 0;
+}
+
+/* 开始广告的函数 */
+static int start_advertising(struct hci_dev *hdev)
+{
+    struct hci_request req;
+    struct hci_cp_le_set_adv_enable cp_enable;
+    int err;
+    
+    /* 首先设置广告参数 */
+    struct hci_cp_le_set_adv_param cp_param;
+    memset(&cp_param, 0, sizeof(cp_param));
+    cp_param.min_interval = cpu_to_le16(0x0800);  // 最小间隔: 1.28s
+    cp_param.max_interval = cpu_to_le16(0x0800);  // 最大间隔: 1.28s
+    cp_param.type = LE_ADV_IND;                   // 可连接可扫描广告
+    cp_param.own_address_type = LE_PUBLIC_ADDRESS;
+    cp_param.channel_map = 0x07;                  // 使用所有3个广告信道
+    
+    hci_req_init(&req, hdev);
+    hci_req_add(&req, HCI_OP_LE_SET_ADV_PARAM, sizeof(cp_param), &cp_param);
+    
+    err = hci_req_run(&req, NULL);
+    if (err < 0) {
+        bt_dev_err(hdev, "设置广告参数失败: %d", err);
+        return err;
+    }
+    
+    /* 启用广告 */
+    memset(&cp_enable, 0, sizeof(cp_enable));
+    cp_enable.enable = 0x01;
+    
+    hci_req_init(&req, hdev);
+    hci_req_add(&req, HCI_OP_LE_SET_ADV_ENABLE, sizeof(cp_enable), &cp_enable);
+    
+    err = hci_req_run(&req, NULL);
+    if (err < 0) {
+        bt_dev_err(hdev, "启用广告失败: %d", err);
+        return err;
+    }
+    
+    bt_dev_info(hdev, "BLE广告已启动");
+    return 0;
+}
+</pre>
+            </div>
+
+            <div class="svg-container">
+                <svg class="architecture" viewBox="0 0 800 300" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="50" y="50" width="700" height="200" fill="#f3e5f5" stroke="#9c27b0" stroke-width="2" rx="10"/>
+                    
+                    <text x="100" y="80" font-family="Arial" font-size="16" fill="#6a1b9a" font-weight="bold">广告包处理流程</text>
+                    
+                    <!-- 流程步骤 -->
+                    <rect x="100" y="100" width="120" height="40" fill="#ce93d8" stroke="#7b1fa2" stroke-width="1" rx="5"/>
+                    <text x="130" y="125" font-family="Arial" font-size="12" fill="#4a148c">应用层设置</text>
+                    
+                    <rect x="280" y="100" width="120" height="40" fill="#ba68c8" stroke="#7b1fa2" stroke-width="1" rx="5"/>
+                    <text x="310" y="125" font-family="Arial" font-size="12" fill="#4a148c">HCI命令</text>
+                    
+                    <rect x="460" y="100" width="120" height="40" fill="#ab47bc" stroke="#7b1fa2" stroke-width="1" rx="5"/>
+                    <text x="490" y="125" font-family="Arial" font-size="12" fill="#4a148c">控制器处理</text>
+                    
+                    <rect x="640" y="100" width="120" height="40" fill="#9c27b0" stroke="#7b1fa2" stroke-width="1" rx="5"/>
+                    <text x="670" y="125" font-family="Arial" font-size="12" fill="white">射频发送</text>
+                    
+                    <!-- 箭头 -->
+                    <line x1="220" y1="120" x2="280" y2="120" stroke="#7b1fa2" stroke-width="2"/>
+                    <polygon points="280,120 270,115 270,125" fill="#7b1fa2"/>
+                    
+                    <line x1="400" y1="120" x2="460" y2="120" stroke="#7b1fa2" stroke-width="2"/>
+                    <polygon points="460,120 450,115 450,125" fill="#7b1fa2"/>
+                    
+                    <line x1="580" y1="120" x2="640" y2="120" stroke="#7b1fa2" stroke-width="2"/>
+                    <polygon points="640,120 630,115 630,125" fill="#7b1fa2"/>
+                    
+                    <!-- 下方说明 -->
+                    <text x="100" y="170" font-family="Arial" font-size="12" fill="#6a1b9a">构建广告数据结构</text>
+                    <text x="280" y="170" font-family="Arial" font-size="12" fill="#6a1b9a">通过HCI发送到控制器</text>
+                    <text x="460" y="170" font-family="Arial" font-size="12" fill="#6a1b9a">控制器封装为PDU</text>
+                    <text x="640" y="170" font-family="Arial" font-size="12" fill="#6a1b9a">在广告信道上广播</text>
+                </svg>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>三、连接参数管理</h2>
+            
+            <div class="key-point">
+                <p>连接参数管理是BLE连接稳定性和功耗控制的关键，合理的参数设置可以显著提升用户体验。</p>
+            </div>
+
+            <h3>3.1 关键连接参数</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>参数</th>
+                        <th>描述</th>
+                        <th>典型值范围</th>
+                        <th>影响</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>连接间隔</td>
+                        <td>两个连接事件之间的时间</td>
+                        <td>7.5ms - 4s</td>
+                        <td>功耗、延迟、吞吐量</td>
+                    </tr>
+                    <tr>
+                        <td>从设备延迟</td>
+                        <td>从设备可以跳过的连接事件数</td>
+                        <td>0 - 499</td>
+                        <td>功耗、响应性</td>
+                    </tr>
+                    <tr>
+                        <td>监督超时</td>
+                        <td>连接丢失前的最大时间</td>
+                        <td>100ms - 32s</td>
+                        <td>连接稳定性</td>
+                    </tr>
+                    <tr>
+                        <td>MTU大小</td>
+                        <td>最大传输单元</td>
+                        <td>23 - 512字节</td>
+                        <td>数据传输效率</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>3.2 连接参数更新流程</h3>
+            <ol>
+                <li>主设备或从设备发起连接参数更新请求</li>
+                <li>双方协商新的连接参数</li>
+                <li>应用新的参数并确认</li>
+                <li>监控连接质量，必要时再次调整</li>
+            </ol>
+
+            <h3>3.3 Linux内核中的连接参数管理</h3>
+            
+            <div class="code-block">
+<pre>
+#include <linux/bluetooth.h>
+#include <net/bluetooth/hci_core.h>
+#include <net/bluetooth/l2cap.h>
+
+/* 连接参数更新请求处理 */
+static int conn_param_update(struct l2cap_conn *conn, struct l2cap_cmd_hdr *cmd)
+{
+    struct l2cap_conn_param_update_req *req;
+    struct l2cap_conn_param_update_rsp rsp;
+    u16 min, max, latency, timeout;
+    int err;
+    
+    req = (struct l2cap_conn_param_update_req *) cmd->data;
+    
+    min = le16_to_cpu(req->min);
+    max = le16_to_cpu(req->max);
+    latency = le16_to_cpu(req->latency);
+    timeout = le16_to_cpu(req->timeout);
+    
+    bt_dev_dbg(conn->hcon->hdev, "连接参数更新请求: min=%d, max=%d, latency=%d, timeout=%d",
+               min, max, latency, timeout);
+    
+    /* 验证参数合理性 */
+    if (min < 0x0006 || max > 0x0c80 || latency > 0x01f3 || timeout < 0x000a || timeout > 0x0c80) {
+        rsp.result = cpu_to_le16(L2CAP_CONN_PARAM_REJECTED);
+        l2cap_send_cmd(conn, cmd->ident, L2CAP_CONN_PARAM_UPDATE_RSP, sizeof(rsp), &rsp);
+        return 0;
+    }
+    
+    /* 应用新的连接参数 */
+    err = hci_le_conn_update(conn->hcon, min, max, latency, timeout);
+    if (err) {
+        rsp.result = cpu_to_le16(L2CAP_CONN_PARAM_REJECTED);
+    } else {
+        rsp.result = cpu_to_le16(L2CAP_CONN_PARAM_ACCEPTED);
+    }
+    
+    l2cap_send_cmd(conn, cmd->ident, L2CAP_CONN_PARAM_UPDATE_RSP, sizeof(rsp), &rsp);
+    return 0;
+}
+
+/* 发起连接参数更新请求 */
+static int request_conn_param_update(struct hci_conn *conn, 
+                                    u16 min_interval, u16 max_interval,
+                                    u16 latency, u16 timeout)
+{
+    struct hci_request req;
+    struct hci_cp_le_conn_update cp;
+    int err;
+    
+    memset(&cp, 0, sizeof(cp));
+    
+    cp.handle = cpu_to_le16(conn->handle);
+    cp.conn_interval_min = cpu_to_le16(min_interval);
+    cp.conn_interval_max = cpu_to_le16(max_interval);
+    cp.conn_latency = cpu_to_le16(latency);
+    cp.supervision_timeout = cpu_to_le16(timeout);
+    cp.min_ce_len = cpu_to_le16(0x0000);
+    cp.max_ce_len = cpu_to_le16(0x0000);
+    
+    hci_req_init(&req, conn->hdev);
+    hci_req_add(&req, HCI_OP_LE_CONN_UPDATE, sizeof(cp), &cp);
+    
+    err = hci_req_run(&req, NULL);
+    if (err < 0) {
+        bt_dev_err(conn->hdev, "连接参数更新失败: %d", err);
+        return err;
+    }
+    
+    bt_dev_info(conn->hdev, "连接参数更新请求已发送");
+    return 0;
+}
+
+/* 连接参数优化示例 */
+static void optimize_conn_params(struct hci_conn *conn)
+{
+    /* 根据应用场景选择不同的参数策略 */
+    switch (conn->type) {
+        case LE_LINK:
+            if (conn->role == HCI_ROLE_MASTER) {
+                /* 主设备根据不同应用优化参数 */
+                if (conn->app_type == APP_TYPE_SENSOR) {
+                    /* 传感器应用：长间隔，高延迟以节省功耗 */
+                    request_conn_param_update(conn, 160, 320, 6, 800);
+                } else if (conn->app_type == APP_TYPE_AUDIO) {
+                    /* 音频应用：短间隔，低延迟以保证实时性 */
+                    request_conn_param_update(conn, 12, 24, 0, 100);
+                } else {
+                    /* 通用应用：平衡功耗和性能 */
+                    request_conn_param_update(conn, 40, 80, 0, 200);
+                }
+            }
+            break;
+        default:
+            break;
+    }
+}
+</pre>
+            </div>
+
+            <h3>3.4 连接参数优化策略</h3>
+            <ul>
+                <li><strong>传感器类应用</strong>：使用较长的连接间隔(100ms-1s)和较高的从设备延迟以节省功耗</li>
+                <li><strong>交互类应用</strong>：使用较短的连接间隔(15ms-30ms)和零延迟以保证响应性</li>
+                <li><strong>音频流应用</strong>：使用固定的短连接间隔(7.5ms-15ms)以保证数据连续性</li>
+                <li><strong>固件升级</strong>：临时使用短间隔和高MTU以提高传输效率</li>
+            </ul>
+
+            <div class="svg-container">
+                <svg class="architecture" viewBox="0 0 800 350" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="50" y="50" width="700" height="250" fill="#e8f5e8" stroke="#4caf50" stroke-width="2" rx="10"/>
+                    
+                    <text x="100" y="80" font-family="Arial" font-size="16" fill="#2e7d32" font-weight="bold">连接参数管理架构</text>
+                    
+                    <!-- 架构层次 -->
+                    <rect x="100" y="100" width="600" height="40" fill="#c8e6c9" stroke="#388e3c" stroke-width="1"/>
+                    <text x="120" y="125" font-family="Arial" font-size="12" fill="#1b5e20">应用层 (参数策略)</text>
+                    
+                    <rect x="100" y="150" width="600" height="40" fill="#a5d6a7" stroke="#388e3c" stroke-width="1"/>
+                    <text x="120" y="175" font-family="Arial" font-size="12" fill="#1b5e20">L2CAP层 (连接参数管理)</text>
+                    
+                    <rect x="100" y="200" width="600" height="40" fill="#81c784" stroke="#388e3c" stroke-width="1"/>
+                    <text x="120" y="225" font-family="Arial" font-size="12" fill="#1b5e20">HCI层 (命令/事件)</text>
+                    
+                    <rect x="100" y="250" width="600" height="40" fill="#4caf50" stroke="#388e3c" stroke-width="1"/>
+                    <text x="120" y="275" font-family="Arial" font-size="12" fill="white">控制器 (链路层)</text>
+                    
+                    <!-- 交互箭头 -->
+                    <line x1="400" y1="140" x2="400" y2="150" stroke="#388e3c" stroke-width="2"/>
+                    <line x1="400" y1="190" x2="400" y2="200" stroke="#388e3c" stroke-width="2"/>
+                    <line x1="400" y1="240" x2="400" y2="250" stroke="#388e3c" stroke-width="2"/>
+                    
+                    <!-- 侧边说明 -->
+                    <text x="50" y="125" font-family="Arial" font-size="10" fill="#2e7d32">策略决策</text>
+                    <text x="50" y="175" font-family="Arial" font-size="10" fill="#2e7d32">参数协商</text>
+                    <text x="50" y="225" font-family="Arial" font-size="10" fill="#2e7d32">命令传输</text>
+                    <text x="50" y="275" font-family="Arial" font-size="10" fill="#2e7d32">链路控制</text>
+                </svg>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>四、实战技巧与最佳实践</h2>
+            
+            <div class="highlight-box">
+                <p>在实际的BLE驱动开发中，以下技巧和实践经验可以帮助您避免常见陷阱，提高开发效率。</p>
+            </div>
+
+            <h3>4.1 调试技巧</h3>
+            <ul>
+                <li>使用<code>hcidump</code>和<code>btmon</code>工具监控HCI流量</li>
+                <li>启用内核蓝牙调试信息：<code>echo 1 > /sys/kernel/debug/bluetooth/hci0/debug</code></li>
+                <li>使用Wireshark分析BLE协议数据包</li>
+                <li>监控内核日志中的蓝牙相关消息</li>
+            </ul>
+
+            <h3>4.2 性能优化</h3>
+            <ul>
+                <li>合理设置连接参数平衡功耗和性能</li>
+                <li>使用连接参数更新请求动态调整参数</li>
+                <li>优化MTU大小以减少协议开销</li>
+                <li>批量处理数据以减少连接事件数量</li>
+            </ul>
+
+            <h3>4.3 常见问题解决</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>问题</th>
+                        <th>可能原因</th>
+                        <th>解决方案</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>连接不稳定</td>
+                        <td>连接间隔过短或监督超时设置不当</td>
+                        <td>调整连接参数，增加监督超时</td>
+                    </tr>
+                    <tr>
+                        <td>功耗过高</td>
+                        <td>连接间隔过短或从设备延迟设置不当</td>
+                        <td>增加连接间隔和从设备延迟</td>
+                    </tr>
+                    <tr>
+                        <td>数据传输慢</td>
+                        <td>MTU大小过小或连接间隔过长</td>
+                        <td>协商更大的MTU，缩短连接间隔</td>
+                    </tr>
+                    <tr>
+                        <td>设备无法发现</td>
+                        <td>广告参数设置错误或信道选择不当</td>
+                        <td>检查广告数据和信道映射</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <footer>
+            <p>蓝海资料掘金营</p>
+        </footer>
+    </div>
+</body>
+</html>

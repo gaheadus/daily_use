@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蓝牙AVRCP协议驱动开发实战</title>
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #FFC107;
+            --accent-color: #2196F3;
+            --background-color: #E8F5E9;
+            --text-color: #333;
+            --card-bg: #FFFFFF;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+        
+        h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+        }
+        
+        h3 {
+            color: var(--accent-color);
+        }
+        
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        
+        pre {
+            background-color: #f5f5f5;
+            padding: 1rem;
+            border-radius: 5px;
+            overflow-x: auto;
+            border-left: 4px solid var(--accent-color);
+        }
+        
+        code {
+            font-family: 'Courier New', monospace;
+        }
+        
+        .architecture {
+            background-color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 2rem 0;
+            margin-top: 2rem;
+            background: linear-gradient(135deg, var(--accent-color), var(--primary-color));
+            color: white;
+            border-radius: 10px;
+        }
+        
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 1rem 0;
+        }
+        
+        .command-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+        
+        .command-item {
+            background-color: var(--card-bg);
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>蓝牙AVRCP协议驱动开发实战</h1>
+            <p>第27课：AVRCP命令集、播放控制与元数据传输</p>
+        </header>
+
+        <div class="card">
+            <h2>AVRCP协议概述</h2>
+            <p>AVRCP（Audio/Video Remote Control Profile）是蓝牙协议栈中的重要组成部分，用于在蓝牙设备之间传输远程控制命令。它允许一个设备（如手机或电脑）控制另一个设备（如音箱或耳机）的媒体播放。</p>
+            
+            <div class="svg-container">
+                <svg width="600" height="200" viewBox="0 0 600 200">
+                    <rect x="50" y="50" width="150" height="100" rx="10" fill="#4CAF50" stroke="#2E7D32" stroke-width="2"/>
+                    <text x="125" y="110" text-anchor="middle" fill="white" font-size="16">控制设备</text>
+                    <text x="125" y="130" text-anchor="middle" fill="white" font-size="12">(手机/电脑)</text>
+                    
+                    <rect x="400" y="50" width="150" height="100" rx="10" fill="#2196F3" stroke="#1565C0" stroke-width="2"/>
+                    <text x="475" y="110" text-anchor="middle" fill="white" font-size="16">目标设备</text>
+                    <text x="475" y="130" text-anchor="middle" fill="white" font-size="12">(音箱/耳机)</text>
+                    
+                    <path d="M 200 100 L 400 100" stroke="#FFC107" stroke-width="3" stroke-dasharray="5,5"/>
+                    <text x="300" y="95" text-anchor="middle" fill="#FF9800" font-size="14">AVRCP协议</text>
+                </svg>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>AVRCP命令集</h2>
+            <p>AVRCP定义了丰富的命令集，用于实现各种媒体控制功能：</p>
+            
+            <div class="command-list">
+                <div class="command-item">
+                    <h3>🚀 播放控制命令</h3>
+                    <ul>
+                        <li>PLAY</li>
+                        <li>PAUSE</li>
+                        <li>STOP</li>
+                        <li>NEXT</li>
+                        <li>PREVIOUS</li>
+                    </ul>
+                </div>
+                
+                <div class="command-item">
+                    <h3>📊 状态查询命令</h3>
+                    <ul>
+                        <li>GET_PLAY_STATUS</li>
+                        <li>GET_ELEMENT_ATTRIBUTES</li>
+                        <li>GET_CAPABILITIES</li>
+                    </ul>
+                </div>
+                
+                <div class="command-item">
+                    <h3>🎵 音量控制命令</h3>
+                    <ul>
+                        <li>VOLUME_UP</li>
+                        <li>VOLUME_DOWN</li>
+                        <li>ABSOLUTE_VOLUME</li>
+                    </ul>
+                </div>
+                
+                <div class="command-item">
+                    <h3>🔍 浏览命令</h3>
+                    <ul>
+                        <li>CHANGE_PATH</li>
+                        <li>GET_FOLDER_ITEMS</li>
+                        <li>GET_ITEM_ATTRIBUTES</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>AVRCP软件架构</h2>
+            <div class="architecture">
+                <svg width="600" height="400" viewBox="0 0 600 400">
+                    <!-- 应用层 -->
+                    <rect x="50" y="50" width="500" height="60" rx="5" fill="#E3F2FD" stroke="#90CAF9" stroke-width="2"/>
+                    <text x="300" y="85" text-anchor="middle" fill="#1565C0" font-size="16" font-weight="bold">应用层 (Application)</text>
+                    
+                    <!-- AVRCP协议层 -->
+                    <rect x="100" y="130" width="400" height="60" rx="5" fill="#E8F5E9" stroke="#81C784" stroke-width="2"/>
+                    <text x="300" y="165" text-anchor="middle" fill="#2E7D32" font-size="16" font-weight="bold">AVRCP协议层</text>
+                    
+                    <!-- 子层 -->
+                    <rect x="120" y="200" width="110" height="40" rx="3" fill="#FFF3E0" stroke="#FFB74D" stroke-width="1"/>
+                    <text x="175" y="225" text-anchor="middle" fill="#E65100" font-size="12">控制层(CT)</text>
+                    
+                    <rect x="245" y="200" width="110" height="40" rx="3" fill="#FFF3E0" stroke="#FFB74D" stroke-width="1"/>
+                    <text x="300" y="225" text-anchor="middle" fill="#E65100" font-size="12">浏览层(BRW)</text>
+                    
+                    <rect x="370" y="200" width="110" height="40" rx="3" fill="#FFF3E0" stroke="#FFB74D" stroke-width="1"/>
+                    <text x="425" y="225" text-anchor="middle" fill="#E65100" font-size="12">监控层</text>
+                    
+                    <!-- AVCTP层 -->
+                    <rect x="150" y="270" width="300" height="60" rx="5" fill="#F3E5F5" stroke="#BA68C8" stroke-width="2"/>
+                    <text x="300" y="305" text-anchor="middle" fill="#7B1FA2" font-size="16" font-weight="bold">AVCTP传输层</text>
+                    
+                    <!-- L2CAP层 -->
+                    <rect x="200" y="350" width="200" height="60" rx="5" fill="#FFF8E1" stroke="#FFD54F" stroke-width="2"/>
+                    <text x="300" y="385" text-anchor="middle" fill="#FF8F00" font-size="16" font-weight="bold">L2CAP层</text>
+                    
+                    <!-- 连接线 -->
+                    <path d="M 300 110 L 300 130" stroke="#78909C" stroke-width="2"/>
+                    <path d="M 300 190 L 300 200" stroke="#78909C" stroke-width="2"/>
+                    <path d="M 300 240 L 300 270" stroke="#78909C" stroke-width="2"/>
+                    <path d="M 300 330 L 300 350" stroke="#78909C" stroke-width="2"/>
+                </svg>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>播放控制实现</h2>
+            <p>在Linux内核中，AVRCP播放控制主要通过BlueZ蓝牙协议栈实现：</p>
+            
+            <h3>关键数据结构</h3>
+            <pre><code>struct avrcp_player {
+    uint16_t control_timer;
+    uint8_t volume;
+    uint8_t play_status;
+    uint64_t position;
+    uint64_t duration;
+    struct avrcp_metadata *metadata;
+};
+
+struct avrcp_metadata {
+    char title[128];
+    char artist[128];
+    char album[128];
+    char genre[64];
+    uint32_t track_num;
+    uint32_t total_tracks;
+};</code></pre>
+            
+            <h3>播放状态处理函数</h3>
+            <pre><code>static int avrcp_handle_play_cmd(struct avrcp_session *session)
+{
+    struct avrcp_player *player = session->player;
+    
+    if (player->play_status == AVRCP_PLAY_STATUS_PAUSED) {
+        player->play_status = AVRCP_PLAY_STATUS_PLAYING;
+        /* 通知应用层开始播放 */
+        avrcp_notify_playback_status(session);
+        return 0;
+    }
+    
+    return -EINVAL;
+}
+
+static int avrcp_handle_pause_cmd(struct avrcp_session *session)
+{
+    struct avrcp_player *player = session->player;
+    
+    if (player->play_status == AVRCP_PLAY_STATUS_PLAYING) {
+        player->play_status = AVRCP_PLAY_STATUS_PAUSED;
+        /* 通知应用层暂停播放 */
+        avrcp_notify_playback_status(session);
+        return 0;
+    }
+    
+    return -EINVAL;
+}</code></pre>
+        </div>
+
+        <div class="card">
+            <h2>元数据传输</h2>
+            <p>AVRCP支持传输丰富的媒体元数据，包括歌曲信息、艺术家、专辑等：</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>属性ID</th>
+                        <th>属性名称</th>
+                        <th>数据类型</th>
+                        <th>描述</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>0x01</td>
+                        <td>标题</td>
+                        <td>字符串</td>
+                        <td>媒体内容的标题</td>
+                    </tr>
+                    <tr>
+                        <td>0x02</td>
+                        <td>艺术家</td>
+                        <td>字符串</td>
+                        <td>艺术家或表演者名称</td>
+                    </tr>
+                    <tr>
+                        <td>0x03</td>
+                        <td>专辑</td>
+                        <td>字符串</td>
+                        <td>专辑名称</td>
+                    </tr>
+                    <tr>
+                        <td>0x04</td>
+                        <td>曲目编号</td>
+                        <td>数值</td>
+                        <td>曲目在专辑中的位置</td>
+                    </tr>
+                    <tr>
+                        <td>0x05</td>
+                        <td>曲目总数</td>
+                        <td>数值</td>
+                        <td>专辑中的总曲目数</td>
+                    </tr>
+                    <tr>
+                        <td>0x06</td>
+                        <td>流派</td>
+                        <td>字符串</td>
+                        <td>音乐或媒体类型</td>
+                    </tr>
+                    <tr>
+                        <td>0x07</td>
+                        <td>时长</td>
+                        <td>数值</td>
+                        <td>媒体内容的总时长(毫秒)</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>元数据获取实现</h3>
+            <pre><code>static int avrcp_get_element_attributes(struct avrcp_session *session,
+                                      uint8_t *data, size_t len)
+{
+    struct avrcp_player *player = session->player;
+    struct avrcp_metadata *metadata = player->metadata;
+    uint8_t response[256];
+    int pos = 0;
+    
+    /* 构建响应头 */
+    response[pos++] = AVRCP_GET_ELEMENT_ATTRIBUTES;
+    response[pos++] = 0x00; /* 参数长度将在后面设置 */
+    
+    /* 添加标题属性 */
+    if (metadata->title[0] != '\0') {
+        response[pos++] = 0x01; /* 属性ID: 标题 */
+        uint16_t title_len = strlen(metadata->title);
+        response[pos++] = (title_len >> 8) & 0xFF;
+        response[pos++] = title_len & 0xFF;
+        memcpy(&response[pos], metadata->title, title_len);
+        pos += title_len;
+    }
+    
+    /* 添加艺术家属性 */
+    if (metadata->artist[0] != '\0') {
+        response[pos++] = 0x02; /* 属性ID: 艺术家 */
+        uint16_t artist_len = strlen(metadata->artist);
+        response[pos++] = (artist_len >> 8) & 0xFF;
+        response[pos++] = artist_len & 0xFF;
+        memcpy(&response[pos], metadata->artist, artist_len);
+        pos += artist_len;
+    }
+    
+    /* 设置参数长度 */
+    response[1] = pos - 2;
+    
+    return avrcp_send_response(session, response, pos);
+}</code></pre>
+        </div>
+
+        <div class="card">
+            <h2>事件通知机制</h2>
+            <p>AVRCP使用事件通知机制来实时更新播放状态和元数据变化：</p>
+            
+            <pre><code>/* 事件类型定义 */
+#define AVRCP_EVENT_PLAYBACK_STATUS_CHANGED   0x01
+#define AVRCP_EVENT_TRACK_CHANGED             0x02
+#define AVRCP_EVENT_PLAYBACK_POS_CHANGED      0x05
+#define AVRCP_EVENT_VOLUME_CHANGED            0x0D
+
+/* 注册事件通知 */
+static int avrcp_register_notification(struct avrcp_session *session,
+                                     uint8_t event_id, uint32_t interval)
+{
+    struct avrcp_pending_event *event;
+    
+    event = kzalloc(sizeof(*event), GFP_KERNEL);
+    if (!event)
+        return -ENOMEM;
+    
+    event->event_id = event_id;
+    event->interval = interval;
+    event->session = session;
+    
+    list_add_tail(&event->list, &session->event_list);
+    
+    /* 设置定时器 */
+    setup_timer(&event->timer, avrcp_event_timeout,
+                (unsigned long)event);
+    mod_timer(&event->timer, jiffies + msecs_to_jiffies(interval));
+    
+    return 0;
+}
+
+/* 事件通知回调 */
+static void avrcp_event_timeout(unsigned long data)
+{
+    struct avrcp_pending_event *event = (struct avrcp_pending_event *)data;
+    struct avrcp_session *session = event->session;
+    uint8_t response[16];
+    int pos = 0;
+    
+    response[pos++] = AVRCP_REGISTER_NOTIFICATION;
+    response[pos++] = 0x00; /* 参数长度 */
+    response[pos++] = event->event_id;
+    
+    switch (event->event_id) {
+    case AVRCP_EVENT_PLAYBACK_STATUS_CHANGED:
+        response[pos++] = session->player->play_status;
+        break;
+    case AVRCP_EVENT_TRACK_CHANGED:
+        /* 发送当前曲目信息 */
+        memcpy(&response[pos], &session->player->track_uid, 8);
+        pos += 8;
+        break;
+    }
+    
+    response[1] = pos - 2;
+    avrcp_send_response(session, response, pos);
+    
+    /* 重新设置定时器 */
+    mod_timer(&event->timer, jiffies + msecs_to_jiffies(event->interval));
+}</code></pre>
+        </div>
+
+        <div class="card">
+            <h2>驱动开发要点</h2>
+            <ul>
+                <li><strong>协议版本兼容性</strong>：支持AVRCP 1.0到1.6多个版本</li>
+                <li><strong>状态机管理</strong>：正确处理连接、认证、命令处理等状态</li>
+                <li><strong>错误处理</strong>：完善的错误码和异常情况处理机制</li>
+                <li><strong>性能优化</strong>：减少内存拷贝，使用高效的数据结构</li>
+                <li><strong>电源管理</strong>：合理处理休眠和唤醒状态</li>
+            </ul>
+            
+            <h3>调试技巧</h3>
+            <pre><code>/* 启用调试输出 */
+#define AVRCP_DEBUG
+
+#ifdef AVRCP_DEBUG
+#define avrcp_dbg(fmt, ...) \
+    printk(KERN_DEBUG "AVRCP: " fmt, ##__VA_ARGS__)
+#else
+#define avrcp_dbg(fmt, ...) 
+#endif
+
+/* 数据包调试函数 */
+static void avrcp_dump_packet(const char *label, const uint8_t *data, size_t len)
+{
+#ifdef AVRCP_DEBUG
+    int i;
+    printk(KERN_DEBUG "AVRCP %s (%zu bytes):", label, len);
+    for (i = 0; i < len; i++) {
+        if (i % 16 == 0)
+            printk(KERN_DEBUG "\n%04x: ", i);
+        printk(KERN_CONT "%02x ", data[i]);
+    }
+    printk(KERN_CONT "\n");
+#endif
+}</code></pre>
+        </div>
+
+        <footer>
+            <p>蓝海资料掘金营</p>
+        </footer>
+    </div>
+</body>
+</html>

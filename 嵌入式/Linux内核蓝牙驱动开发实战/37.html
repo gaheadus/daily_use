@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蓝牙认证测试 - Linux内核蓝牙驱动开发实战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #f9fbe7 50%, #fff8e1 100%);
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 0;
+            background: linear-gradient(45deg, #4fc3f7, #29b6f6, #03a9f4);
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 25px rgba(0, 150, 255, 0.2);
+            color: white;
+        }
+
+        h1 {
+            font-size: 2.8em;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        h2 {
+            color: #0288d1;
+            border-left: 5px solid #4fc3f7;
+            padding-left: 15px;
+            margin: 30px 0 20px;
+            font-size: 1.8em;
+        }
+
+        h3 {
+            color: #039be5;
+            margin: 25px 0 15px;
+            font-size: 1.4em;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background-color: #4fc3f7;
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f5f5f5;
+        }
+
+        tr:hover {
+            background-color: #e1f5fe;
+        }
+
+        .code-block {
+            background: #263238;
+            color: #e0e0e0;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .svg-container {
+            text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .svg-container svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .highlight {
+            background-color: #fff9c4;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            margin-top: 50px;
+            background: linear-gradient(45deg, #0288d1, #01579b);
+            color: white;
+            border-radius: 15px;
+            font-size: 1.2em;
+            box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .tip-box {
+            background: #e8f5e9;
+            border-left: 5px solid #4caf50;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .warning-box {
+            background: #ffebee;
+            border-left: 5px solid #f44336;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .step-box {
+            background: #e3f2fd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #2196f3;
+        }
+
+        .section-divider {
+            height: 3px;
+            background: linear-gradient(90deg, #4fc3f7, #29b6f6, #03a9f4);
+            margin: 40px 0;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>蓝牙认证测试</h1>
+            <p>蓝牙SIG认证要求、测试用例设计、认证问题排查</p>
+            <p>《Linux内核蓝牙驱动开发实战》课程第37讲</p>
+        </header>
+
+        <div class="card">
+            <h2>课程概述</h2>
+            <p>本课程将深入探讨蓝牙SIG认证的全过程，包括认证要求、测试用例设计方法以及常见认证问题的排查技巧。作为Linux内核蓝牙驱动开发者，掌握这些知识对于确保产品顺利通过认证至关重要。</p>
+            
+            <div class="tip-box">
+                <p><strong>学习目标：</strong> 完成本课程后，您将能够理解蓝牙SIG认证流程，设计有效的测试用例，并快速定位和解决认证过程中遇到的问题。</p>
+            </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <div class="card">
+            <h2>一、蓝牙SIG认证要求</h2>
+            <p>蓝牙SIG（特别兴趣小组）认证是确保蓝牙设备互操作性和符合标准的关键步骤。所有使用蓝牙技术的产品都必须通过此认证。</p>
+            
+            <h3>1.1 认证基本要求</h3>
+            <ul>
+                <li><span class="highlight">合规性</span>：设备必须符合蓝牙核心规范和相关配置文件规范</li>
+                <li><span class="highlight">互操作性</span>：设备必须能够与其他认证的蓝牙设备正常通信</li>
+                <li><span class="highlight">射频性能</span>：必须满足射频物理层和协议层的性能要求</li>
+                <li><span class="highlight">安全性</span>：必须实现蓝牙规范中定义的安全机制</li>
+            </ul>
+            
+            <h3>1.2 认证测试类别</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>测试类别</th>
+                        <th>测试内容</th>
+                        <th>重要性</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>射频测试</td>
+                        <td>发射功率、接收灵敏度、频率精度等</td>
+                        <td>高</td>
+                    </tr>
+                    <tr>
+                        <td>协议测试</td>
+                        <td>L2CAP、SDP、RFCOMM等协议符合性</td>
+                        <td>高</td>
+                    </tr>
+                    <tr>
+                        <td>配置文件测试</td>
+                        <td>HFP、A2DP、HID等配置文件实现</td>
+                        <td>中</td>
+                    </tr>
+                    <tr>
+                        <td>互操作性测试</td>
+                        <td>与不同厂商设备的兼容性</td>
+                        <td>高</td>
+                    </tr>
+                    <tr>
+                        <td>安全性测试</td>
+                        <td>配对、加密、身份验证</td>
+                        <td>中</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>1.3 认证流程</h3>
+            <div class="svg-container">
+                <svg viewBox="0 0 800 300" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#4fc3f7" />
+                            <stop offset="100%" stop-color="#29b6f6" />
+                        </linearGradient>
+                    </defs>
+                    
+                    <rect x="50" y="50" width="120" height="60" rx="10" fill="url(#grad1)" stroke="#0288d1" stroke-width="2"/>
+                    <text x="110" y="85" text-anchor="middle" fill="white" font-weight="bold">产品设计</text>
+                    
+                    <rect x="220" y="50" width="120" height="60" rx="10" fill="url(#grad1)" stroke="#0288d1" stroke-width="2"/>
+                    <text x="280" y="85" text-anchor="middle" fill="white" font-weight="bold">预测试</text>
+                    
+                    <rect x="390" y="50" width="120" height="60" rx="10" fill="url(#grad1)" stroke="#0288d1" stroke-width="2"/>
+                    <text x="450" y="85" text-anchor="middle" fill="white" font-weight="bold">正式测试</text>
+                    
+                    <rect x="560" y="50" width="120" height="60" rx="10" fill="url(#grad1)" stroke="#0288d1" stroke-width="2"/>
+                    <text x="620" y="85" text-anchor="middle" fill="white" font-weight="bold">认证提交</text>
+                    
+                    <polygon points="170,80 220,80" fill="none" stroke="#0288d1" stroke-width="2"/>
+                    <polygon points="340,80 390,80" fill="none" stroke="#0288d1" stroke-width="2"/>
+                    <polygon points="510,80 560,80" fill="none" stroke="#0288d1" stroke-width="2"/>
+                    
+                    <polygon points="215,75 220,80 215,85" fill="#0288d1"/>
+                    <polygon points="385,75 390,80 385,85" fill="#0288d1"/>
+                    <polygon points="555,75 560,80 555,85" fill="#0288d1"/>
+                    
+                    <rect x="50" y="180" width="120" height="60" rx="10" fill="#81c784" stroke="#388e3c" stroke-width="2"/>
+                    <text x="110" y="215" text-anchor="middle" fill="white" font-weight="bold">认证通过</text>
+                    
+                    <rect x="220" y="180" width="120" height="60" rx="10" fill="#ffb74d" stroke="#f57c00" stroke-width="2"/>
+                    <text x="280" y="215" text-anchor="middle" fill="white" font-weight="bold">问题修复</text>
+                    
+                    <rect x="390" y="180" width="120" height="60" rx="10" fill="#e57373" stroke="#d32f2f" stroke-width="2"/>
+                    <text x="450" y="215" text-anchor="middle" fill="white" font-weight="bold">重新测试</text>
+                    
+                    <polygon points="170,210 220,210" fill="none" stroke="#0288d1" stroke-width="2" stroke-dasharray="5,5"/>
+                    <polygon points="340,210 390,210" fill="none" stroke="#0288d1" stroke-width="2" stroke-dasharray="5,5"/>
+                    
+                    <polygon points="215,205 220,210 215,215" fill="#0288d1"/>
+                    <polygon points="385,205 390,210 385,215" fill="#0288d1"/>
+                    
+                    <text x="110" y="270" text-anchor="middle" fill="#0288d1" font-weight="bold">完成</text>
+                    <text x="280" y="270" text-anchor="middle" fill="#0288d1" font-weight="bold">修复问题</text>
+                    <text x="450" y="270" text-anchor="middle" fill="#0288d1" font-weight="bold">重新测试</text>
+                </svg>
+            </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <div class="card">
+            <h2>二、测试用例设计</h2>
+            <p>设计全面有效的测试用例是确保认证通过的关键。测试用例应覆盖所有必需的测试类别和边缘情况。</p>
+            
+            <h3>2.1 测试用例设计原则</h3>
+            <div class="step-box">
+                <ol>
+                    <li><strong>全面性</strong>：覆盖所有蓝牙规范要求的功能和性能指标</li>
+                    <li><strong>可重复性</strong>：测试结果必须可重复，不受环境因素影响</li>
+                    <li><strong>自动化</strong>：尽可能实现自动化测试，提高测试效率</li>
+                    <li><strong>边界测试</strong>：测试参数边界和异常情况</li>
+                    <li><strong>互操作性</strong>：与多种设备进行兼容性测试</li>
+                </ol>
+            </div>
+            
+            <h3>2.2 测试用例分类示例</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>测试类别</th>
+                        <th>测试项目</th>
+                        <th>测试方法</th>
+                        <th>预期结果</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td rowspan="3">射频测试</td>
+                        <td>发射功率</td>
+                        <td>使用频谱分析仪测量</td>
+                        <td>符合蓝牙规范要求</td>
+                    </tr>
+                    <tr>
+                        <td>接收灵敏度</td>
+                        <td>使用蓝牙测试仪测试</td>
+                        <td>BER &lt; 0.1%</td>
+                    </tr>
+                    <tr>
+                        <td>频率偏移</td>
+                        <td>使用频率计数器测量</td>
+                        <td>±10 kHz以内</td>
+                    </tr>
+                    <tr>
+                        <td rowspan="3">协议测试</td>
+                        <td>L2CAP连接</td>
+                        <td>使用协议分析仪</td>
+                        <td>正常建立和断开连接</td>
+                    </tr>
+                    <tr>
+                        <td>SDP服务发现</td>
+                        <td>查询远程设备服务</td>
+                        <td>正确返回服务列表</td>
+                    </tr>
+                    <tr>
+                        <td>RFCOMM数据传输</td>
+                        <td>发送和接收数据</td>
+                        <td>数据完整无误</td>
+                    </tr>
+                    <tr>
+                        <td rowspan="2">配置文件测试</td>
+                        <td>HFP通话</td>
+                        <td>与手机建立HFP连接</td>
+                        <td>正常接听和拨打电话</td>
+                    </tr>
+                    <tr>
+                        <td>A2DP音频</td>
+                        <td>播放高质量音频</td>
+                        <td>音频流畅无卡顿</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>2.3 Linux蓝牙驱动测试代码示例</h3>
+            <div class="code-block">
+                <pre><code>#include &lt;linux/module.h&gt;
+#include &lt;linux/kernel.h&gt;
+#include &lt;linux/bluetooth.h&gt;
+#include &lt;net/bluetooth/bluetooth.h&gt;
+#include &lt;net/bluetooth/hci_core.h&gt;
+
+/* 蓝牙设备发现测试 */
+static int bt_discovery_test(struct hci_dev *hdev)
+{
+    struct inquiry_info *info = NULL;
+    int err, count;
+    
+    /* 启动设备发现 */
+    err = hci_dev_do_open(hdev);
+    if (err) {
+        bt_err("Failed to open HCI device");
+        return err;
+    }
+    
+    /* 开始查询 */
+    err = hci_inquiry(hdev, 8, 0, NULL, &info, 0);
+    if (err) {
+        bt_err("Inquiry failed");
+        goto done;
+    }
+    
+    count = hdev->discovery.result_count;
+    bt_info("Found %d Bluetooth devices", count);
+    
+    /* 验证发现的设备信息 */
+    for (int i = 0; i < count; i++) {
+        bt_info("Device %d: %pMR (class 0x%06x)", 
+                i+1, &info[i].bdaddr, info[i].dev_class[0] | 
+                (info[i].dev_class[1] << 8) | 
+                (info[i].dev_class[2] << 16));
+    }
+
+done:
+    kfree(info);
+    hci_dev_do_close(hdev);
+    return err;
+}
+
+/* RFCOMM连接测试 */
+static int rfcomm_connection_test(void)
+{
+    struct socket *sock;
+    struct sockaddr_rc addr = { 0 };
+    int err;
+    
+    /* 创建RFCOMM socket */
+    err = sock_create_kern(&init_net, AF_BLUETOOTH, SOCK_STREAM, 
+                          BTPROTO_RFCOMM, &sock);
+    if (err < 0) {
+        bt_err("Failed to create RFCOMM socket");
+        return err;
+    }
+    
+    /* 设置目标地址 */
+    addr.rc_family = AF_BLUETOOTH;
+    bacpy(&addr.rc_bdaddr, BDADDR_ANY);
+    addr.rc_channel = 1;
+    
+    /* 尝试连接 */
+    err = sock->ops->connect(sock, (struct sockaddr *)&addr, 
+                           sizeof(addr), 0);
+    if (err && err != -ECONNREFUSED) {
+        bt_err("RFCOMM connection test failed: %d", err);
+    } else {
+        bt_info("RFCOMM connection test passed");
+    }
+    
+    sock_release(sock);
+    return err;
+}
+
+/* 模块初始化 - 运行认证测试 */
+static int __init bt_cert_test_init(void)
+{
+    struct hci_dev *hdev;
+    int err = 0;
+    
+    bt_info("Starting Bluetooth Certification Tests");
+    
+    /* 获取第一个HCI设备 */
+    hdev = hci_get_route(NULL);
+    if (!hdev) {
+        bt_err("No Bluetooth device found");
+        return -ENODEV;
+    }
+    
+    /* 运行设备发现测试 */
+    err = bt_discovery_test(hdev);
+    if (err)
+        goto out;
+    
+    /* 运行RFCOMM测试 */
+    err = rfcomm_connection_test();
+    if (err)
+        goto out;
+    
+    bt_info("All certification tests completed successfully");
+    
+out:
+    hci_dev_put(hdev);
+    return err;
+}
+
+module_init(bt_cert_test_init);
+module_exit(NULL);
+
+MODULE_AUTHOR("BlueOcean Mining Camp");
+MODULE_DESCRIPTION("Bluetooth Certification Test Module");
+MODULE_LICENSE("GPL");</code></pre>
+            </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <div class="card">
+            <h2>三、认证问题排查</h2>
+            <p>认证过程中遇到问题时，需要系统性地进行排查和定位。本节介绍常见认证问题及其解决方法。</p>
+            
+            <h3>3.1 常见认证问题分类</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>问题类型</th>
+                        <th>具体表现</th>
+                        <th>可能原因</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>射频问题</td>
+                        <td>传输距离短、连接不稳定</td>
+                        <td>天线设计、阻抗匹配、电源噪声</td>
+                    </tr>
+                    <tr>
+                        <td>协议问题</td>
+                        <td>连接失败、服务发现失败</td>
+                        <td>协议栈实现错误、参数配置不当</td>
+                    </tr>
+                    <tr>
+                        <td>互操作问题</td>
+                        <td>与特定设备不兼容</td>
+                        <td>设备特定行为、规范解释差异</td>
+                    </tr>
+                    <tr>
+                        <td>性能问题</td>
+                        <td>数据传输速率低、延迟高</td>
+                        <td>缓冲区设置、调度策略、硬件限制</td>
+                    </tr>
+                    <tr>
+                        <td>安全问题</td>
+                        <td>配对失败、加密连接失败</td>
+                        <td>密钥管理、安全协议实现错误</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>3.2 问题排查流程</h3>
+            <div class="svg-container">
+                <svg viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#ff9800" />
+                            <stop offset="100%" stop-color="#ff5722" />
+                        </linearGradient>
+                    </defs>
+                    
+                    <rect x="50" y="50" width="200" height="60" rx="10" fill="url(#grad2)" stroke="#e65100" stroke-width="2"/>
+                    <text x="150" y="85" text-anchor="middle" fill="white" font-weight="bold">问题识别</text>
+                    
+                    <rect x="300" y="50" width="200" height="60" rx="10" fill="url(#grad2)" stroke="#e65100" stroke-width="2"/>
+                    <text x="400" y="85" text-anchor="middle" fill="white" font-weight="bold">日志分析</text>
+                    
+                    <rect x="550" y="50" width="200" height="60" rx="10" fill="url(#grad2)" stroke="#e65100" stroke-width="2"/>
+                    <text x="650" y="85" text-anchor="middle" fill="white" font-weight="bold">根本原因分析</text>
+                    
+                    <polygon points="250,80 300,80" fill="none" stroke="#e65100" stroke-width="2"/>
+                    <polygon points="500,80 550,80" fill="none" stroke="#e65100" stroke-width="2"/>
+                    
+                    <polygon points="295,75 300,80 295,85" fill="#e65100"/>
+                    <polygon points="545,75 550,80 545,85" fill="#e65100"/>
+                    
+                    <rect x="50" y="160" width="200" height="60" rx="10" fill="url(#grad2)" stroke="#e65100" stroke-width="2"/>
+                    <text x="150" y="195" text-anchor="middle" fill="white" font-weight="bold">解决方案设计</text>
+                    
+                    <rect x="300" y="160" width="200" height="60" rx="10" fill="url(#grad2)" stroke="#e65100" stroke-width="2"/>
+                    <text x="400" y="195" text-anchor="middle" fill="white" font-weight="bold">实施修复</text>
+                    
+                    <rect x="550" y="160" width="200" height="60" rx="10" fill="url(#grad2)" stroke="#e65100" stroke-width="2"/>
+                    <text x="650" y="195" text-anchor="middle" fill="white" font-weight="bold">验证测试</text>
+                    
+                    <polygon points="250,190 300,190" fill="none" stroke="#e65100" stroke-width="2"/>
+                    <polygon points="500,190 550,190" fill="none" stroke="#e65100" stroke-width="2"/>
+                    
+                    <polygon points="295,185 300,190 295,195" fill="#e65100"/>
+                    <polygon points="545,185 550,190 545,195" fill="#e65100"/>
+                    
+                    <rect x="300" y="270" width="200" height="60" rx="10" fill="#4caf50" stroke="#388e3c" stroke-width="2"/>
+                    <text x="400" y="305" text-anchor="middle" fill="white" font-weight="bold">问题解决</text>
+                    
+                    <rect x="50" y="270" width="200" height="60" rx="10" fill="#f44336" stroke="#c62828" stroke-width="2"/>
+                    <text x="150" y="305" text-anchor="middle" fill="white" font-weight="bold">返回分析</text>
+                    
+                    <polygon points="250,300 295,300" fill="none" stroke="#e65100" stroke-width="2" stroke-dasharray="5,5"/>
+                    <polygon points="500,300 545,300" fill="none" stroke="#e65100" stroke-width="2" stroke-dasharray="5,5"/>
+                    
+                    <polygon points="290,295 295,300 290,305" fill="#e65100"/>
+                    <polygon points="540,295 545,300 540,305" fill="#e65100"/>
+                </svg>
+            </div>
+            
+            <h3>3.3 调试工具和技巧</h3>
+            <div class="step-box">
+                <h4>常用调试工具</h4>
+                <ul>
+                    <li><strong>hcidump</strong>：捕获和分析HCI数据包</li>
+                    <li><strong>btmon</strong>：蓝牙监控工具，实时显示协议交互</li>
+                    <li><strong>bluetoothctl</strong>：蓝牙控制工具，手动测试功能</li>
+                    <li><strong>Wireshark</strong>：协议分析，支持蓝牙协议解析</li>
+                    <li><strong>kernel logs</strong>：查看内核蓝牙驱动日志</li>
+                </ul>
+            </div>
+            
+            <div class="code-block">
+                <pre><code># 使用hcidump捕获蓝牙数据包
+sudo hcidump -Xt
+
+# 使用btmon监控蓝牙活动  
+sudo btmon
+
+# 使用bluetoothctl进行手动测试
+bluetoothctl
+[bluetooth]# power on
+[bluetooth]# agent on
+[bluetooth]# default-agent
+[bluetooth]# scan on
+[bluetooth]# devices
+[bluetooth]# pair XX:XX:XX:XX:XX:XX
+[bluetooth]# connect XX:XX:XX:XX:XX:XX
+
+# 查看内核蓝牙日志
+dmesg | grep -i bluetooth
+journalctl -u bluetooth -f
+
+# 启用蓝牙调试日志
+echo 1 | sudo tee /sys/kernel/debug/bluetooth/hci0/debug
+</code></pre>
+            </div>
+            
+            <div class="warning-box">
+                <p><strong>注意：</strong> 在排查认证问题时，务必保存完整的测试日志和调试信息，这些信息对于分析问题和与蓝牙SIG沟通非常重要。</p>
+            </div>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <div class="card">
+            <h2>四、最佳实践与总结</h2>
+            
+            <h3>4.1 认证准备最佳实践</h3>
+            <ul>
+                <li><strong>早期测试</strong>：在开发早期就进行认证相关测试，避免后期大规模修改</li>
+                <li><strong>参考设计</strong>：使用经过认证的参考设计和组件，减少不确定性</li>
+                <li><strong>文档完整</strong>：保持完整的设计文档和测试记录</li>
+                <li><strong>预认证测试</strong>：在正式认证前进行完整的预测试</li>
+                <li><strong>合作伙伴</strong>：与经验丰富的测试实验室合作</li>
+            </ul>
+            
+            <h3>4.2 Linux蓝牙驱动开发注意事项</h3>
+            <div class="tip-box">
+                <ul>
+                    <li>确保使用最新稳定的Linux内核版本，包含最新的蓝牙修复</li>
+                    <li>遵循Linux内核编码规范和蓝牙子系统设计模式</li>
+                    <li>充分测试各种使用场景和边界条件</li>
+                    <li>实现完整的电源管理功能，特别是对于移动设备</li>
+                    <li>确保与主流蓝牙芯片和设备的兼容性</li>
+                </ul>
+            </div>
+            
+            <h3>4.3 课程总结</h3>
+            <p>蓝牙SIG认证是蓝牙产品上市前的必要步骤，通过本课程的学习，您应该能够：</p>
+            <ol>
+                <li>理解蓝牙SIG认证的要求和流程</li>
+                <li>设计全面有效的测试用例</li>
+                <li>使用适当的工具和技术进行问题排查</li>
+                <li>遵循最佳实践提高认证通过率</li>
+                <li>在Linux环境下开发和测试蓝牙驱动</li>
+            </ol>
+            
+            <p>掌握这些技能将使您能够高效地完成蓝牙产品的认证工作，确保产品符合行业标准并具有良好的互操作性。</p>
+        </div>
+
+        <footer>
+            <p>蓝海资料掘金营</p>
+            <p>《Linux内核蓝牙驱动开发实战》课程 - 第37讲：蓝牙认证测试</p>
+        </footer>
+    </div>
+</body>
+</html>

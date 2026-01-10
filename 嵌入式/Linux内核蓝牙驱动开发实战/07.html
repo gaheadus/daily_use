@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蓝牙SDP服务发现 - Linux内核蓝牙驱动开发实战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #f9fbe7 50%, #e8f5e9 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #4fc3f7 0%, #29b6f6 50%, #0288d1 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #01579b;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid #4fc3f7;
+        }
+        
+        h2 {
+            color: #0288d1;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px dashed #b3e5fc;
+        }
+        
+        h3 {
+            color: #0288d1;
+            margin: 15px 0 10px 0;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        th {
+            background-color: #e1f5fe;
+            color: #0277bd;
+            font-weight: bold;
+        }
+        
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        pre {
+            background: #f5f5f5;
+            border-left: 4px solid #4fc3f7;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        code {
+            background: #f5f5f5;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .svg-container {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 10px;
+        }
+        
+        .architecture {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        footer {
+            background: linear-gradient(135deg, #0288d1 0%, #01579b 100%);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: 30px;
+            border-top: 5px solid #4fc3f7;
+        }
+        
+        .highlight {
+            background-color: #e1f5fe;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        
+        .note {
+            background: #fff9c4;
+            border-left: 4px solid #ffd600;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>蓝牙SDP服务发现</h1>
+            <p class="subtitle">SDP记录结构、服务属性定义、服务搜索流程</p>
+        </header>
+        
+        <div class="content">
+            <section>
+                <h2>1. SDP协议概述</h2>
+                <p>服务发现协议（Service Discovery Protocol，SDP）是蓝牙协议栈中的核心组件，用于发现其他蓝牙设备上可用的服务及其特性。SDP采用客户端-服务器架构，允许客户端设备查询服务器设备上可用的服务信息。</p>
+                
+                <div class="svg-container">
+                    <svg width="600" height="200" viewBox="0 0 600 200">
+                        <rect x="50" y="50" width="150" height="60" rx="10" fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                        <text x="125" y="85" text-anchor="middle" fill="white" font-weight="bold">SDP客户端</text>
+                        
+                        <rect x="400" y="50" width="150" height="60" rx="10" fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                        <text x="475" y="85" text-anchor="middle" fill="white" font-weight="bold">SDP服务器</text>
+                        
+                        <path d="M 200 80 L 400 80" stroke="#0288d1" stroke-width="2" marker-end="url(#arrowhead)"/>
+                        <text x="300" y="75" text-anchor="middle" fill="#0288d1">服务查询</text>
+                        
+                        <path d="M 400 100 L 200 100" stroke="#0288d1" stroke-width="2" marker-end="url(#arrowhead)"/>
+                        <text x="300" y="105" text-anchor="middle" fill="#0288d1">服务响应</text>
+                        
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#0288d1"/>
+                            </marker>
+                        </defs>
+                    </svg>
+                </div>
+                
+                <div class="note">
+                    <p><strong>注意：</strong>SDP不提供访问服务的机制，只提供发现服务及其特性的方法。实际的服务访问需要通过其他协议实现。</p>
+                </div>
+            </section>
+            
+            <section>
+                <h2>2. SDP记录结构</h2>
+                <p>SDP记录是一个包含服务相关信息的结构化数据集合。每个SDP记录由一系列服务属性组成，每个属性由属性ID和属性值构成。</p>
+                
+                <h3>2.1 SDP记录基本结构</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>字段</th>
+                            <th>大小(字节)</th>
+                            <th>描述</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>记录句柄</td>
+                            <td>4</td>
+                            <td>唯一标识SDP记录的32位无符号整数</td>
+                        </tr>
+                        <tr>
+                            <td>属性列表</td>
+                            <td>可变</td>
+                            <td>包含服务所有属性的数据元素序列</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>2.2 数据元素类型</h3>
+                <p>SDP使用数据元素（Data Element）来表示属性值，每个数据元素包含类型描述符和值字段：</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>类型描述符</th>
+                            <th>大小标识符</th>
+                            <th>数据</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>5位</td>
+                            <td>3位</td>
+                            <td>可变长度</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>2.3 数据元素类型示例</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>类型</th>
+                            <th>值</th>
+                            <th>描述</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Nil</td>
+                            <td>0</td>
+                            <td>空类型，无数据</td>
+                        </tr>
+                        <tr>
+                            <td>Unsigned Integer</td>
+                            <td>1</td>
+                            <td>无符号整数</td>
+                        </tr>
+                        <tr>
+                            <td>Signed Integer</td>
+                            <td>2</td>
+                            <td>有符号整数</td>
+                        </tr>
+                        <tr>
+                            <td>UUID</td>
+                            <td>3</td>
+                            <td>通用唯一标识符</td>
+                        </tr>
+                        <tr>
+                            <td>Text String</td>
+                            <td>4</td>
+                            <td>文本字符串</td>
+                        </tr>
+                        <tr>
+                            <td>Boolean</td>
+                            <td>5</td>
+                            <td>布尔值</td>
+                        </tr>
+                        <tr>
+                            <td>Data Element Sequence</td>
+                            <td>6</td>
+                            <td>数据元素序列</td>
+                        </tr>
+                        <tr>
+                            <td>Data Element Alternative</td>
+                            <td>7</td>
+                            <td>数据元素替代</td>
+                        </tr>
+                        <tr>
+                            <td>URL</td>
+                            <td>8</td>
+                            <td>统一资源定位符</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+            
+            <section>
+                <h2>3. 服务属性定义</h2>
+                <p>每个SDP服务属性由一个16位的属性ID和一个属性值组成。蓝牙规范定义了一系列标准属性ID，用于描述服务的各种特性。</p>
+                
+                <h3>3.1 通用属性ID</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>属性ID</th>
+                            <th>属性名称</th>
+                            <th>描述</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>0x0000</td>
+                            <td>ServiceRecordHandle</td>
+                            <td>服务记录句柄</td>
+                        </tr>
+                        <tr>
+                            <td>0x0001</td>
+                            <td>ServiceClassIDList</td>
+                            <td>服务类ID列表</td>
+                        </tr>
+                        <tr>
+                            <td>0x0002</td>
+                            <td>ServiceRecordState</td>
+                            <td>服务记录状态</td>
+                        </tr>
+                        <tr>
+                            <td>0x0003</td>
+                            <td>ServiceID</td>
+                            <td>服务ID</td>
+                        </tr>
+                        <tr>
+                            <td>0x0004</td>
+                            <td>ProtocolDescriptorList</td>
+                            <td>协议描述符列表</td>
+                        </tr>
+                        <tr>
+                            <td>0x0005</td>
+                            <td>BrowseGroupList</td>
+                            <td>浏览组列表</td>
+                        </tr>
+                        <tr>
+                            <td>0x0006</td>
+                            <td>LanguageBaseAttributeIDList</td>
+                            <td>语言基础属性ID列表</td>
+                        </tr>
+                        <tr>
+                            <td>0x0007</td>
+                            <td>ServiceInfoTimeToLive</td>
+                            <td>服务信息生存时间</td>
+                        </tr>
+                        <tr>
+                            <td>0x0008</td>
+                            <td>ServiceAvailability</td>
+                            <td>服务可用性</td>
+                        </tr>
+                        <tr>
+                            <td>0x0009</td>
+                            <td>BluetoothProfileDescriptorList</td>
+                            <td>蓝牙配置文件描述符列表</td>
+                        </tr>
+                        <tr>
+                            <td>0x000A</td>
+                            <td>DocumentationURL</td>
+                            <td>文档URL</td>
+                        </tr>
+                        <tr>
+                            <td>0x000B</td>
+                            <td>ClientExecutableURL</td>
+                            <td>客户端可执行URL</td>
+                        </tr>
+                        <tr>
+                            <td>0x000C</td>
+                            <td>IconURL</td>
+                            <td>图标URL</td>
+                        </tr>
+                        <tr>
+                            <td>0x000D</td>
+                            <td>AdditionalProtocolDescriptorList</td>
+                            <td>附加协议描述符列表</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>3.2 服务类UUID示例</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>服务名称</th>
+                            <th>UUID</th>
+                            <th>描述</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Serial Port</td>
+                            <td>0x1101</td>
+                            <td>串行端口服务</td>
+                        </tr>
+                        <tr>
+                            <td>LAN Access Using PPP</td>
+                            <td>0x1102</td>
+                            <td>使用PPP的LAN访问</td>
+                        </tr>
+                        <tr>
+                            <td>Dialup Networking</td>
+                            <td>0x1103</td>
+                            <td>拨号网络</td>
+                        </tr>
+                        <tr>
+                            <td>OBEX Object Push</td>
+                            <td>0x1105</td>
+                            <td>OBEX对象推送</td>
+                        </tr>
+                        <tr>
+                            <td>OBEX File Transfer</td>
+                            <td>0x1106</td>
+                            <td>OBEX文件传输</td>
+                        </tr>
+                        <tr>
+                            <td>Headset</td>
+                            <td>0x1108</td>
+                            <td>耳机服务</td>
+                        </tr>
+                        <tr>
+                            <td>Audio Source</td>
+                            <td>0x110A</td>
+                            <td>音频源</td>
+                        </tr>
+                        <tr>
+                            <td>Audio Sink</td>
+                            <td>0x110B</td>
+                            <td>音频接收器</td>
+                        </tr>
+                        <tr>
+                            <td>A/V Remote Control Target</td>
+                            <td>0x110C</td>
+                            <td>音视频远程控制目标</td>
+                        </tr>
+                        <tr>
+                            <td>Advanced Audio Distribution</td>
+                            <td>0x110D</td>
+                            <td>高级音频分发</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>3.3 SDP记录示例代码</h3>
+                <pre><code>// 蓝牙串口服务SDP记录示例
+static sdp_record_t serial_port_record = {
+    .handle = 0x10000,
+    .attrlist = {
+        // 服务记录句柄
+        SDP_ATTR_ID(0x0000), SDP_DATA_UINT32(0x10000),
+        
+        // 服务类ID列表
+        SDP_ATTR_ID(0x0001), SDP_DATA_UUID16(0x1101),
+        
+        // 协议描述符列表
+        SDP_ATTR_ID(0x0004), SDP_DATA_SEQ({
+            SDP_DATA_SEQ({
+                SDP_DATA_UUID16(0x0100),  // L2CAP UUID
+                SDP_DATA_UINT16(0x0001)   // PSM = 1
+            }),
+            SDP_DATA_SEQ({
+                SDP_DATA_UUID16(0x0003),  // RFCOMM UUID
+                SDP_DATA_UINT8(0x01)      // 服务器通道 = 1
+            })
+        }),
+        
+        // 服务名称
+        SDP_ATTR_ID(0x0100), SDP_DATA_STR8("Serial Port"),
+        
+        // 服务描述
+        SDP_ATTR_ID(0x0101), SDP_DATA_STR8("Bluetooth Serial Port Service"),
+        
+        // 服务提供商
+        SDP_ATTR_ID(0x0102), SDP_DATA_STR8("BlueOcean Inc.")
+    }
+};</code></pre>
+            </section>
+            
+            <section>
+                <h2>4. 服务搜索流程</h2>
+                <p>SDP服务发现过程涉及多个步骤，从建立连接到查询服务信息。以下是完整的服务搜索流程：</p>
+                
+                <div class="svg-container">
+                    <svg width="600" height="400" viewBox="0 0 600 400">
+                        <rect x="50" y="50" width="200" height="40" rx="5" fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                        <text x="150" y="75" text-anchor="middle" fill="white" font-weight="bold">1. 建立L2CAP连接</text>
+                        
+                        <rect x="50" y="110" width="200" height="40" rx="5" fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                        <text x="150" y="135" text-anchor="middle" fill="white" font-weight="bold">2. 发送SDP请求</text>
+                        
+                        <rect x="50" y="170" width="200" height="40" rx="5" fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                        <text x="150" y="195" text-anchor="middle" fill="white" font-weight="bold">3. 服务器处理请求</text>
+                        
+                        <rect x="50" y="230" width="200" height="40" rx="5" fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                        <text x="150" y="255" text-anchor="middle" fill="white" font-weight="bold">4. 返回SDP响应</text>
+                        
+                        <rect x="50" y="290" width="200" height="40" rx="5" fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                        <text x="150" y="315" text-anchor="middle" fill="white" font-weight="bold">5. 解析服务信息</text>
+                        
+                        <rect x="50" y="350" width="200" height="40" rx="5" fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                        <text x="150" y="375" text-anchor="middle" fill="white" font-weight="bold">6. 断开连接</text>
+                        
+                        <path d="M 150 90 L 150 110" stroke="#0288d1" stroke-width="2" marker-end="url(#arrowhead2)"/>
+                        <path d="M 150 150 L 150 170" stroke="#0288d1" stroke-width="2" marker-end="url(#arrowhead2)"/>
+                        <path d="M 150 210 L 150 230" stroke="#0288d1" stroke-width="2" marker-end="url(#arrowhead2)"/>
+                        <path d="M 150 270 L 150 290" stroke="#0288d1" stroke-width="2" marker-end="url(#arrowhead2)"/>
+                        <path d="M 150 330 L 150 350" stroke="#0288d1" stroke-width="2" marker-end="url(#arrowhead2)"/>
+                        
+                        <defs>
+                            <marker id="arrowhead2" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#0288d1"/>
+                            </marker>
+                        </defs>
+                    </svg>
+                </div>
+                
+                <h3>4.1 详细流程说明</h3>
+                <ol>
+                    <li><span class="highlight">建立L2CAP连接</span>：客户端首先与服务器的SDP服务建立L2CAP连接（PSM = 0x0001）</li>
+                    <li><span class="highlight">发送SDP请求</span>：客户端构造并发送SDP请求数据包，包含要查询的服务UUID或其他搜索条件</li>
+                    <li><span class="highlight">服务器处理请求</span>：服务器解析请求，在服务记录数据库中查找匹配的服务</li>
+                    <li><span class="highlight">返回SDP响应</span>：服务器构造并返回包含匹配服务信息的SDP响应数据包</li>
+                    <li><span class="highlight">解析服务信息</span>：客户端解析响应，提取服务属性信息（协议描述符、服务名称等）</li>
+                    <li><span class="highlight">断开连接</span>：服务发现完成后，客户端断开与服务器的L2CAP连接</li>
+                </ol>
+                
+                <h3>4.2 SDP PDU类型</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>PDU ID</th>
+                            <th>PDU名称</th>
+                            <th>描述</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>0x01</td>
+                            <td>SDP_ErrorResponse</td>
+                            <td>错误响应</td>
+                        </tr>
+                        <tr>
+                            <td>0x02</td>
+                            <td>SDP_ServiceSearchRequest</td>
+                            <td>服务搜索请求</td>
+                        </tr>
+                        <tr>
+                            <td>0x03</td>
+                            <td>SDP_ServiceSearchResponse</td>
+                            <td>服务搜索响应</td>
+                        </tr>
+                        <tr>
+                            <td>0x04</td>
+                            <td>SDP_ServiceAttributeRequest</td>
+                            <td>服务属性请求</td>
+                        </tr>
+                        <tr>
+                            <td>0x05</td>
+                            <td>SDP_ServiceAttributeResponse</td>
+                            <td>服务属性响应</td>
+                        </tr>
+                        <tr>
+                            <td>0x06</td>
+                            <td>SDP_ServiceSearchAttributeRequest</td>
+                            <td>服务搜索属性请求</td>
+                        </tr>
+                        <tr>
+                            <td>0x07</td>
+                            <td>SDP_ServiceSearchAttributeResponse</td>
+                            <td>服务搜索属性响应</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>4.3 Linux内核中的SDP实现示例</h3>
+                <pre><code>// Linux内核中SDP服务搜索示例
+static int sdp_service_search(struct sock *sk, struct sdp_req *req)
+{
+    struct sdp_session *session = sk->sk_user_data;
+    struct sdp_server *server = session->server;
+    struct list_head *p;
+    int err = 0;
+    
+    // 遍历服务记录列表
+    list_for_each(p, &server->record_list) {
+        struct sdp_record *record = list_entry(p, struct sdp_record, list);
+        
+        // 检查服务类UUID是否匹配
+        if (sdp_match_uuid(record, req->search_pattern)) {
+            // 将匹配的记录句柄添加到响应中
+            err = sdp_add_handle_to_rsp(record->handle, req->max_rec_handles);
+            if (err)
+                break;
+        }
+    }
+    
+    return err;
+}
+
+// 服务属性查询实现
+static int sdp_service_attr(struct sock *sk, struct sdp_req *req)
+{
+    struct sdp_session *session = sk->sk_user_data;
+    struct sdp_server *server = session->server;
+    struct sdp_record *record;
+    int err;
+    
+    // 根据记录句柄查找服务记录
+    record = sdp_find_record_by_handle(server, req->handle);
+    if (!record)
+        return -ENOENT;
+    
+    // 构建属性响应
+    err = sdp_build_attr_rsp(record, req->attr_list, req->max_attr_byte_count);
+    
+    return err;
+}</code></pre>
+            </section>
+            
+            <section>
+                <h2>5. 总结</h2>
+                <p>蓝牙SDP服务发现是蓝牙设备间通信的基础，它提供了标准化的服务发现机制。理解SDP记录结构、服务属性定义和服务搜索流程对于开发蓝牙应用至关重要。</p>
+                
+                <div class="note">
+                    <p><strong>关键要点：</strong></p>
+                    <ul>
+                        <li>SDP采用客户端-服务器架构，使用L2CAP作为传输层</li>
+                        <li>SDP记录由属性ID和属性值组成，使用数据元素表示</li>
+                        <li>服务搜索流程包括连接建立、请求发送、响应处理和连接断开</li>
+                        <li>Linux内核提供了完整的SDP实现，开发者可以通过蓝牙套接字接口使用</li>
+                    </ul>
+                </div>
+                
+                <p>在实际开发中，合理设计SDP记录结构和服务属性，可以大大提高蓝牙设备的互操作性和用户体验。</p>
+            </section>
+        </div>
+        
+        <footer>
+            <p>蓝海资料掘金营</p>
+        </footer>
+    </div>
+</body>
+</html>

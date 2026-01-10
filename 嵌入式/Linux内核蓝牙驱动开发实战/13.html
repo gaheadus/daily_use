@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蓝牙UART传输驱动开发实战</title>
+    <style>
+        :root {
+            --primary: #4CAF50;
+            --secondary: #FFC107;
+            --accent: #2196F3;
+            --light: #E8F5E9;
+            --dark: #2E7D32;
+            --text: #333333;
+            --white: #FFFFFF;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background: linear-gradient(135deg, var(--light) 0%, #B2DFDB 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: var(--primary);
+            color: var(--white);
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .card {
+            background: var(--white);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid var(--accent);
+        }
+        
+        h2 {
+            color: var(--dark);
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--secondary);
+            padding-bottom: 0.5rem;
+        }
+        
+        h3 {
+            color: var(--primary);
+            margin: 1.5rem 0 1rem 0;
+        }
+        
+        .code-block {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: var(--white);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background: var(--primary);
+            color: var(--white);
+            font-weight: 600;
+        }
+        
+        tr:hover {
+            background: var(--light);
+        }
+        
+        .architecture {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 15px;
+            margin: 2rem 0;
+            text-align: center;
+        }
+        
+        .flow-control {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin: 2rem 0;
+        }
+        
+        .flow-item {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: 10px;
+            width: 30%;
+            min-width: 250px;
+            margin: 1rem;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+        
+        footer {
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+            background: var(--dark);
+            color: var(--white);
+            border-radius: 15px;
+        }
+        
+        .highlight {
+            background: var(--secondary);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        ul, ol {
+            margin: 1rem 0 1rem 2rem;
+        }
+        
+        li {
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>蓝牙UART传输驱动开发实战</h1>
+            <div class="subtitle">第13课：串口设备注册、数据流控、波特率配置</div>
+        </header>
+        
+        <section class="card">
+            <h2>课程概述</h2>
+            <p>本课程深入讲解Linux内核中蓝牙UART传输驱动的核心实现，重点涵盖串口设备注册机制、数据流控制策略以及波特率配置方法。通过本课程，您将掌握蓝牙HCI UART传输层的完整开发流程。</p>
+        </section>
+        
+        <section class="card">
+            <h2>UART传输驱动架构</h2>
+            <div class="architecture">
+                <svg width="800" height="400" viewBox="0 0 800 400">
+                    <!-- 蓝牙协议栈 -->
+                    <rect x="50" y="50" width="200" height="60" rx="10" fill="#4CAF50" stroke="#2E7D32" stroke-width="2"/>
+                    <text x="150" y="85" text-anchor="middle" fill="white" font-weight="bold">蓝牙协议栈</text>
+                    
+                    <!-- HCI核心 -->
+                    <rect x="300" y="50" width="200" height="60" rx="10" fill="#2196F3" stroke="#1565C0" stroke-width="2"/>
+                    <text x="400" y="85" text-anchor="middle" fill="white" font-weight="bold">HCI核心层</text>
+                    
+                    <!-- UART驱动 -->
+                    <rect x="550" y="50" width="200" height="60" rx="10" fill="#FF9800" stroke="#EF6C00" stroke-width="2"/>
+                    <text x="650" y="85" text-anchor="middle" fill="white" font-weight="bold">UART传输驱动</text>
+                    
+                    <!-- 硬件层 -->
+                    <rect x="300" y="200" width="200" height="60" rx="10" fill="#9C27B0" stroke="#6A1B9A" stroke-width="2"/>
+                    <text x="400" y="235" text-anchor="middle" fill="white" font-weight="bold">UART硬件控制器</text>
+                    
+                    <!-- 连接线 -->
+                    <path d="M250 80 L300 80" stroke="#666" stroke-width="2" fill="none"/>
+                    <path d="M500 80 L550 80" stroke="#666" stroke-width="2" fill="none"/>
+                    <path d="M400 110 L400 170" stroke="#666" stroke-width="2" fill="none"/>
+                    <path d="M400 170 L400 200" stroke="#666" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+                    
+                    <!-- 数据流向 -->
+                    <text x="275" y="75" text-anchor="middle" fill="#666">HCI命令</text>
+                    <text x="525" y="75" text-anchor="middle" fill="#666">HCI事件</text>
+                    <text x="350" y="145" text-anchor="middle" fill="#666">数据包</text>
+                    
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#666"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+            <p>蓝牙UART传输驱动位于HCI核心层与硬件UART控制器之间，负责协议数据包的封装、解析和流控制。</p>
+        </section>
+        
+        <section class="card">
+            <h2>串口设备注册</h2>
+            <p>在Linux内核中，蓝牙UART设备通过标准的TTY子系统进行注册和管理。</p>
+            
+            <h3>设备注册流程</h3>
+            <ol>
+                <li>定义UART协议操作结构体</li>
+                <li>实现协议特定的打开、关闭、发送函数</li>
+                <li>注册协议驱动到TTY子系统</li>
+                <li>创建设备节点供上层访问</li>
+            </ol>
+            
+            <h3>核心数据结构</h3>
+            <div class="code-block">
+<pre>
+struct hci_uart_proto {
+    int id;
+    const char *name;
+    int (*open)(struct hci_uart *hu);
+    int (*close)(struct hci_uart *hu);
+    int (*flush)(struct hci_uart *hu);
+    int (*recv)(struct hci_uart *hu, const void *data, int len);
+    int (*enqueue)(struct hci_uart *hu, struct sk_buff *skb);
+    struct sk_buff *(*dequeue)(struct hci_uart *hu);
+};
+
+struct hci_uart {
+    struct tty_struct *tty;
+    struct hci_dev *hdev;
+    unsigned long flags;
+    struct work_struct write_work;
+    struct sk_buff_head txq;
+    const struct hci_uart_proto *proto;
+    void *priv;
+};
+</pre>
+            </div>
+            
+            <h3>设备注册示例代码</h3>
+            <div class="code-block">
+<pre>
+static int hci_uart_register_dev(struct hci_uart *hu)
+{
+    struct hci_dev *hdev;
+    
+    hdev = hci_alloc_dev();
+    if (!hdev) {
+        BT_ERR("Can't allocate HCI device");
+        return -ENOMEM;
+    }
+    
+    hu->hdev = hdev;
+    
+    hdev->bus = HCI_UART;
+    hdev->driver_data = hu;
+    
+    hdev->open = hci_uart_open;
+    hdev->close = hci_uart_close;
+    hdev->flush = hci_uart_flush;
+    hdev->send = hci_uart_send_frame;
+    
+    if (hci_register_dev(hdev) < 0) {
+        BT_ERR("Can't register HCI device");
+        hci_free_dev(hdev);
+        return -ENODEV;
+    }
+    
+    return 0;
+}
+</pre>
+            </div>
+        </section>
+        
+        <section class="card">
+            <h2>数据流控制</h2>
+            <p>数据流控制是确保UART传输稳定性的关键技术，防止数据丢失和缓冲区溢出。</p>
+            
+            <div class="flow-control">
+                <div class="flow-item">
+                    <h3>硬件流控</h3>
+                    <p>使用RTS/CTS信号线控制数据流</p>
+                    <ul>
+                        <li>RTS: 请求发送</li>
+                        <li>CTS: 清除发送</li>
+                    </ul>
+                </div>
+                
+                <div class="flow-item">
+                    <h3>软件流控</h3>
+                    <p>使用XON/XOFF字符控制</p>
+                    <ul>
+                        <li>XON: 0x11 (DC1)</li>
+                        <li>XOFF: 0x13 (DC3)</li>
+                    </ul>
+                </div>
+                
+                <div class="flow-item">
+                    <h3>缓冲区管理</h3>
+                    <p>内核缓冲区监控</p>
+                    <ul>
+                        <li>TX缓冲区监控</li>
+                        <li>RX缓冲区监控</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <h3>流控配置代码</h3>
+            <div class="code-block">
+<pre>
+static int hci_uart_set_flow_control(struct hci_uart *hu, bool enable)
+{
+    struct tty_struct *tty = hu->tty;
+    struct ktermios ktermios;
+    int status;
+    unsigned int set = 0;
+    unsigned int clear = 0;
+    
+    if (enable) {
+        /* 启用硬件流控 */
+        set |= (CRTSCTS | CLOCAL);
+    } else {
+        /* 禁用硬件流控 */
+        clear |= (CRTSCTS | CLOCAL);
+    }
+    
+    ktermios = tty->termios;
+    ktermios.c_cflag &= ~clear;
+    ktermios.c_cflag |= set;
+    
+    status = tty_set_termios(tty, &ktermios);
+    if (status)
+        BT_ERR("Failed to set flow control: %d", status);
+    
+    return status;
+}
+</pre>
+            </div>
+        </section>
+        
+        <section class="card">
+            <h2>波特率配置</h2>
+            <p>波特率配置直接影响数据传输的速率和稳定性，需要根据硬件能力和应用需求进行合理配置。</p>
+            
+            <h3>常用波特率标准</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>波特率</th>
+                        <th>适用场景</th>
+                        <th>特点</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>9600</td>
+                        <td>基础配置、调试</td>
+                        <td>兼容性好，稳定性高</td>
+                    </tr>
+                    <tr>
+                        <td>115200</td>
+                        <td>标准蓝牙模块</td>
+                        <td>平衡速度与稳定性</td>
+                    </tr>
+                    <tr>
+                        <td>921600</td>
+                        <td>高速蓝牙传输</td>
+                        <td>高吞吐量，对硬件要求高</td>
+                    </tr>
+                    <tr>
+                        <td>3000000</td>
+                        <td>蓝牙5.0+高速模式</td>
+                        <td>极高速度，需要特殊硬件支持</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>波特率配置实现</h3>
+            <div class="code-block">
+<pre>
+static int hci_uart_set_baudrate(struct hci_uart *hu, unsigned int speed)
+{
+    struct tty_struct *tty = hu->tty;
+    struct ktermios ktermios;
+    int status;
+    
+    ktermios = tty->termios;
+    
+    /* 设置波特率 */
+    tty_termios_encode_baud_rate(&ktermios, speed, speed);
+    
+    /* 配置数据位、停止位、校验位 */
+    ktermios.c_cflag &= ~(CSIZE | PARENB | CSTOPB);
+    ktermios.c_cflag |= (CS8 | CLOCAL | CREAD);
+    
+    /* 禁用软件流控 */
+    ktermios.c_iflag &= ~(IXON | IXOFF | IXANY);
+    
+    /* 设置原始模式 */
+    ktermios.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
+    ktermios.c_oflag &= ~OPOST;
+    
+    status = tty_set_termios(tty, &ktermios);
+    if (status) {
+        BT_ERR("Failed to set baud rate %u: %d", speed, status);
+        return status;
+    }
+    
+    BT_INFO("UART baud rate set to %u", speed);
+    return 0;
+}
+</pre>
+            </div>
+            
+            <h3>自适应波特率配置</h3>
+            <div class="code-block">
+<pre>
+static int hci_uart_setup_adaptive_baudrate(struct hci_uart *hu)
+{
+    unsigned int baud_rates[] = {3000000, 1500000, 921600, 115200, 9600};
+    int i, ret;
+    
+    for (i = 0; i < ARRAY_SIZE(baud_rates); i++) {
+        ret = hci_uart_set_baudrate(hu, baud_rates[i]);
+        if (ret == 0) {
+            /* 发送测试命令验证连接 */
+            if (hci_uart_test_connection(hu)) {
+                BT_INFO("Adaptive baud rate: %u", baud_rates[i]);
+                return 0;
+            }
+        }
+    }
+    
+    return -EIO;
+}
+</pre>
+            </div>
+        </section>
+        
+        <section class="card">
+            <h2>完整驱动示例</h2>
+            <p>以下是一个简化的蓝牙UART传输驱动实现示例：</p>
+            
+            <div class="code-block">
+<pre>
+#include &lt;linux/kernel.h&gt;
+#include &lt;linux/module.h&gt;
+#include &lt;linux/tty.h&gt;
+#include &lt;net/bluetooth/bluetooth.h&gt;
+#include &lt;net/bluetooth/hci_core.h&gt;
+
+static struct hci_uart_proto hu_proto = {
+    .id = HCI_UART_H4,
+    .name = "HCI UART Protocol",
+    .open = hci_uart_h4_open,
+    .close = hci_uart_h4_close,
+    .recv = hci_uart_h4_recv,
+    .enqueue = hci_uart_h4_enqueue,
+    .dequeue = hci_uart_h4_dequeue,
+};
+
+static int __init hci_uart_init(void)
+{
+    int err;
+    
+    /* 注册UART协议 */
+    err = hci_uart_register_proto(&hu_proto);
+    if (err) {
+        BT_ERR("HCI UART protocol registration failed");
+        return err;
+    }
+    
+    /* 注册TTY线路规程 */
+    err = tty_register_ldisc(N_HCI, &hci_uart_ldisc);
+    if (err) {
+        BT_ERR("HCI line discipline registration failed");
+        hci_uart_unregister_proto(&hu_proto);
+        return err;
+    }
+    
+    BT_INFO("HCI UART driver initialized");
+    return 0;
+}
+
+static void __exit hci_uart_exit(void)
+{
+    /* 注销TTY线路规程 */
+    tty_unregister_ldisc(N_HCI);
+    
+    /* 注销UART协议 */
+    hci_uart_unregister_proto(&hu_proto);
+    
+    BT_INFO("HCI UART driver exited");
+}
+
+module_init(hci_uart_init);
+module_exit(hci_uart_exit);
+
+MODULE_AUTHOR("BlueOcean Mining Camp");
+MODULE_DESCRIPTION("Bluetooth HCI UART driver");
+MODULE_VERSION("1.0");
+MODULE_LICENSE("GPL");
+</pre>
+            </div>
+        </section>
+        
+        <section class="card">
+            <h2>调试与故障排除</h2>
+            <h3>常见问题及解决方案</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>问题现象</th>
+                        <th>可能原因</th>
+                        <th>解决方案</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>数据传输不稳定</td>
+                        <td>波特率不匹配、流控未启用</td>
+                        <td>检查波特率配置，启用硬件流控</td>
+                    </tr>
+                    <tr>
+                        <td>数据包丢失</td>
+                        <td>缓冲区溢出、DMA配置错误</td>
+                        <td>增大缓冲区，检查DMA设置</td>
+                    </tr>
+                    <tr>
+                        <td>设备无法识别</td>
+                        <td>设备树配置错误、电源管理问题</td>
+                        <td>检查设备树节点，验证电源状态</td>
+                    </tr>
+                    <tr>
+                        <td>性能低下</td>
+                        <td>中断处理延迟、调度策略不当</td>
+                        <td>优化中断处理，调整任务优先级</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>调试技巧</h3>
+            <ul>
+                <li>使用 <span class="highlight">dmesg</span> 查看内核日志</li>
+                <li>启用蓝牙调试信息：<span class="highlight">echo 1 > /sys/module/bluetooth/parameters/debug</span></li>
+                <li>使用 <span class="highlight">hcidump</span> 工具捕获HCI数据包</li>
+                <li>检查TTY设备状态：<span class="highlight">stty -F /dev/ttyS0</span></li>
+            </ul>
+        </section>
+        
+        <footer>
+            <p>蓝海资料掘金营 © 2024 - Linux内核蓝牙驱动开发实战课程</p>
+        </footer>
+    </div>
+</body>
+</html>

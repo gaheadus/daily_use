@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蓝牙驱动并发控制 - Linux内核蓝牙驱动开发实战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #f9fbe7 50%, #e8f5e9 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px dashed #4db6ac;
+        }
+
+        .header h1 {
+            color: #00695c;
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .header p {
+            color: #00796b;
+            font-size: 1.2rem;
+        }
+
+        .section {
+            margin-bottom: 50px;
+            padding: 25px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .section:hover {
+            transform: translateY(-5px);
+        }
+
+        .section-title {
+            color: #00897b;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #80cbc4;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title svg {
+            margin-right: 10px;
+        }
+
+        .content {
+            font-size: 1.1rem;
+            color: #424242;
+        }
+
+        .content p {
+            margin-bottom: 15px;
+        }
+
+        .content ul, .content ol {
+            margin-left: 25px;
+            margin-bottom: 20px;
+        }
+
+        .content li {
+            margin-bottom: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0f2f1;
+        }
+
+        th {
+            background-color: #4db6ac;
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #e0f2f1;
+        }
+
+        tr:hover {
+            background-color: #b2dfdb;
+        }
+
+        pre {
+            background-color: #f5f5f5;
+            border-left: 4px solid #4db6ac;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            background-color: #f1f8e9;
+            padding: 2px 5px;
+            border-radius: 3px;
+            color: #33691e;
+        }
+
+        .diagram {
+            display: flex;
+            justify-content: center;
+            margin: 25px 0;
+        }
+
+        .diagram svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px dashed #4db6ac;
+            color: #00796b;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .tip-box {
+            background-color: #e8f5e9;
+            border-left: 5px solid #4caf50;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .warning-box {
+            background-color: #fff3e0;
+            border-left: 5px solid #ff9800;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .comparison-table {
+            background-color: #f1f8e9;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .comparison-table h3 {
+            color: #33691e;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>蓝牙驱动并发控制</h1>
+            <p>Linux内核蓝牙驱动开发实战 - 第32课</p>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 5.5V7H9V5.5L3 7V9L9 10.5V12.5L3 14V16L9 17.5V22H15V17.5L21 16V14L15 12.5V10.5L21 9Z" fill="#00897b"/>
+                </svg>
+                并发控制概述
+            </h2>
+            <div class="content">
+                <p>在Linux内核蓝牙驱动开发中，并发控制是确保多线程、多处理器环境下数据一致性和系统稳定性的关键技术。蓝牙驱动需要处理来自多个来源的并发访问，包括：</p>
+                <ul>
+                    <li>用户空间应用程序的多个实例</li>
+                    <li>中断处理程序</li>
+                    <li>内核定时器</li>
+                    <li>工作队列</li>
+                    <li>多个CPU核心</li>
+                </ul>
+                <p>不正确的并发控制会导致数据竞争、死锁、系统崩溃等严重问题。</p>
+                
+                <div class="diagram">
+                    <svg width="600" height="200" viewBox="0 0 600 200" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="50" y="50" width="100" height="60" rx="5" fill="#4db6ac" opacity="0.8"/>
+                        <text x="100" y="85" text-anchor="middle" fill="white" font-weight="bold">用户空间</text>
+                        <rect x="200" y="50" width="100" height="60" rx="5" fill="#80cbc4" opacity="0.8"/>
+                        <text x="250" y="85" text-anchor="middle" fill="white" font-weight="bold">中断处理</text>
+                        <rect x="350" y="50" width="100" height="60" rx="5" fill="#26a69a" opacity="0.8"/>
+                        <text x="400" y="85" text-anchor="middle" fill="white" font-weight="bold">定时器</text>
+                        <rect x="450" y="120" width="100" height="60" rx="5" fill="#00897b" opacity="0.8"/>
+                        <text x="500" y="155" text-anchor="middle" fill="white" font-weight="bold">工作队列</text>
+                        
+                        <ellipse cx="300" cy="150" rx="150" ry="70" fill="none" stroke="#ff9800" stroke-width="2" stroke-dasharray="5,5"/>
+                        <text x="300" y="155" text-anchor="middle" fill="#ff9800" font-weight="bold">共享数据结构</text>
+                        
+                        <line x1="100" y1="110" x2="180" y2="140" stroke="#795548" stroke-width="2"/>
+                        <line x1="250" y1="110" x2="220" y2="140" stroke="#795548" stroke-width="2"/>
+                        <line x1="400" y1="110" x2="320" y2="140" stroke="#795548" stroke-width="2"/>
+                        <line x1="500" y1="120" x2="380" y2="140" stroke="#795548" stroke-width="2"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 1L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 1ZM12 7C13.1 7 14 7.9 14 9C14 10.1 13.1 11 12 11C10.9 11 10 10.1 10 9C10 7.9 10.9 7 12 7ZM16 17.2C16 18.2 15.2 19 14.2 19H9.8C8.8 19 8 18.2 8 17.2V16.2C8 15.2 8.8 14.4 9.8 14.4H14.2C15.2 14.4 16 15.2 16 16.2V17.2Z" fill="#00897b"/>
+                </svg>
+                自旋锁使用
+            </h2>
+            <div class="content">
+                <p>自旋锁是一种忙等待的锁机制，适用于短时间持有的临界区。当线程无法获取锁时，会一直循环检查锁状态，而不是进入睡眠状态。</p>
+                
+                <h3>自旋锁的特点：</h3>
+                <ul>
+                    <li>适用于多处理器系统</li>
+                    <li>临界区执行时间很短</li>
+                    <li>不能在中断上下文之外睡眠</li>
+                    <li>获取锁失败时不会让出CPU</li>
+                </ul>
+                
+                <div class="comparison-table">
+                    <h3>自旋锁API函数</h3>
+                    <table>
+                        <tr>
+                            <th>函数</th>
+                            <th>描述</th>
+                            <th>使用场景</th>
+                        </tr>
+                        <tr>
+                            <td><code>spin_lock_init()</code></td>
+                            <td>初始化自旋锁</td>
+                            <td>驱动初始化时</td>
+                        </tr>
+                        <tr>
+                            <td><code>spin_lock()</code></td>
+                            <td>获取自旋锁</td>
+                            <td>进入临界区前</td>
+                        </tr>
+                        <tr>
+                            <td><code>spin_unlock()</code></td>
+                            <td>释放自旋锁</td>
+                            <td>离开临界区时</td>
+                        </tr>
+                        <tr>
+                            <td><code>spin_lock_irqsave()</code></td>
+                            <td>保存中断状态并获取锁</td>
+                            <td>可能被中断处理程序访问的临界区</td>
+                        </tr>
+                        <tr>
+                            <td><code>spin_unlock_irqrestore()</code></td>
+                            <td>恢复中断状态并释放锁</td>
+                            <td>与spin_lock_irqsave配对使用</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <h3>蓝牙驱动中的自旋锁示例：</h3>
+                <pre><code>#include &lt;linux/spinlock.h&gt;
+
+/* 定义自旋锁 */
+static DEFINE_SPINLOCK(bt_dev_lock);
+
+/* 设备数据结构 */
+struct bt_device {
+    struct hci_dev *hdev;
+    unsigned long flags;
+    // 其他字段...
+};
+
+/* 在中断处理程序中使用自旋锁 */
+irqreturn_t bt_interrupt_handler(int irq, void *dev_id)
+{
+    struct bt_device *dev = dev_id;
+    unsigned long flags;
+    
+    /* 获取自旋锁并保存中断状态 */
+    spin_lock_irqsave(&bt_dev_lock, flags);
+    
+    /* 访问共享数据 */
+    if (test_bit(HCI_RUNNING, &dev->flags)) {
+        // 处理中断事件
+    }
+    
+    /* 释放自旋锁并恢复中断状态 */
+    spin_unlock_irqrestore(&bt_dev_lock, flags);
+    
+    return IRQ_HANDLED;
+}
+
+/* 在普通上下文中使用自旋锁 */
+void bt_update_device_state(struct bt_device *dev, int state)
+{
+    unsigned long flags;
+    
+    spin_lock_irqsave(&bt_dev_lock, flags);
+    dev->flags = state;
+    spin_unlock_irqrestore(&bt_dev_lock, flags);
+}</code></pre>
+                
+                <div class="warning-box">
+                    <strong>注意：</strong> 自旋锁不能长时间持有，否则会导致其他CPU核心空转，降低系统性能。在单处理器非抢占式内核中，自旋锁退化为空操作。
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17 7H7C5.9 7 5 7.9 5 9V19C5 20.1 5.9 21 7 21H17C18.1 21 19 20.1 19 19V9C19 7.9 18.1 7 17 7ZM17 19H7V9H17V19ZM12 12C13.1 12 14 11.1 14 10C14 8.9 13.1 8 12 8C10.9 8 10 8.9 10 10C10 11.1 10.9 12 12 12Z" fill="#00897b"/>
+                </svg>
+                互斥锁保护
+            </h2>
+            <div class="content">
+                <p>互斥锁是一种睡眠锁，当线程无法获取锁时会进入睡眠状态，让出CPU给其他线程。适用于可能长时间持有的临界区。</p>
+                
+                <h3>互斥锁的特点：</h3>
+                <ul>
+                    <li>适用于单处理器和多处理器系统</li>
+                    <li>临界区执行时间可能较长</li>
+                    <li>获取锁失败时线程会睡眠</li>
+                    <li>不能在中断上下文使用</li>
+                    <li>同一时间只能有一个线程持有锁</li>
+                </ul>
+                
+                <div class="comparison-table">
+                    <h3>互斥锁API函数</h3>
+                    <table>
+                        <tr>
+                            <th>函数</th>
+                            <th>描述</th>
+                            <th>使用场景</th>
+                        </tr>
+                        <tr>
+                            <td><code>mutex_init()</code></td>
+                            <td>初始化互斥锁</td>
+                            <td>驱动初始化时</td>
+                        </tr>
+                        <tr>
+                            <td><code>mutex_lock()</code></td>
+                            <td>获取互斥锁</td>
+                            <td>进入临界区前</td>
+                        </tr>
+                        <tr>
+                            <td><code>mutex_unlock()</code></td>
+                            <td>释放互斥锁</td>
+                            <td>离开临界区时</td>
+                        </tr>
+                        <tr>
+                            <td><code>mutex_trylock()</code></td>
+                            <td>尝试获取互斥锁</td>
+                            <td>非阻塞方式获取锁</td>
+                        </tr>
+                        <tr>
+                            <td><code>mutex_is_locked()</code></td>
+                            <td>检查互斥锁是否被持有</td>
+                            <td>调试和状态检查</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <h3>蓝牙驱动中的互斥锁示例：</h3>
+                <pre><code>#include &lt;linux/mutex.h&gt;
+
+/* 定义互斥锁 */
+static DEFINE_MUTEX(bt_driver_mutex);
+
+/* 蓝牙驱动主要数据结构 */
+struct bt_driver {
+    struct mutex lock;
+    struct list_head devices;
+    int device_count;
+    // 其他字段...
+};
+
+/* 初始化互斥锁 */
+static int bt_driver_init(void)
+{
+    struct bt_driver *drv = kzalloc(sizeof(*drv), GFP_KERNEL);
+    if (!drv)
+        return -ENOMEM;
+    
+    mutex_init(&drv->lock);
+    INIT_LIST_HEAD(&drv->devices);
+    drv->device_count = 0;
+    
+    return 0;
+}
+
+/* 使用互斥锁保护设备列表 */
+int bt_add_device(struct bt_driver *drv, struct bt_device *dev)
+{
+    int ret = 0;
+    
+    /* 获取互斥锁 */
+    mutex_lock(&drv->lock);
+    
+    /* 检查设备是否已存在 */
+    if (drv->device_count >= MAX_DEVICES) {
+        ret = -ENOSPC;
+        goto out;
+    }
+    
+    /* 添加设备到列表 */
+    list_add_tail(&dev->list, &drv->devices);
+    drv->device_count++;
+    
+out:
+    /* 释放互斥锁 */
+    mutex_unlock(&drv->lock);
+    return ret;
+}
+
+/* 遍历设备列表 */
+void bt_list_devices(struct bt_driver *drv)
+{
+    struct bt_device *dev;
+    
+    mutex_lock(&drv->lock);
+    
+    list_for_each_entry(dev, &drv->devices, list) {
+        printk(KERN_INFO "BT Device: %s\n", dev->name);
+    }
+    
+    mutex_unlock(&drv->lock);
+}</code></pre>
+                
+                <div class="tip-box">
+                    <strong>最佳实践：</strong> 使用互斥锁时，应确保锁的持有时间尽可能短，避免长时间持有导致其他线程长时间等待。同时要注意避免死锁情况。
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.58 20 4 16.42 4 12C4 7.58 7.58 4 12 4C16.42 4 20 7.58 20 12C20 16.42 16.42 20 12 20ZM13 7H11V11H7V13H11V17H13V13H17V11H13V7Z" fill="#00897b"/>
+                </svg>
+                RCU读写锁应用
+            </h2>
+            <div class="content">
+                <p>RCU（Read-Copy-Update）是一种无锁读取的同步机制，适用于读多写少的场景。读者不需要获取锁，可以并发访问数据，而写者需要复制数据并原子替换。</p>
+                
+                <h3>RCU的特点：</h3>
+                <ul>
+                    <li>读者无锁，性能极高</li>
+                    <li>适用于读多写少的场景</li>
+                    <li>写者操作相对复杂</li>
+                    <li>需要垃圾回收机制</li>
+                    <li>不能保护所有类型的数据结构</li>
+                </ul>
+                
+                <div class="comparison-table">
+                    <h3>RCU API函数</h3>
+                    <table>
+                        <tr>
+                            <th>函数</th>
+                            <th>描述</th>
+                            <th>使用场景</th>
+                        </tr>
+                        <tr>
+                            <td><code>rcu_read_lock()</code></td>
+                            <td>标记RCU读临界区开始</td>
+                            <td>读者进入临界区</td>
+                        </tr>
+                        <tr>
+                            <td><code>rcu_read_unlock()</code></td>
+                            <td>标记RCU读临界区结束</td>
+                            <td>读者离开临界区</td>
+                        </tr>
+                        <tr>
+                            <td><code>synchronize_rcu()</code></td>
+                            <td>等待所有读者退出临界区</td>
+                            <td>写者更新数据后</td>
+                        </tr>
+                        <tr>
+                            <td><code>call_rcu()</code></td>
+                            <td>注册回调函数延迟释放内存</td>
+                            <td>异步内存回收</td>
+                        </tr>
+                        <tr>
+                            <td><code>rcu_assign_pointer()</code></td>
+                            <td>原子更新指针</td>
+                            <td>写者发布新数据</td>
+                        </tr>
+                        <tr>
+                            <td><code>rcu_dereference()</code></td>
+                            <td>安全解引用RCU保护的指针</td>
+                            <td>读者访问数据</td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <h3>蓝牙驱动中的RCU示例：</h3>
+                <pre><code>#include &lt;linux/rcupdate.h&gt;
+
+/* RCU保护的设备列表 */
+struct bt_device_list {
+    struct rcu_head rcu;
+    struct list_head devices;
+    int count;
+};
+
+static struct bt_device_list *bt_global_list;
+
+/* RCU读者 - 查找设备 */
+struct bt_device *bt_find_device(int dev_id)
+{
+    struct bt_device *dev = NULL;
+    struct bt_device_list *list;
+    
+    /* 进入RCU读临界区 */
+    rcu_read_lock();
+    
+    list = rcu_dereference(bt_global_list);
+    if (!list)
+        goto out;
+    
+    /* 遍历设备列表 */
+    list_for_each_entry_rcu(dev, &list->devices, list) {
+        if (dev->id == dev_id)
+            break;
+    }
+    
+    /* 如果没找到，设置为NULL */
+    if (&dev->list == &list->devices)
+        dev = NULL;
+
+out:
+    /* 退出RCU读临界区 */
+    rcu_read_unlock();
+    return dev;
+}
+
+/* RCU写者 - 更新设备列表 */
+int bt_update_device_list(struct bt_device *new_dev)
+{
+    struct bt_device_list *new_list, *old_list;
+    
+    /* 分配新列表 */
+    new_list = kmalloc(sizeof(*new_list), GFP_KERNEL);
+    if (!new_list)
+        return -ENOMEM;
+    
+    /* 复制旧数据并添加新设备 */
+    old_list = rcu_dereference_protected(bt_global_list, 
+                                        lockdep_is_held(&bt_driver_mutex));
+    if (old_list) {
+        /* 复制现有设备 */
+        // 这里简化处理，实际需要深拷贝
+        new_list->count = old_list->count + 1;
+        INIT_LIST_HEAD(&new_list->devices);
+        list_add_tail(&new_dev->list, &new_list->devices);
+    } else {
+        new_list->count = 1;
+        INIT_LIST_HEAD(&new_list->devices);
+        list_add_tail(&new_dev->list, &new_list->devices);
+    }
+    
+    /* 原子替换全局指针 */
+    rcu_assign_pointer(bt_global_list, new_list);
+    
+    /* 等待所有读者完成 */
+    synchronize_rcu();
+    
+    /* 释放旧列表 */
+    if (old_list)
+        kfree_rcu(old_list, rcu);
+    
+    return 0;
+}
+
+/* 使用call_rcu异步释放 */
+void bt_free_device_rcu(struct rcu_head *rcu)
+{
+    struct bt_device *dev = container_of(rcu, struct bt_device, rcu);
+    
+    /* 释放设备资源 */
+    kfree(dev->name);
+    kfree(dev);
+}
+
+void bt_remove_device(struct bt_device *dev)
+{
+    /* 从列表中移除设备 */
+    // ... 列表操作代码
+    
+    /* 异步释放设备内存 */
+    call_rcu(&dev->rcu, bt_free_device_rcu);
+}</code></pre>
+                
+                <div class="diagram">
+                    <svg width="600" height="300" viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
+                        <!-- 读者 -->
+                        <rect x="50" y="50" width="120" height="40" rx="5" fill="#4db6ac"/>
+                        <text x="110" y="75" text-anchor="middle" fill="white" font-weight="bold">读者1</text>
+                        <rect x="50" y="100" width="120" height="40" rx="5" fill="#4db6ac"/>
+                        <text x="110" y="125" text-anchor="middle" fill="white" font-weight="bold">读者2</text>
+                        <rect x="50" y="150" width="120" height="40" rx="5" fill="#4db6ac"/>
+                        <text x="110" y="175" text-anchor="middle" fill="white" font-weight="bold">读者3</text>
+                        
+                        <!-- 数据 -->
+                        <rect x="250" y="80" width="200" height="140" rx="10" fill="#80cbc4"/>
+                        <text x="350" y="160" text-anchor="middle" fill="white" font-weight="bold" font-size="18">共享数据</text>
+                        
+                        <!-- 写者 -->
+                        <rect x="500" y="100" width="120" height="40" rx="5" fill="#00897b"/>
+                        <text x="560" y="125" text-anchor="middle" fill="white" font-weight="bold">写者</text>
+                        
+                        <!-- 连接线 -->
+                        <line x1="170" y1="70" x2="250" y2="110" stroke="#795548" stroke-width="2"/>
+                        <line x1="170" y1="120" x2="250" y2="140" stroke="#795548" stroke-width="2"/>
+                        <line x1="170" y1="170" x2="250" y2="170" stroke="#795548" stroke-width="2"/>
+                        <line x1="450" y1="150" x2="500" y2="120" stroke="#795548" stroke-width="2"/>
+                        
+                        <!-- RCU说明 -->
+                        <text x="350" y="230" text-anchor="middle" fill="#00695c" font-weight="bold">
+                            读者无锁访问 | 写者复制更新 | 延迟释放
+                        </text>
+                    </svg>
+                </div>
+                
+                <div class="tip-box">
+                    <strong>RCU适用场景：</strong> 在蓝牙驱动中，RCU特别适用于设备列表、连接状态表等读多写少的数据结构。可以显著提高多核环境下的读取性能。
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2 class="section-title">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 16.17L4.83 12L3.41 13.41L9 19L21 7L19.59 5.59L9 16.17Z" fill="#00897b"/>
+                </svg>
+                锁机制选择指南
+            </h2>
+            <div class="content">
+                <p>在蓝牙驱动开发中，选择合适的锁机制对性能和正确性至关重要。以下是选择指南：</p>
+                
+                <table>
+                    <tr>
+                        <th>场景</th>
+                        <th>推荐锁机制</th>
+                        <th>理由</th>
+                        <th>注意事项</th>
+                    </tr>
+                    <tr>
+                        <td>中断处理程序</td>
+                        <td>自旋锁</td>
+                        <td>中断上下文不能睡眠</td>
+                        <td>使用_irqsave变体</td>
+                    </tr>
+                    <tr>
+                        <td>短时间临界区</td>
+                        <td>自旋锁</td>
+                        <td>避免上下文切换开销</td>
+                        <td>持有时间应非常短</td>
+                    </tr>
+                    <tr>
+                        <td>长时间临界区</td>
+                        <td>互斥锁</td>
+                        <td>避免CPU空转</td>
+                        <td>注意死锁可能性</td>
+                    </tr>
+                    <tr>
+                        <td>读多写少的数据</td>
+                        <td>RCU</td>
+                        <td>读者无锁，性能高</td>
+                        <td>写者操作复杂</td>
+                    </tr>
+                    <tr>
+                        <td>读写比例均衡</td>
+                        <td>读写信号量</td>
+                        <td>平衡读写性能</td>
+                        <td>读者也可能阻塞</td>
+                    </tr>
+                    <tr>
+                        <td>简单的计数器</td>
+                        <td>原子操作</td>
+                        <td>无锁，性能最佳</td>
+                        <td>只适用于简单操作</td>
+                    </tr>
+                </table>
+                
+                <h3>蓝牙驱动中的综合示例：</h3>
+                <pre><code>/* 蓝牙驱动中的综合锁使用 */
+struct bt_adapter {
+    /* 用于保护设备状态变化 */
+    spinlock_t state_lock;
+    
+    /* 用于保护配置操作 */
+    struct mutex config_mutex;
+    
+    /* RCU保护的连接列表 */
+    struct list_head connections;
+    
+    /* 原子操作保护的统计计数器 */
+    atomic_t packet_count;
+    
+    // 其他字段...
+};
+
+/* 初始化所有锁 */
+static int bt_adapter_init(struct bt_adapter *adapter)
+{
+    spin_lock_init(&adapter->state_lock);
+    mutex_init(&adapter->config_mutex);
+    INIT_LIST_HEAD(&adapter->connections);
+    atomic_set(&adapter->packet_count, 0);
+    
+    return 0;
+}
+
+/* 处理数据包 - 使用合适的锁 */
+void bt_handle_packet(struct bt_adapter *adapter, struct sk_buff *skb)
+{
+    unsigned long flags;
+    
+    /* 更新统计 - 使用原子操作 */
+    atomic_inc(&adapter->packet_count);
+    
+    /* 修改设备状态 - 使用自旋锁 */
+    spin_lock_irqsave(&adapter->state_lock, flags);
+    adapter->last_packet_time = jiffies;
+    spin_unlock_irqrestore(&adapter->state_lock, flags);
+    
+    /* 配置更改 - 使用互斥锁 */
+    mutex_lock(&adapter->config_mutex);
+    if (adapter->reconfig_pending) {
+        bt_apply_new_config(adapter);
+        adapter->reconfig_pending = false;
+    }
+    mutex_unlock(&adapter->config_mutex);
+    
+    /* 查找连接 - 使用RCU */
+    rcu_read_lock();
+    bt_find_and_process_connection(adapter, skb);
+    rcu_read_unlock();
+}</code></pre>
+                
+                <div class="warning-box">
+                    <strong>重要提醒：</strong> 避免在持有自旋锁时调用可能睡眠的函数，这会导致死锁。同时要注意锁的粒度，过细的锁会增加复杂性，过粗的锁会降低并发性。
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            蓝海资料掘金营
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蓝牙SDIO传输驱动 - Linux内核蓝牙驱动开发实战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #bbdefb 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #4fc3f7 0%, #29b6f6 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            border-bottom: 5px solid #0288d1;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        nav {
+            background: #01579b;
+            padding: 15px;
+        }
+
+        nav ul {
+            display: flex;
+            justify-content: center;
+            list-style: none;
+            flex-wrap: wrap;
+        }
+
+        nav li {
+            margin: 0 15px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 8px 15px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+        nav a:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        section {
+            margin-bottom: 40px;
+            padding: 25px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid #4fc3f7;
+        }
+
+        h2 {
+            color: #0277bd;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px dashed #81d4fa;
+        }
+
+        h3 {
+            color: #0288d1;
+            margin: 15px 0 10px;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e1f5fe;
+        }
+
+        th {
+            background-color: #4fc3f7;
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #e1f5fe;
+        }
+
+        tr:hover {
+            background-color: #b3e5fc;
+        }
+
+        .code-block {
+            background: #f5f5f5;
+            border-left: 4px solid #4fc3f7;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+            overflow-x: auto;
+        }
+
+        pre {
+            white-space: pre-wrap;
+            font-family: 'Consolas', 'Monaco', monospace;
+            line-height: 1.4;
+        }
+
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .architecture {
+            background: #f8fdff;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #b3e5fc;
+        }
+
+        footer {
+            background: linear-gradient(135deg, #01579b 0%, #0277bd 100%);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: 30px;
+            font-size: 1.1em;
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, #e1f5fe 0%, #b3e5fc 100%);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .note {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .tip {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>蓝牙SDIO传输驱动开发</h1>
+            <p class="subtitle">SDIO设备识别、命令传输机制、数据传输流程</p>
+        </header>
+
+        <nav>
+            <ul>
+                <li><a href="#intro">课程简介</a></li>
+                <li><a href="#sdio-basic">SDIO基础</a></li>
+                <li><a href="#device-identify">设备识别</a></li>
+                <li><a href="#command-trans">命令传输</a></li>
+                <li><a href="#data-trans">数据传输</a></li>
+                <li><a href="#code-demo">代码示例</a></li>
+                <li><a href="#summary">总结</a></li>
+            </ul>
+        </nav>
+
+        <div class="content">
+            <section id="intro">
+                <h2>课程简介</h2>
+                <p>本课程深入探讨Linux内核中蓝牙SDIO传输驱动的开发，重点讲解SDIO设备的识别机制、命令传输协议以及数据传输流程。通过本课程，您将掌握如何开发稳定高效的蓝牙SDIO驱动，为嵌入式设备添加蓝牙功能。</p>
+                
+                <div class="svg-container">
+                    <svg width="600" height="120" viewBox="0 0 600 120">
+                        <rect x="10" y="10" width="580" height="100" rx="10" fill="#e1f5fe" stroke="#4fc3f7" stroke-width="2"/>
+                        <text x="300" y="45" text-anchor="middle" font-family="Arial" font-size="16" fill="#0277bd">蓝牙SDIO驱动架构</text>
+                        <rect x="50" y="60" width="100" height="30" rx="5" fill="#4fc3f7" stroke="#0277bd"/>
+                        <text x="100" y="78" text-anchor="middle" font-family="Arial" font-size="12" fill="white">HCI层</text>
+                        <rect x="180" y="60" width="100" height="30" rx="5" fill="#29b6f6" stroke="#0277bd"/>
+                        <text x="230" y="78" text-anchor="middle" font-family="Arial" font-size="12" fill="white">SDIO核心</text>
+                        <rect x="310" y="60" width="100" height="30" rx="5" fill="#81d4fa" stroke="#0277bd"/>
+                        <text x="360" y="78" text-anchor="middle" font-family="Arial" font-size="12" fill="white">主机控制器</text>
+                        <rect x="440" y="60" width="100" height="30" rx="5" fill="#b3e5fc" stroke="#0277bd"/>
+                        <text x="490" y="78" text-anchor="middle" font-family="Arial" font-size="12" fill="white">硬件设备</text>
+                        <line x1="150" y1="75" x2="180" y2="75" stroke="#0277bd" stroke-width="2"/>
+                        <line x1="280" y1="75" x2="310" y2="75" stroke="#0277bd" stroke-width="2"/>
+                        <line x1="410" y1="75" x2="440" y2="75" stroke="#0277bd" stroke-width="2"/>
+                    </svg>
+                </div>
+            </section>
+
+            <section id="sdio-basic">
+                <h2>SDIO基础知识</h2>
+                <p>SDIO（Secure Digital Input Output）是在SD存储卡标准基础上扩展的接口标准，用于连接各种I/O设备，包括蓝牙、Wi-Fi、GPS等模块。</p>
+                
+                <h3>SDIO主要特点</h3>
+                <ul>
+                    <li><span class="highlight">高速数据传输</span>：支持最高104MB/s的传输速率</li>
+                    <li><span class="highlight">低功耗</span>：支持多种功耗模式</li>
+                    <li><span class="highlight">热插拔</span>：支持设备的热插拔功能</li>
+                    <li><span class="highlight">多设备支持</span>：一个主机可连接多个SDIO设备</li>
+                </ul>
+                
+                <h3>SDIO与蓝牙的结合</h3>
+                <p>蓝牙SDIO设备通过SDIO接口与主机通信，将蓝牙协议栈运行在主机上，而蓝牙射频功能由SDIO设备实现。</p>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>特性</th>
+                            <th>SDIO蓝牙</th>
+                            <th>USB蓝牙</th>
+                            <th>UART蓝牙</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>传输速率</td>
+                            <td>高</td>
+                            <td>高</td>
+                            <td>低</td>
+                        </tr>
+                        <tr>
+                            <td>功耗</td>
+                            <td>低</td>
+                            <td>中</td>
+                            <td>低</td>
+                        </tr>
+                        <tr>
+                            <td>成本</td>
+                            <td>中</td>
+                            <td>低</td>
+                            <td>低</td>
+                        </tr>
+                        <tr>
+                            <td>适用场景</td>
+                            <td>移动设备、嵌入式系统</td>
+                            <td>桌面电脑、笔记本电脑</td>
+                            <td>简单嵌入式设备</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="device-identify">
+                <h2>SDIO设备识别</h2>
+                <p>SDIO设备识别是驱动开发的第一步，Linux内核提供了完整的SDIO子系统来管理设备识别和初始化。</p>
+                
+                <h3>设备识别流程</h3>
+                <ol>
+                    <li><span class="highlight">设备探测</span>：SDIO主机控制器检测到设备插入</li>
+                    <li><span class="highlight">设备初始化</span>：读取设备CID、CSD等寄存器信息</li>
+                    <li><span class="highlight">功能识别</span>：读取功能基本寄存器(FBR)识别设备类型</li>
+                    <li><span class="highlight">驱动匹配</span>：根据设备ID与驱动进行匹配</li>
+                    <li><span class="highlight">驱动加载</span>：调用驱动的probe函数进行初始化</li>
+                </ol>
+                
+                <div class="svg-container">
+                    <svg width="500" height="300" viewBox="0 0 500 300">
+                        <rect x="50" y="30" width="400" height="240" rx="10" fill="#f5f5f5" stroke="#ccc" stroke-width="1"/>
+                        <text x="250" y="50" text-anchor="middle" font-family="Arial" font-size="14" fill="#333">SDIO设备识别流程</text>
+                        
+                        <rect x="100" y="70" width="300" height="30" rx="5" fill="#e3f2fd"/>
+                        <text x="250" y="90" text-anchor="middle" font-family="Arial" font-size="12" fill="#1565c0">1. 设备插入检测</text>
+                        
+                        <rect x="100" y="110" width="300" height="30" rx="5" fill="#e3f2fd"/>
+                        <text x="250" y="130" text-anchor="middle" font-family="Arial" font-size="12" fill="#1565c0">2. 读取CID/CSD寄存器</text>
+                        
+                        <rect x="100" y="150" width="300" height="30" rx="5" fill="#e3f2fd"/>
+                        <text x="250" y="170" text-anchor="middle" font-family="Arial" font-size="12" fill="#1565c0">3. 识别功能类型</text>
+                        
+                        <rect x="100" y="190" width="300" height="30" rx="5" fill="#e3f2fd"/>
+                        <text x="250" y="210" text-anchor="middle" font-family="Arial" font-size="12" fill="#1565c0">4. 驱动匹配与加载</text>
+                        
+                        <rect x="100" y="230" width="300" height="30" rx="5" fill="#e3f2fd"/>
+                        <text x="250" y="250" text-anchor="middle" font-family="Arial" font-size="12" fill="#1565c0">5. 设备初始化完成</text>
+                        
+                        <line x1="250" y1="100" x2="250" y2="110" stroke="#1565c0" stroke-width="2"/>
+                        <line x1="250" y1="140" x2="250" y2="150" stroke="#1565c0" stroke-width="2"/>
+                        <line x1="250" y1="180" x2="250" y2="190" stroke="#1565c0" stroke-width="2"/>
+                        <line x1="250" y1="220" x2="250" y2="230" stroke="#1565c0" stroke-width="2"/>
+                    </svg>
+                </div>
+                
+                <div class="note">
+                    <p><strong>注意：</strong>SDIO设备识别过程中需要正确处理设备的电源状态，确保设备在识别过程中处于正确的工作状态。</p>
+                </div>
+            </section>
+
+            <section id="command-trans">
+                <h2>命令传输机制</h2>
+                <p>SDIO命令传输是主机与设备之间控制信息交换的核心机制，通过CMD线发送命令和接收响应。</p>
+                
+                <h3>命令类型</h3>
+                <ul>
+                    <li><span class="highlight">广播命令</span>：发送给所有连接设备的命令</li>
+                    <li><span class="highlight">寻址命令</span>：发送给特定设备的命令</li>
+                    <li><span class="highlight">点对点命令</span>：主机与特定设备之间的命令</li>
+                </ul>
+                
+                <h3>命令格式</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>位域</th>
+                            <th>长度</th>
+                            <th>描述</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>起始位</td>
+                            <td>1 bit</td>
+                            <td>总是0</td>
+                        </tr>
+                        <tr>
+                            <td>传输位</td>
+                            <td>1 bit</td>
+                            <td>1-主机到设备，0-设备到主机</td>
+                        </tr>
+                        <tr>
+                            <td>命令索引</td>
+                            <td>6 bits</td>
+                            <td>命令编号</td>
+                        </tr>
+                        <tr>
+                            <td>参数</td>
+                            <td>32 bits</td>
+                            <td>命令参数</td>
+                        </tr>
+                        <tr>
+                            <td>CRC</td>
+                            <td>7 bits</td>
+                            <td>循环冗余校验</td>
+                        </tr>
+                        <tr>
+                            <td>结束位</td>
+                            <td>1 bit</td>
+                            <td>总是1</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>重要SDIO命令</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>命令</th>
+                            <th>索引</th>
+                            <th>描述</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>CMD5</td>
+                            <td>5</td>
+                            <td>IO发送操作条件</td>
+                        </tr>
+                        <tr>
+                            <td>CMD52</td>
+                            <td>52</td>
+                            <td>IO_RW_DIRECT - 直接读写寄存器</td>
+                        </tr>
+                        <tr>
+                            <td>CMD53</td>
+                            <td>53</td>
+                            <td>IO_RW_EXTENDED - 扩展读写</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="tip">
+                    <p><strong>提示：</strong>CMD52用于单个寄存器的读写操作，而CMD53用于多个寄存器的连续读写，适合大数据量传输。</p>
+                </div>
+            </section>
+
+            <section id="data-trans">
+                <h2>数据传输流程</h2>
+                <p>SDIO数据传输通过DAT线进行，支持单块和多块传输模式，是蓝牙数据交换的主要通道。</p>
+                
+                <h3>数据传输模式</h3>
+                <ul>
+                    <li><span class="highlight">单块传输</span>：每次传输一个数据块</li>
+                    <li><span class="highlight">多块传输</span>：连续传输多个数据块</li>
+                    <li><span class="highlight">流传输</span>：连续传输不定长度的数据</li>
+                </ul>
+                
+                <div class="svg-container">
+                    <svg width="550" height="280" viewBox="0 0 550 280">
+                        <rect x="20" y="20" width="510" height="240" rx="10" fill="#f5f5f5" stroke="#ccc" stroke-width="1"/>
+                        <text x="275" y="45" text-anchor="middle" font-family="Arial" font-size="14" fill="#333">SDIO数据传输流程</text>
+                        
+                        <rect x="50" y="70" width="150" height="40" rx="5" fill="#e8f5e9"/>
+                        <text x="125" y="95" text-anchor="middle" font-family="Arial" font-size="12" fill="#2e7d32">应用层数据</text>
+                        
+                        <rect x="50" y="130" width="150" height="40" rx="5" fill="#f3e5f5"/>
+                        <text x="125" y="155" text-anchor="middle" font-family="Arial" font-size="12" fill="#6a1b9a">HCI封装</text>
+                        
+                        <rect x="50" y="190" width="150" height="40" rx="5" fill="#e3f2fd"/>
+                        <text x="125" y="215" text-anchor="middle" font-family="Arial" font-size="12" fill="#1565c0">SDIO驱动</text>
+                        
+                        <rect x="250" y="190" width="150" height="40" rx="5" fill="#fff3e0"/>
+                        <text x="325" y="215" text-anchor="middle" font-family="Arial" font-size="12" fill="#e65100">SDIO主机控制器</text>
+                        
+                        <rect x="350" y="130" width="150" height="40" rx="5" fill="#ffebee"/>
+                        <text x="425" y="155" text-anchor="middle" font-family="Arial" font-size="12" fill="#c2185b">SDIO设备</text>
+                        
+                        <rect x="350" y="70" width="150" height="40" rx="5" fill="#e0f2f1"/>
+                        <text x="425" y="95" text-anchor="middle" font-family="Arial" font-size="12" fill="#00695c">蓝牙射频</text>
+                        
+                        <path d="M 200 90 L 250 90 L 250 180 L 200 180" fill="none" stroke="#666" stroke-width="2" marker-end="url(#arrowhead)"/>
+                        <path d="M 300 180 L 350 180 L 350 90 L 300 90" fill="none" stroke="#666" stroke-width="2" marker-end="url(#arrowhead)"/>
+                        <path d="M 125 110 L 125 130" fill="none" stroke="#666" stroke-width="2" marker-end="url(#arrowhead)"/>
+                        <path d="M 125 170 L 125 190" fill="none" stroke="#666" stroke-width="2" marker-end="url(#arrowhead)"/>
+                        <path d="M 425 110 L 425 130" fill="none" stroke="#666" stroke-width="2" marker-end="url(#arrowhead)"/>
+                        <path d="M 425 170 L 425 190" fill="none" stroke="#666" stroke-width="2" marker-end="url(#arrowhead)"/>
+                        
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#666"/>
+                            </marker>
+                        </defs>
+                    </svg>
+                </div>
+                
+                <h3>数据传输优化技巧</h3>
+                <ul>
+                    <li>使用DMA传输减少CPU占用</li>
+                    <li>合理设置块大小以减少传输开销</li>
+                    <li>使用多块传输提高吞吐量</li>
+                    <li>实现中断驱动的数据传输</li>
+                </ul>
+            </section>
+
+            <section id="code-demo">
+                <h2>代码示例</h2>
+                <p>以下是一个简单的蓝牙SDIO驱动框架代码示例，展示了设备探测和基本操作函数的实现。</p>
+                
+                <h3>驱动初始化与探测</h3>
+                <div class="code-block">
+                    <pre><code>#include &lt;linux/module.h&gt;
+#include &lt;linux/slab.h&gt;
+#include &lt;linux/sdio.h&gt;
+#include &lt;linux/bluetooth.h&gt;
+#include &lt;net/bluetooth/hci_core.h&gt;
+
+/* 设备ID表 */
+static const struct sdio_device_id bt_sdio_ids[] = {
+    { SDIO_DEVICE(MANUFACTURER_ID, PRODUCT_ID) },
+    { /* 结束标记 */ }
+};
+MODULE_DEVICE_TABLE(sdio, bt_sdio_ids);
+
+/* 蓝牙SDIO驱动结构 */
+static struct sdio_driver bt_sdio_driver = {
+    .probe      = bt_sdio_probe,
+    .remove     = bt_sdio_remove,
+    .name       = "bt_sdio",
+    .id_table   = bt_sdio_ids,
+};
+
+/* 探测函数 */
+static int bt_sdio_probe(struct sdio_func *func,
+                        const struct sdio_device_id *id)
+{
+    struct hci_dev *hdev;
+    int err;
+
+    /* 设置SDIO函数 */
+    sdio_claim_host(func);
+    err = sdio_enable_func(func);
+    if (err)
+        goto release;
+
+    /* 设置块大小 */
+    err = sdio_set_block_size(func, 64);
+    if (err)
+        goto disable;
+
+    sdio_release_host(func);
+
+    /* 注册HCI设备 */
+    hdev = hci_alloc_dev();
+    if (!hdev) {
+        err = -ENOMEM;
+        goto disable;
+    }
+
+    /* 设置HCI操作 */
+    hdev->bus = HCI_SDIO;
+    hdev->driver_data = func;
+    func->card->host->claimed = 1;
+
+    /* 设置发送和接收函数 */
+    hdev->send = bt_sdio_send_frame;
+    hdev->flush = bt_sdio_flush;
+
+    /* 注册HCI设备 */
+    err = hci_register_dev(hdev);
+    if (err < 0) {
+        hci_free_dev(hdev);
+        goto disable;
+    }
+
+    sdio_set_drvdata(func, hdev);
+    return 0;
+
+disable:
+    sdio_disable_func(func);
+release:
+    sdio_release_host(func);
+    return err;
+}</code></pre>
+                </div>
+                
+                <h3>数据发送函数</h3>
+                <div class="code-block">
+                    <pre><code>/* 发送HCI数据帧 */
+static int bt_sdio_send_frame(struct hci_dev *hdev, struct sk_buff *skb)
+{
+    struct sdio_func *func = hdev->driver_data;
+    int err;
+
+    /* 检查设备状态 */
+    if (!test_bit(HCI_RUNNING, &hdev->flags))
+        return -EBUSY;
+
+    /* 获取主机控制权 */
+    sdio_claim_host(func);
+
+    /* 通过SDIO发送数据 */
+    err = sdio_writesb(func, DATA_PORT_REGISTER, 
+                      skb->data, skb->len);
+    if (err < 0) {
+        printk(KERN_ERR "SDIO write error: %d\n", err);
+        sdio_release_host(func);
+        kfree_skb(skb);
+        return err;
+    }
+
+    sdio_release_host(func);
+    kfree_skb(skb);
+    return 0;
+}
+
+/* 刷新待发送数据 */
+static int bt_sdio_flush(struct hci_dev *hdev)
+{
+    /* 实现刷新逻辑 */
+    return 0;
+}</code></pre>
+                </div>
+                
+                <h3>模块初始化和退出</h3>
+                <div class="code-block">
+                    <pre><code>/* 模块初始化 */
+static int __init bt_sdio_init(void)
+{
+    int err;
+
+    printk(KERN_INFO "Bluetooth SDIO driver initializing\n");
+
+    err = sdio_register_driver(&bt_sdio_driver);
+    if (err < 0) {
+        printk(KERN_ERR "Failed to register SDIO driver: %d\n", err);
+        return err;
+    }
+
+    printk(KERN_INFO "Bluetooth SDIO driver initialized\n");
+    return 0;
+}
+
+/* 模块退出 */
+static void __exit bt_sdio_exit(void)
+{
+    sdio_unregister_driver(&bt_sdio_driver);
+    printk(KERN_INFO "Bluetooth SDIO driver unloaded\n");
+}
+
+module_init(bt_sdio_init);
+module_exit(bt_sdio_exit);
+
+MODULE_AUTHOR("Your Name");
+MODULE_DESCRIPTION("Bluetooth SDIO driver");
+MODULE_LICENSE("GPL");</code></pre>
+                </div>
+            </section>
+
+            <section id="summary">
+                <h2>总结</h2>
+                <p>蓝牙SDIO驱动开发涉及多个关键环节，从设备识别到命令传输，再到高效的数据传输。掌握这些核心技术对于开发稳定可靠的蓝牙嵌入式系统至关重要。</p>
+                
+                <h3>关键要点</h3>
+                <ul>
+                    <li><span class="highlight">设备识别</span>：正确实现SDIO设备的探测和初始化</li>
+                    <li><span class="highlight">命令传输</span>：掌握CMD52和CMD53等关键命令的使用</li>
+                    <li><span class="highlight">数据传输</span>：优化数据吞吐量和CPU使用率</li>
+                    <li><span class="highlight">电源管理</span>：实现低功耗模式支持</li>
+                    <li><span class="highlight">错误处理</span>：健壮的错误检测和恢复机制</li>
+                </ul>
+                
+                <div class="note">
+                    <p><strong>进阶学习：</strong>要进一步深入蓝牙SDIO驱动开发，建议研究Linux内核中的实际驱动实现，如btsdio驱动，并参与相关开源项目。</p>
+                </div>
+            </section>
+        </div>
+
+        <footer>
+            <p>蓝海资料掘金营</p>
+        </footer>
+    </div>
+</body>
+</html>

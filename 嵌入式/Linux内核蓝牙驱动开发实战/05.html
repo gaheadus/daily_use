@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蓝牙L2CAP协议层详解 - Linux内核蓝牙驱动开发实战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #f9fbe7 50%, #e8f5e9 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #4fc3f7 0%, #29b6f6 50%, #0288d1 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #01579b;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        section {
+            margin-bottom: 40px;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid #4fc3f7;
+        }
+        
+        h2 {
+            color: #0288d1;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px dashed #b3e5fc;
+        }
+        
+        h3 {
+            color: #0097a7;
+            margin: 15px 0 10px 0;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        th {
+            background: #4fc3f7;
+            color: white;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        
+        td {
+            padding: 10px 15px;
+            border-bottom: 1px solid #e0f7fa;
+        }
+        
+        tr:nth-child(even) {
+            background: #f1f8e9;
+        }
+        
+        tr:hover {
+            background: #e1f5fe;
+        }
+        
+        .code-block {
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .diagram {
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .highlight {
+            background: #fff9c4;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #0288d1 0%, #01579b 100%);
+            color: white;
+            margin-top: 30px;
+            font-size: 1.1em;
+        }
+        
+        .note {
+            background: #e1f5fe;
+            border-left: 4px solid #0288d1;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 5px 5px 0;
+        }
+        
+        .flow-control {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        
+        .flow-item {
+            background: #e8f5e9;
+            padding: 15px;
+            border-radius: 8px;
+            width: 30%;
+            min-width: 250px;
+            margin: 10px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        @media (max-width: 768px) {
+            .flow-item {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>蓝牙L2CAP协议层详解</h1>
+            <div class="subtitle">Linux内核蓝牙驱动开发实战 - 第五章</div>
+        </header>
+        
+        <div class="content">
+            <section id="introduction">
+                <h2>L2CAP协议概述</h2>
+                <p>逻辑链路控制和适配协议（Logical Link Control and Adaptation Protocol，L2CAP）是蓝牙协议栈中的关键组件，位于基带层之上，为上层协议提供面向连接和无连接的数据服务。</p>
+                <p>L2CAP的主要功能包括：</p>
+                <ul>
+                    <li>协议多路复用：允许多个高层协议共享底层链路</li>
+                    <li>分段和重组：将大数据包分割为适合基带传输的小包</li>
+                    <li>服务质量（QoS）管理：确保数据传输的质量</li>
+                    <li>组管理：支持一对多的通信模式</li>
+                </ul>
+                
+                <div class="diagram">
+                    <svg width="100%" height="200" viewBox="0 0 600 200">
+                        <rect x="50" y="50" width="500" height="100" fill="#e3f2fd" stroke="#0288d1" stroke-width="2" rx="10"/>
+                        <text x="300" y="70" text-anchor="middle" font-weight="bold" fill="#01579b">蓝牙协议栈</text>
+                        
+                        <rect x="100" y="90" width="80" height="40" fill="#bbdefb" stroke="#0288d1" stroke-width="1" rx="5"/>
+                        <text x="140" y="115" text-anchor="middle" font-size="12" fill="#01579b">RFCOMM</text>
+                        
+                        <rect x="200" y="90" width="80" height="40" fill="#bbdefb" stroke="#0288d1" stroke-width="1" rx="5"/>
+                        <text x="240" y="115" text-anchor="middle" font-size="12" fill="#01579b">SDP</text>
+                        
+                        <rect x="300" y="90" width="80" height="40" fill="#bbdefb" stroke="#0288d1" stroke-width="1" rx="5"/>
+                        <text x="340" y="115" text-anchor="middle" font-size="12" fill="#01579b">BNEP</text>
+                        
+                        <rect x="400" y="90" width="80" height="40" fill="#bbdefb" stroke="#0288d1" stroke-width="1" rx="5"/>
+                        <text x="440" y="115" text-anchor="middle" font-size="12" fill="#01579b">其他协议</text>
+                        
+                        <line x1="140" y1="90" x2="140" y2="70" stroke="#0288d1" stroke-width="2"/>
+                        <line x1="240" y1="90" x2="240" y2="70" stroke="#0288d1" stroke-width="2"/>
+                        <line x1="340" y1="90" x2="340" y2="70" stroke="#0288d1" stroke-width="2"/>
+                        <line x1="440" y1="90" x2="440" y2="70" stroke="#0288d1" stroke-width="2"/>
+                        
+                        <rect x="150" y="30" width="300" height="30" fill="#4fc3f7" stroke="#0288d1" stroke-width="2" rx="5"/>
+                        <text x="300" y="50" text-anchor="middle" font-weight="bold" fill="white">L2CAP层</text>
+                        
+                        <line x1="300" y1="30" x2="300" y2="10" stroke="#0288d1" stroke-width="2"/>
+                        
+                        <rect x="200" y="0" width="200" height="20" fill="#81c784" stroke="#2e7d32" stroke-width="1" rx="3"/>
+                        <text x="300" y="13" text-anchor="middle" font-size="10" fill="#1b5e20">基带层/链路管理器</text>
+                    </svg>
+                </div>
+            </section>
+            
+            <section id="channel-establishment">
+                <h2>L2CAP信道建立</h2>
+                <p>L2CAP信道是设备间逻辑通信路径，分为面向连接的信道（COC）和无连接信道（CL）。信道建立过程涉及多个步骤和信号交互。</p>
+                
+                <h3>信道建立流程</h3>
+                <ol>
+                    <li><span class="highlight">信道请求</span>：客户端向服务器发送连接请求</li>
+                    <li><span class="highlight">信道配置</span>：协商信道参数，如MTU、刷新超时等</li>
+                    <li><span class="highlight">信道建立完成</span>：双方确认参数，信道进入就绪状态</li>
+                    <li><span class="highlight">数据传输</span>：通过建立的信道传输数据</li>
+                    <li><span class="highlight">信道断开</span>：任何一方可以发起断开请求</li>
+                </ol>
+                
+                <div class="diagram">
+                    <svg width="100%" height="300" viewBox="0 0 600 300">
+                        <!-- 客户端和服务器的标识 -->
+                        <rect x="50" y="50" width="150" height="40" fill="#e1f5fe" stroke="#0288d1" stroke-width="2" rx="5"/>
+                        <text x="125" y="75" text-anchor="middle" font-weight="bold" fill="#01579b">客户端</text>
+                        
+                        <rect x="400" y="50" width="150" height="40" fill="#e8f5e9" stroke="#388e3c" stroke-width="2" rx="5"/>
+                        <text x="475" y="75" text-anchor="middle" font-weight="bold" fill="#1b5e20">服务器</text>
+                        
+                        <!-- 连接请求 -->
+                        <line x1="125" y1="90" x2="475" y2="120" stroke="#0288d1" stroke-width="2"/>
+                        <polygon points="475,120 465,115 475,110" fill="#0288d1"/>
+                        <text x="300" y="110" text-anchor="middle" font-size="12" fill="#0288d1">L2CAP连接请求</text>
+                        
+                        <!-- 连接响应 -->
+                        <line x1="475" y1="140" x2="125" y2="170" stroke="#388e3c" stroke-width="2"/>
+                        <polygon points="125,170 135,165 125,160" fill="#388e3c"/>
+                        <text x="300" y="155" text-anchor="middle" font-size="12" fill="#388e3c">L2CAP连接响应</text>
+                        
+                        <!-- 配置请求 -->
+                        <line x1="125" y1="190" x2="475" y2="220" stroke="#0288d1" stroke-width="2"/>
+                        <polygon points="475,220 465,215 475,210" fill="#0288d1"/>
+                        <text x="300" y="210" text-anchor="middle" font-size="12" fill="#0288d1">配置请求</text>
+                        
+                        <!-- 配置响应 -->
+                        <line x1="475" y1="240" x2="125" y2="270" stroke="#388e3c" stroke-width="2"/>
+                        <polygon points="125,270 135,265 125,260" fill="#388e3c"/>
+                        <text x="300" y="255" text-anchor="middle" font-size="12" fill="#388e3c">配置响应</text>
+                    </svg>
+                </div>
+                
+                <h3>Linux内核中的L2CAP信道建立</h3>
+                <p>在Linux内核中，L2CAP信道通过BlueZ协议栈管理。以下是一个简化的信道建立代码示例：</p>
+                
+                <div class="code-block">
+<pre>
+#include &lt;linux/bluetooth.h&gt;
+#include &lt;linux/l2cap.h&gt;
+
+struct l2cap_conn *conn;
+struct l2cap_chan *chan;
+
+/* 创建L2CAP信道 */
+chan = l2cap_chan_create();
+if (!chan) {
+    printk(KERN_ERR "无法创建L2CAP信道\n");
+    return -ENOMEM;
+}
+
+/* 设置信道操作回调 */
+chan-&gt;ops = &amp;l2cap_chan_ops;
+
+/* 发起连接请求 */
+err = l2cap_chan_connect(chan, conn, 0x0040); /* PSM = 0x0040 (SDP) */
+if (err &lt; 0) {
+    printk(KERN_ERR "L2CAP连接失败: %d\n", err);
+    l2cap_chan_put(chan);
+    return err;
+}
+
+/* 配置信道参数 */
+chan-&gt;imtu = 672;  /* 最大传输单元 */
+chan-&gt;omtu = 672;
+chan-&gt;flush_to = 0xFFFF; /* 刷新超时 */
+</pre>
+                </div>
+                
+                <div class="note">
+                    <strong>注意：</strong> 在实际开发中，需要处理各种连接状态和错误情况，包括超时、拒绝和参数协商失败等。
+                </div>
+            </section>
+            
+            <section id="packet-format">
+                <h2>L2CAP数据包格式</h2>
+                <p>L2CAP数据包具有特定的格式，包含必要的头部信息和有效载荷。理解数据包格式对于调试和分析蓝牙通信至关重要。</p>
+                
+                <h3>基本数据包格式</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>字段</th>
+                            <th>长度（字节）</th>
+                            <th>描述</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>长度（Length）</td>
+                            <td>2</td>
+                            <td>有效载荷的长度（不包括头部）</td>
+                        </tr>
+                        <tr>
+                            <td>信道ID（CID）</td>
+                            <td>2</td>
+                            <td>标识目标信道</td>
+                        </tr>
+                        <tr>
+                            <td>有效载荷（Payload）</td>
+                            <td>可变</td>
+                            <td>上层协议数据或L2CAP信号</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="diagram">
+                    <svg width="100%" height="120" viewBox="0 0 600 120">
+                        <rect x="50" y="50" width="500" height="40" fill="#f5f5f5" stroke="#333" stroke-width="1"/>
+                        
+                        <rect x="50" y="50" width="80" height="40" fill="#e1f5fe" stroke="#0288d1" stroke-width="1"/>
+                        <text x="90" y="75" text-anchor="middle" font-size="12" fill="#01579b">长度 (2字节)</text>
+                        
+                        <rect x="130" y="50" width="80" height="40" fill="#e8f5e9" stroke="#388e3c" stroke-width="1"/>
+                        <text x="170" y="75" text-anchor="middle" font-size="12" fill="#1b5e20">CID (2字节)</text>
+                        
+                        <rect x="210" y="50" width="340" height="40" fill="#fff9c4" stroke="#f57c00" stroke-width="1"/>
+                        <text x="380" y="75" text-anchor="middle" font-size="12" fill="#e65100">有效载荷 (可变)</text>
+                        
+                        <line x1="50" y1="45" x2="50" y2="40" stroke="#333" stroke-width="1"/>
+                        <line x1="550" y1="45" x2="550" y2="40" stroke="#333" stroke-width="1"/>
+                        <text x="300" y="35" text-anchor="middle" font-size="10" fill="#333">L2CAP数据包</text>
+                    </svg>
+                </div>
+                
+                <h3>信号数据包格式</h3>
+                <p>L2CAP信号用于信道管理，具有特殊的格式：</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>字段</th>
+                            <th>长度（字节）</th>
+                            <th>描述</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>代码（Code）</td>
+                            <td>1</td>
+                            <td>信号类型标识符</td>
+                        </tr>
+                        <tr>
+                            <td>标识符（Identifier）</td>
+                            <td>1</td>
+                            <td>用于匹配请求和响应</td>
+                        </tr>
+                        <tr>
+                            <td>长度（Length）</td>
+                            <td>2</td>
+                            <td>信号数据的长度</td>
+                        </tr>
+                        <tr>
+                            <td>数据（Data）</td>
+                            <td>可变</td>
+                            <td>特定于信号的数据</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>常用信道ID（CID）值</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>CID值</th>
+                            <th>名称</th>
+                            <th>描述</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>0x0001</td>
+                            <td>L2CAP信令信道</td>
+                            <td>用于L2CAP信号交换</td>
+                        </tr>
+                        <tr>
+                            <td>0x0002</td>
+                            <td>连接less数据信道</td>
+                            <td>无连接数据传输</td>
+                        </tr>
+                        <tr>
+                            <td>0x0003</td>
+                            <td>AMP管理器协议</td>
+                            <td>交替MAC/PHY管理</td>
+                        </tr>
+                        <tr>
+                            <td>0x0004-0x003F</td>
+                            <td>保留</td>
+                            <td>为未来使用保留</td>
+                        </tr>
+                        <tr>
+                            <td>0x0040-0xFFFF</td>
+                            <td>动态分配</td>
+                            <td>动态分配的信道</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>Linux内核中的L2CAP数据包处理</h3>
+                <p>以下代码展示了如何在Linux内核中处理接收到的L2CAP数据包：</p>
+                
+                <div class="code-block">
+<pre>
+static int l2cap_data_channel(struct l2cap_conn *conn, struct sk_buff *skb)
+{
+    struct l2cap_hdr *lh = (struct l2cap_hdr *) skb-&gt;data;
+    u16 cid, len;
+    
+    /* 提取L2CAP头部字段 */
+    len = __le16_to_cpu(lh-&gt;len);
+    cid = __le16_to_cpu(lh-&gt;cid);
+    
+    /* 移除L2CAP头部 */
+    skb_pull(skb, L2CAP_HDR_SIZE);
+    
+    /* 根据CID路由数据包 */
+    switch (cid) {
+        case L2CAP_CID_SIGNALING:
+            return l2cap_sig_channel(conn, skb);
+            
+        case L2CAP_CID_CONN_LESS:
+            return l2cap_connless_channel(conn, skb);
+            
+        default:
+            /* 动态分配的信道 */
+            return l2cap_chan_recv(conn, skb, cid);
+    }
+}
+</pre>
+                </div>
+            </section>
+            
+            <section id="flow-control">
+                <h2>L2CAP流控机制</h2>
+                <p>L2CAP提供流控机制来管理数据传输速率，防止接收方被数据淹没。流控可以通过多种方式实现。</p>
+                
+                <div class="flow-control">
+                    <div class="flow-item">
+                        <h3>基于信用的流控</h3>
+                        <p>接收方向发送方授予信用（credits），发送方只能在拥有足够信用时发送数据。</p>
+                    </div>
+                    
+                    <div class="flow-item">
+                        <h3>窗口流控</h3>
+                        <p>使用滑动窗口机制，限制未确认数据包的数量。</p>
+                    </div>
+                    
+                    <div class="flow-item">
+                        <h3>基于速率的流控</h3>
+                        <p>控制数据传输速率，确保不超过接收方的处理能力。</p>
+                    </div>
+                </div>
+                
+                <h3>增强型重传模式（ERTM）</h3>
+                <p>ERTM提供可靠的面向连接的数据传输，具有以下特性：</p>
+                <ul>
+                    <li>序列编号：确保数据包顺序</li>
+                    <li>选择性重传：只重传丢失的数据包</li>
+                    <li>流量控制：基于信用的流控机制</li>
+                    <li>错误检测：通过CRC校验检测错误</li>
+                </ul>
+                
+                <h3>流控模式配置</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>模式</th>
+                            <th>可靠性</th>
+                            <th>流控</th>
+                            <th>适用场景</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>基本模式</td>
+                            <td>无</td>
+                            <td>无</td>
+                            <td>实时音频/视频</td>
+                        </tr>
+                        <tr>
+                            <td>重传模式</td>
+                            <td>有</td>
+                            <td>有</td>
+                            <td>文件传输</td>
+                        </tr>
+                        <tr>
+                            <td>流模式</td>
+                            <td>无</td>
+                            <td>有</td>
+                            <td>流媒体</td>
+                        </tr>
+                        <tr>
+                            <td>增强重传模式</td>
+                            <td>有</td>
+                            <td>有</td>
+                            <td>高可靠性应用</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>Linux内核中的流控实现</h3>
+                <p>以下代码展示了如何在Linux内核中配置L2CAP流控参数：</p>
+                
+                <div class="code-block">
+<pre>
+struct l2cap_chan *chan;
+
+/* 配置流控模式 */
+chan-&gt;mode = L2CAP_MODE_ERTM; /* 使用增强型重传模式 */
+
+/* 设置流控参数 */
+chan-&gt;tx_win = 8;        /* 发送窗口大小 */
+chan-&gt;max_tx = 3;        /* 最大传输次数 */
+chan-&gt;retrans_timeout = 200; /* 重传超时（毫秒） */
+chan-&gt;monitor_timeout = 1200; /* 监控超时（毫秒） */
+chan-&gt;mps = 672;         /* 最大PDU大小 */
+
+/* 配置QoS参数 */
+chan-&gt;flush_to = 0xFFFF; /* 刷新超时 */
+chan-&gt;link_mode = 0;     /* 链路模式 */
+
+/* 启用流控 */
+l2cap_chan_ready(chan);
+</pre>
+                </div>
+                
+                <div class="note">
+                    <strong>提示：</strong> 在实际应用中，需要根据具体应用场景调整流控参数。对于实时应用，可能需要较小的重传超时和窗口大小；而对于文件传输，可能需要较大的窗口以提高吞吐量。
+                </div>
+                
+                <h3>流控状态机</h3>
+                <p>L2CAP流控实现了一个状态机来管理数据传输：</p>
+                
+                <div class="diagram">
+                    <svg width="100%" height="300" viewBox="0 0 600 300">
+                        <!-- 状态机图 -->
+                        <circle cx="100" cy="100" r="30" fill="#e1f5fe" stroke="#0288d1" stroke-width="2"/>
+                        <text x="100" y="105" text-anchor="middle" font-size="10" fill="#01579b">关闭</text>
+                        
+                        <circle cx="250" cy="100" r="30" fill="#fff9c4" stroke="#f57c00" stroke-width="2"/>
+                        <text x="250" y="105" text-anchor="middle" font-size="10" fill="#e65100">配置</text>
+                        
+                        <circle cx="400" cy="100" r="30" fill="#e8f5e9" stroke="#388e3c" stroke-width="2"/>
+                        <text x="400" y="105" text-anchor="middle" font-size="10" fill="#1b5e20">打开</text>
+                        
+                        <circle cx="400" cy="200" r="30" fill="#ffcdd2" stroke="#d32f2f" stroke-width="2"/>
+                        <text x="400" y="205" text-anchor="middle" font-size="10" fill="#b71c1c">等待断开</text>
+                        
+                        <!-- 状态转移 -->
+                        <path d="M130,100 C160,80 190,80 220,100" fill="none" stroke="#333" stroke-width="1"/>
+                        <polygon points="220,100 210,95 220,90" fill="#333"/>
+                        <text x="175" y="70" text-anchor="middle" font-size="8" fill="#333">连接请求</text>
+                        
+                        <path d="M280,100 C310,80 340,80 370,100" fill="none" stroke="#333" stroke-width="1"/>
+                        <polygon points="370,100 360,95 370,90" fill="#333"/>
+                        <text x="325" y="70" text-anchor="middle" font-size="8" fill="#333">配置完成</text>
+                        
+                        <path d="M370,130 C370,160 370,160 370,170" fill="none" stroke="#333" stroke-width="1"/>
+                        <polygon points="370,170 365,160 375,160" fill="#333"/>
+                        <text x="390" y="150" text-anchor="middle" font-size="8" fill="#333">断开请求</text>
+                        
+                        <path d="M370,230 C340,250 310,250 280,230" fill="none" stroke="#333" stroke-width="1"/>
+                        <polygon points="280,230 290,235 280,240" fill="#333"/>
+                        <text x="325" y="260" text-anchor="middle" font-size="8" fill="#333">断开响应</text>
+                        
+                        <path d="M220,130 C190,150 160,150 130,130" fill="none" stroke="#333" stroke-width="1"/>
+                        <polygon points="130,130 140,135 130,140" fill="#333"/>
+                        <text x="175" y="160" text-anchor="middle" font-size="8" fill="#333">连接失败</text>
+                    </svg>
+                </div>
+            </section>
+            
+            <section id="summary">
+                <h2>本章总结</h2>
+                <p>L2CAP协议是蓝牙通信的核心，提供了协议多路复用、分段重组和流控等关键功能。理解L2CAP信道建立过程、数据包格式和流控机制对于开发高质量的蓝牙应用至关重要。</p>
+                
+                <ul>
+                    <li><span class="highlight">信道建立</span>：涉及请求、配置和确认等多个步骤</li>
+                    <li><span class="highlight">数据包格式</span>：包含长度、CID和有效载荷等字段</li>
+                    <li><span class="highlight">流控机制</span>：通过信用、窗口或速率控制管理数据流</li>
+                </ul>
+                
+                <p>在Linux内核开发中，BlueZ协议栈提供了完整的L2CAP实现，开发者可以通过相应的API创建、配置和管理L2CAP信道。</p>
+            </section>
+        </div>
+        
+        <footer>
+            蓝海资料掘金营
+        </footer>
+    </div>
+</body>
+</html>

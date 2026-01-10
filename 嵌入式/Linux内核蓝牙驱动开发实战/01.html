@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蓝牙技术概述 - Linux内核蓝牙驱动开发实战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #f9fbe7 50%, #e8f5e9 100%);
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 0;
+            background: linear-gradient(45deg, #4fc3f7, #81c784);
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            color: white;
+        }
+
+        h1 {
+            font-size: 2.8em;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .subtitle {
+            font-size: 1.3em;
+            font-weight: 300;
+        }
+
+        section {
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease;
+        }
+
+        section:hover {
+            transform: translateY(-5px);
+        }
+
+        h2 {
+            color: #2e7d32;
+            border-left: 5px solid #4caf50;
+            padding-left: 15px;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        h3 {
+            color: #388e3c;
+            margin: 15px 0 10px;
+            font-size: 1.4em;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        ul, ol {
+            margin-left: 25px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background-color: #4caf50;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f1f8e9;
+        }
+
+        tr:hover {
+            background-color: #e8f5e9;
+        }
+
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .code-block {
+            background: #f5f5f5;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            margin-top: 40px;
+            background: linear-gradient(45deg, #4fc3f7, #81c784);
+            border-radius: 15px;
+            color: white;
+            font-size: 1.2em;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+
+        .highlight {
+            background-color: #fff9c4;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        .timeline {
+            position: relative;
+            max-width: 800px;
+            margin: 30px auto;
+        }
+
+        .timeline::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            background-color: #4caf50;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            margin-left: -3px;
+        }
+
+        .timeline-item {
+            padding: 10px 40px;
+            position: relative;
+            width: 50%;
+            box-sizing: border-box;
+        }
+
+        .timeline-item:nth-child(odd) {
+            left: 0;
+        }
+
+        .timeline-item:nth-child(even) {
+            left: 50%;
+        }
+
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            border: 4px solid #4caf50;
+            border-radius: 50%;
+            top: 15px;
+            z-index: 1;
+        }
+
+        .timeline-item:nth-child(odd)::after {
+            right: -10px;
+        }
+
+        .timeline-item:nth-child(even)::after {
+            left: -10px;
+        }
+
+        .timeline-content {
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .timeline-year {
+            font-weight: bold;
+            color: #4caf50;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>蓝牙技术概述</h1>
+            <p class="subtitle">Linux内核蓝牙驱动开发实战课程 - 第一章</p>
+        </header>
+
+        <section id="history">
+            <h2>蓝牙发展历史</h2>
+            <p>蓝牙技术是一种无线通信标准，用于在短距离内交换数据。它的名字来源于10世纪的丹麦国王Harald Blåtand（蓝牙），他统一了丹麦和挪威的部落。蓝牙技术的目标是统一不同设备间的通信协议。</p>
+            
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <div class="timeline-year">1994年</div>
+                        <p>爱立信公司开始研究在移动电话和其他配件间实现低功耗、低成本无线通信的可能性。</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <div class="timeline-year">1998年</div>
+                        <p>爱立信、诺基亚、东芝、IBM和英特尔公司共同组建了蓝牙特别兴趣小组（SIG）。</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <div class="timeline-year">1999年</div>
+                        <p>发布蓝牙1.0规范，标志着蓝牙技术的正式诞生。</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <div class="timeline-year">2004年</div>
+                        <p>蓝牙2.0+EDR发布，数据传输速率提升至3Mbps。</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <div class="timeline-year">2009年</div>
+                        <p>蓝牙3.0+HS发布，引入了高速模式，理论速度可达24Mbps。</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <div class="timeline-year">2010年</div>
+                        <p>蓝牙4.0发布，引入了低功耗蓝牙（BLE）技术。</p>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-content">
+                        <div class="timeline-year">2016年</div>
+                        <p>蓝牙5.0发布，传输距离和速度大幅提升。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="protocol-stack">
+            <h2>蓝牙协议栈架构</h2>
+            <p>蓝牙协议栈采用分层架构，每一层负责不同的通信功能。以下是蓝牙协议栈的主要组成部分：</p>
+            
+            <div class="svg-container">
+                <svg width="600" height="400" viewBox="0 0 600 400">
+                    <!-- 蓝牙协议栈架构图 -->
+                    <rect x="50" y="50" width="500" height="300" fill="#e8f5e9" stroke="#4caf50" stroke-width="2" rx="10"/>
+                    
+                    <!-- 应用层 -->
+                    <rect x="100" y="80" width="400" height="40" fill="#81c784" stroke="#388e3c" stroke-width="1"/>
+                    <text x="300" y="105" text-anchor="middle" fill="white" font-weight="bold">应用层 (Applications)</text>
+                    
+                    <!-- 中间件层 -->
+                    <rect x="100" y="130" width="400" height="40" fill="#a5d6a7" stroke="#388e3c" stroke-width="1"/>
+                    <text x="300" y="155" text-anchor="middle" fill="#2e7d32" font-weight="bold">中间件层 (Middleware)</text>
+                    
+                    <!-- 协议层 -->
+                    <rect x="100" y="180" width="400" height="80" fill="#c8e6c9" stroke="#388e3c" stroke-width="1"/>
+                    <text x="300" y="200" text-anchor="middle" fill="#2e7d32" font-weight="bold">协议层 (Protocol Stack)</text>
+                    
+                    <!-- 协议层内部 -->
+                    <rect x="120" y="210" width="90" height="40" fill="#e8f5e9" stroke="#388e3c" stroke-width="1"/>
+                    <text x="165" y="235" text-anchor="middle" fill="#2e7d32" font-size="12">L2CAP</text>
+                    
+                    <rect x="220" y="210" width="90" height="40" fill="#e8f5e9" stroke="#388e3c" stroke-width="1"/>
+                    <text x="265" y="235" text-anchor="middle" fill="#2e7d32" font-size="12">RFCOMM</text>
+                    
+                    <rect x="320" y="210" width="90" height="40" fill="#e8f5e9" stroke="#388e3c" stroke-width="1"/>
+                    <text x="365" y="235" text-anchor="middle" fill="#2e7d32" font-size="12">SDP</text>
+                    
+                    <rect x="420" y="210" width="60" height="40" fill="#e8f5e9" stroke="#388e3c" stroke-width="1"/>
+                    <text x="450" y="235" text-anchor="middle" fill="#2e7d32" font-size="12">其他</text>
+                    
+                    <!-- 控制器层 -->
+                    <rect x="100" y="270" width="400" height="40" fill="#4caf50" stroke="#388e3c" stroke-width="1"/>
+                    <text x="300" y="295" text-anchor="middle" fill="white" font-weight="bold">控制器层 (Controller)</text>
+                    
+                    <!-- 连接线 -->
+                    <line x1="300" y1="50" x2="300" y2="80" stroke="#4caf50" stroke-width="2"/>
+                    <line x1="300" y1="120" x2="300" y2="130" stroke="#4caf50" stroke-width="2"/>
+                    <line x1="300" y1="170" x2="300" y2="180" stroke="#4caf50" stroke-width="2"/>
+                    <line x1="300" y1="260" x2="300" y2="270" stroke="#4caf50" stroke-width="2"/>
+                    <line x1="300" y1="310" x2="300" y2="350" stroke="#4caf50" stroke-width="2"/>
+                    
+                    <!-- 物理层 -->
+                    <rect x="250" y="350" width="100" height="30" fill="#2e7d32" stroke="#1b5e20" stroke-width="1"/>
+                    <text x="300" y="370" text-anchor="middle" fill="white" font-weight="bold">物理层 (PHY)</text>
+                </svg>
+            </div>
+            
+            <h3>主要协议层说明</h3>
+            <ul>
+                <li><span class="highlight">物理层 (PHY)</span>: 负责在2.4GHz ISM频段上进行无线信号的发送和接收。</li>
+                <li><span class="highlight">链路层 (Link Layer)</span>: 处理设备发现、连接建立和数据包传输。</li>
+                <li><span class="highlight">主机控制器接口 (HCI)</span>: 蓝牙主机和控制器之间的标准通信接口。</li>
+                <li><span class="highlight">逻辑链路控制和适配协议 (L2CAP)</span>: 提供数据分割和重组服务，支持多种高层协议。</li>
+                <li><span class="highlight">服务发现协议 (SDP)</span>: 允许设备发现其他蓝牙设备提供的服务。</li>
+                <li><span class="highlight">射频通信 (RFCOMM)</span>: 模拟串行端口，支持传统串行应用。</li>
+                <li><span class="highlight">属性协议 (ATT) 和通用属性配置文件 (GATT)</span>: 低功耗蓝牙的核心协议，用于数据传输。</li>
+            </ul>
+            
+            <div class="code-block">
+<pre>
+// Linux内核中蓝牙协议栈初始化示例
+#include &lt;linux/module.h&gt;
+#include &lt;net/bluetooth/bluetooth.h&gt;
+
+static int __init bt_init(void)
+{
+    int err;
+    
+    BT_INFO("BlueZ loading");
+    
+    // 初始化蓝牙核心
+    err = bt_init_sockets();
+    if (err &lt; 0) {
+        BT_ERR("Failed to initialize Bluetooth sockets");
+        return err;
+    }
+    
+    // 注册HCI设备
+    err = hci_sock_init();
+    if (err &lt; 0) {
+        BT_ERR("Failed to initialize HCI sockets");
+        goto error;
+    }
+    
+    BT_INFO("BlueZ loaded successfully");
+    return 0;
+
+error:
+    bt_cleanup_sockets();
+    return err;
+}
+
+static void __exit bt_exit(void)
+{
+    hci_sock_cleanup();
+    bt_cleanup_sockets();
+    BT_INFO("BlueZ unloaded");
+}
+
+module_init(bt_init);
+module_exit(bt_exit);
+</pre>
+            </div>
+        </section>
+
+        <section id="version-evolution">
+            <h2>蓝牙版本演进</h2>
+            <p>蓝牙技术自诞生以来经历了多个版本的演进，每个版本都带来了性能提升和新功能。</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>版本</th>
+                        <th>发布时间</th>
+                        <th>主要特性</th>
+                        <th>最大速率</th>
+                        <th>关键改进</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>蓝牙1.0/1.1</td>
+                        <td>1999-2001</td>
+                        <td>基础无线通信</td>
+                        <td>1 Mbps</td>
+                        <td>基础数据传输，设备配对</td>
+                    </tr>
+                    <tr>
+                        <td>蓝牙1.2</td>
+                        <td>2003</td>
+                        <td>抗干扰能力提升</td>
+                        <td>1 Mbps</td>
+                        <td>自适应跳频，扩展SCO连接</td>
+                    </tr>
+                    <tr>
+                        <td>蓝牙2.0+EDR</td>
+                        <td>2004</td>
+                        <td>增强数据速率</td>
+                        <td>3 Mbps</td>
+                        <td>数据传输速率提升，功耗优化</td>
+                    </tr>
+                    <tr>
+                        <td>蓝牙2.1+EDR</td>
+                        <td>2007</td>
+                        <td>简易安全配对</td>
+                        <td>3 Mbps</td>
+                        <td>SSP配对，Sniff省电模式</td>
+                    </tr>
+                    <tr>
+                        <td>蓝牙3.0+HS</td>
+                        <td>2009</td>
+                        <td>高速传输</td>
+                        <td>24 Mbps</td>
+                        <td>AMP技术，802.11协议适配层</td>
+                    </tr>
+                    <tr>
+                        <td>蓝牙4.0</td>
+                        <td>2010</td>
+                        <td>低功耗蓝牙</td>
+                        <td>1 Mbps</td>
+                        <td>BLE技术，低功耗模式</td>
+                    </tr>
+                    <tr>
+                        <td>蓝牙4.1</td>
+                        <td>2013</td>
+                        <td>物联网优化</td>
+                        <td>1 Mbps</td>
+                        <td>LTE共存，批量数据传输</td>
+                    </tr>
+                    <tr>
+                        <td>蓝牙4.2</td>
+                        <td>2014</td>
+                        <td>隐私和安全增强</td>
+                        <td>1 Mbps</td>
+                        <td>LE安全连接，数据长度扩展</td>
+                    </tr>
+                    <tr>
+                        <td>蓝牙5.0</td>
+                        <td>2016</td>
+                        <td>性能大幅提升</td>
+                        <td>2 Mbps</td>
+                        <td>传输距离x4，速度x2，广播能力x8</td>
+                    </tr>
+                    <tr>
+                        <td>蓝牙5.1</td>
+                        <td>2019</td>
+                        <td>精准定位</td>
+                        <td>2 Mbps</td>
+                        <td>寻向功能，厘米级定位</td>
+                    </tr>
+                    <tr>
+                        <td>蓝牙5.2</td>
+                        <td>2020</td>
+                        <td>音频增强</td>
+                        <td>2 Mbps</td>
+                        <td>LE Audio，同步通道</td>
+                    </tr>
+                    <tr>
+                        <td>蓝牙5.3</td>
+                        <td>2021</td>
+                        <td>连接质量和安全</td>
+                        <td>2 Mbps</td>
+                        <td>加密密钥控制，连接子评级</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>蓝牙版本演进趋势</h3>
+            <ul>
+                <li><span class="highlight">数据传输速率</span>: 从1.0版本的1Mbps提升到5.0版本的2Mbps（LE模式下）</li>
+                <li><span class="highlight">功耗优化</span>: 蓝牙4.0引入BLE技术，极大降低了功耗</li>
+                <li><span class="highlight">传输距离</span>: 蓝牙5.0将传输距离提升至4倍，达到数百米</li>
+                <li><span class="highlight">定位精度</span>: 蓝牙5.1引入寻向功能，实现厘米级定位</li>
+                <li><span class="highlight">物联网支持</span>: 后续版本不断增强对物联网应用的支持</li>
+            </ul>
+        </section>
+
+        <section id="application-scenarios">
+            <h2>蓝牙应用场景</h2>
+            <p>蓝牙技术凭借其低功耗、低成本、短距离通信的特点，在众多领域得到了广泛应用。</p>
+            
+            <h3>消费电子领域</h3>
+            <ul>
+                <li><span class="highlight">音频设备</span>: 无线耳机、音箱、车载音响系统</li>
+                <li><span class="highlight">输入设备</span>: 无线键盘、鼠标、游戏手柄</li>
+                <li><span class="highlight">智能穿戴</span>: 智能手表、健身追踪器</li>
+                <li><span class="highlight">手机配件</span>: 无线耳机、自拍杆、移动支付终端</li>
+            </ul>
+            
+            <h3>物联网和智能家居</h3>
+            <ul>
+                <li><span class="highlight">智能家居</span>: 智能灯泡、门锁、温控器</li>
+                <li><span class="highlight">健康医疗</span>: 心率监测器、血糖仪、医疗传感器</li>
+                <li><span class="highlight">资产追踪</span>: 物品防丢器、室内定位系统</li>
+                <li><span class="highlight">信标应用</span>: 室内导航、智能零售、博物馆导览</li>
+            </ul>
+            
+            <h3>汽车和工业领域</h3>
+            <ul>
+                <li><span class="highlight">汽车电子</span>: 车载免提系统、胎压监测、钥匙系统</li>
+                <li><span class="highlight">工业自动化</span>: 传感器网络、设备监控、数据采集</li>
+                <li><span class="highlight">智能建筑</span>: 门禁系统、照明控制、环境监测</li>
+            </ul>
+            
+            <div class="svg-container">
+                <svg width="600" height="300" viewBox="0 0 600 300">
+                    <!-- 蓝牙应用场景图 -->
+                    <circle cx="300" cy="150" r="140" fill="#e3f2fd" stroke="#2196f3" stroke-width="2"/>
+                    
+                    <!-- 中心图标 -->
+                    <circle cx="300" cy="150" r="40" fill="#2196f3" stroke="#0d47a1" stroke-width="2"/>
+                    <text x="300" y="155" text-anchor="middle" fill="white" font-weight="bold">蓝牙</text>
+                    
+                    <!-- 应用场景 -->
+                    <g transform="translate(300,150)">
+                        <!-- 音频 -->
+                        <g transform="rotate(0) translate(0,-120)">
+                            <circle cx="0" cy="0" r="25" fill="#4caf50"/>
+                            <text x="0" y="5" text-anchor="middle" fill="white" font-size="12">音频</text>
+                            <line x1="0" y1="25" x2="0" y2="40" stroke="#4caf50" stroke-width="2"/>
+                        </g>
+                        
+                        <!-- 穿戴 -->
+                        <g transform="rotate(60) translate(0,-120)">
+                            <circle cx="0" cy="0" r="25" fill="#ff9800"/>
+                            <text x="0" y="5" text-anchor="middle" fill="white" font-size="12">穿戴</text>
+                            <line x1="0" y1="25" x2="0" y2="40" stroke="#ff9800" stroke-width="2"/>
+                        </g>
+                        
+                        <!-- 家居 -->
+                        <g transform="rotate(120) translate(0,-120)">
+                            <circle cx="0" cy="0" r="25" fill="#9c27b0"/>
+                            <text x="0" y="5" text-anchor="middle" fill="white" font-size="12">家居</text>
+                            <line x1="0" y1="25" x2="0" y2="40" stroke="#9c27b0" stroke-width="2"/>
+                        </g>
+                        
+                        <!-- 汽车 -->
+                        <g transform="rotate(180) translate(0,-120)">
+                            <circle cx="0" cy="0" r="25" fill="#f44336"/>
+                            <text x="0" y="5" text-anchor="middle" fill="white" font-size="12">汽车</text>
+                            <line x1="0" y1="25" x2="0" y2="40" stroke="#f44336" stroke-width="2"/>
+                        </g>
+                        
+                        <!-- 医疗 -->
+                        <g transform="rotate(240) translate(0,-120)">
+                            <circle cx="0" cy="0" r="25" fill="#2196f3"/>
+                            <text x="0" y="5" text-anchor="middle" fill="white" font-size="12">医疗</text>
+                            <line x1="0" y1="25" x2="0" y2="40" stroke="#2196f3" stroke-width="2"/>
+                        </g>
+                        
+                        <!-- 工业 -->
+                        <g transform="rotate(300) translate(0,-120)">
+                            <circle cx="0" cy="0" r="25" fill="#795548"/>
+                            <text x="0" y="5" text-anchor="middle" fill="white" font-size="12">工业</text>
+                            <line x1="0" y1="25" x2="0" y2="40" stroke="#795548" stroke-width="2"/>
+                        </g>
+                    </g>
+                </svg>
+            </div>
+            
+            <h3>Linux内核中的蓝牙驱动开发</h3>
+            <p>在Linux内核中开发蓝牙驱动需要理解蓝牙协议栈的架构和内核提供的蓝牙子系统API。</p>
+            
+            <div class="code-block">
+<pre>
+// 简单的蓝牙设备驱动示例
+#include &lt;linux/kernel.h&gt;
+#include &lt;linux/module.h&gt;
+#include &lt;linux/bluetooth.h&gt;
+#include &lt;net/bluetooth/hci_core.h&gt;
+
+static int bt_probe(struct hci_dev *hdev)
+{
+    int err;
+    
+    BT_DBG("Probing Bluetooth device %s", hdev->name);
+    
+    // 设置设备能力
+    hdev->bus = HCI_USB;
+    hdev->dev_type = HCI_PRIMARY;
+    
+    // 注册设备
+    err = hci_register_dev(hdev);
+    if (err &lt; 0) {
+        BT_ERR("Failed to register HCI device");
+        return err;
+    }
+    
+    return 0;
+}
+
+static int bt_remove(struct hci_dev *hdev)
+{
+    BT_DBG("Removing Bluetooth device %s", hdev->name);
+    hci_unregister_dev(hdev);
+    return 0;
+}
+
+static struct hci_driver bt_driver = {
+    .name = "example_bt_driver",
+    .probe = bt_probe,
+    .remove = bt_remove,
+    .id_table = bt_id_table, // 设备ID表
+};
+
+static int __init bt_driver_init(void)
+{
+    return hci_register_driver(&bt_driver);
+}
+
+static void __exit bt_driver_exit(void)
+{
+    hci_unregister_driver(&bt_driver);
+}
+
+module_init(bt_driver_init);
+module_exit(bt_driver_exit);
+
+MODULE_AUTHOR("BlueOcean Mining Camp");
+MODULE_DESCRIPTION("Example Bluetooth Driver");
+MODULE_LICENSE("GPL");
+</pre>
+            </div>
+        </section>
+
+        <footer>
+            <p>蓝海资料掘金营</p>
+        </footer>
+    </div>
+</body>
+</html>

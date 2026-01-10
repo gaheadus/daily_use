@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蓝牙GATT协议实现 - Linux内核蓝牙驱动开发实战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #f9fbe7 50%, #e8f5e9 100%);
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(45deg, #4fc3f7, #29b6f6);
+            color: white;
+            padding: 40px 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 20px rgba(41, 182, 246, 0.3);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.8em;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .subtitle {
+            font-size: 1.3em;
+            opacity: 0.9;
+        }
+
+        .section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 6px solid #4fc3f7;
+        }
+
+        h2 {
+            color: #0288d1;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0f7fa;
+        }
+
+        h3 {
+            color: #0097a7;
+            margin: 20px 0 15px 0;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        th {
+            background: #4fc3f7;
+            color: white;
+            padding: 12px 15px;
+            text-align: left;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0f7fa;
+        }
+
+        tr:nth-child(even) {
+            background: #f5fdfe;
+        }
+
+        tr:hover {
+            background: #e1f5fe;
+        }
+
+        .code-block {
+            background: #f5f5f5;
+            border-left: 4px solid #4fc3f7;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+
+        pre {
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            line-height: 1.4;
+        }
+
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 25px 0;
+        }
+
+        .architecture {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 25px 0;
+        }
+
+        .highlight {
+            background: #fff9c4;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            margin-top: 40px;
+            color: #666;
+            border-top: 1px solid #e0f7fa;
+            font-size: 1.1em;
+        }
+
+        .note {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .warning {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>蓝牙GATT协议实现</h1>
+            <p class="subtitle">GATT服务发现、特征值读写、通知指示机制</p>
+            <p class="subtitle">《Linux内核蓝牙驱动开发实战》课程</p>
+        </header>
+
+        <div class="section">
+            <h2>GATT协议概述</h2>
+            <p>GATT（Generic Attribute Profile）是蓝牙低功耗（BLE）协议栈中的关键组成部分，它定义了设备之间数据传输的标准方式。GATT基于属性协议（ATT），采用客户端-服务器架构，其中客户端（如手机）发现并访问服务器（如传感器）提供的服务。</p>
+            
+            <div class="svg-container">
+                <svg width="600" height="200" viewBox="0 0 600 200">
+                    <rect x="50" y="50" width="150" height="60" rx="10" fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                    <text x="125" y="85" text-anchor="middle" fill="white" font-weight="bold">GATT客户端</text>
+                    
+                    <rect x="400" y="50" width="150" height="60" rx="10" fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                    <text x="475" y="85" text-anchor="middle" fill="white" font-weight="bold">GATT服务器</text>
+                    
+                    <path d="M200 80 Q300 30 400 80" stroke="#0288d1" stroke-width="2" fill="none"/>
+                    <path d="M400 80 Q300 130 200 80" stroke="#0288d1" stroke-width="2" fill="none"/>
+                    
+                    <text x="300" y="40" text-anchor="middle" fill="#0288d1">请求</text>
+                    <text x="300" y="150" text-anchor="middle" fill="#0288d1">响应</text>
+                </svg>
+            </div>
+            
+            <p>GATT协议定义了服务（Services）、特征（Characteristics）和描述符（Descriptors）的层次结构：</p>
+            <ul>
+                <li><span class="highlight">服务</span>：完成特定功能的数据集合，如电池服务、设备信息服务</li>
+                <li><span class="highlight">特征</span>：服务中的数据点，包含值和属性（读、写、通知等）</li>
+                <li><span class="highlight">描述符</span>：描述特征的元数据，如客户端特征配置描述符（CCCD）</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>GATT服务发现</h2>
+            <p>服务发现是GATT客户端与服务器建立连接后的首要步骤，用于识别服务器提供的服务和特征。</p>
+            
+            <h3>服务发现流程</h3>
+            <ol>
+                <li>建立蓝牙连接</li>
+                <li>发现主要服务</li>
+                <li>发现服务包含的其他服务</li>
+                <li>发现服务中的特征</li>
+                <li>发现特征的描述符</li>
+            </ol>
+            
+            <div class="architecture">
+                <h3>Linux内核中的GATT服务发现实现</h3>
+                <div class="code-block">
+                    <pre>#include <linux/bluetooth/bluetooth.h>
+#include <linux/bluetooth/hci.h>
+#include <linux/bluetooth/hci_core.h>
+#include <net/bluetooth/bluetooth.h>
+#include <net/bluetooth/hci_core.h>
+#include <net/bluetooth/l2cap.h>
+#include <net/bluetooth/mgmt.h>
+
+/* GATT服务发现回调函数 */
+static void gatt_service_discovered(struct gatt_conn *conn, 
+                                   struct gatt_service *service, 
+                                   int err)
+{
+    if (err) {
+        BT_ERR("Service discovery failed: %d", err);
+        return;
+    }
+    
+    BT_INFO("Service found: UUID %pUb, handle range: 0x%04x-0x%04x",
+           &service->uuid, service->handle, service->end_handle);
+    
+    /* 发现服务中的特征 */
+    gatt_discover_characteristics(conn, service);
+}
+
+/* 特征发现回调函数 */
+static void gatt_characteristic_discovered(struct gatt_conn *conn,
+                                          struct gatt_characteristic *charac,
+                                          int err)
+{
+    if (err) {
+        BT_ERR("Characteristic discovery failed: %d", err);
+        return;
+    }
+    
+    BT_INFO("Characteristic found: UUID %pUb, properties: 0x%02x, handle: 0x%04x",
+           &charac->uuid, charac->properties, charac->value_handle);
+    
+    /* 根据属性处理特征 */
+    if (charac->properties & BT_GATT_CHRC_PROP_READ) {
+        BT_INFO("Characteristic supports READ");
+    }
+    if (charac->properties & BT_GATT_CHRC_PROP_WRITE) {
+        BT_INFO("Characteristic supports WRITE");
+    }
+    if (charac->properties & BT_GATT_CHRC_PROP_NOTIFY) {
+        BT_INFO("Characteristic supports NOTIFY");
+    }
+}</pre>
+                </div>
+            </div>
+            
+            <h3>服务发现API</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>函数</th>
+                        <th>描述</th>
+                        <th>参数</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>gatt_discover_primary_services()</td>
+                        <td>发现主要服务</td>
+                        <td>连接句柄、服务UUID（可选）</td>
+                    </tr>
+                    <tr>
+                        <td>gatt_discover_characteristics()</td>
+                        <td>发现服务中的特征</td>
+                        <td>连接句柄、服务句柄范围</td>
+                    </tr>
+                    <tr>
+                        <td>gatt_discover_descriptors()</td>
+                        <td>发现特征的描述符</td>
+                        <td>连接句柄、特征值句柄范围</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>特征值读写操作</h2>
+            <p>特征值读写是GATT协议的核心功能，允许客户端读取和修改服务器中的数据。</p>
+            
+            <h3>读取特征值</h3>
+            <div class="code-block">
+                <pre>/* 读取特征值回调函数 */
+static void gatt_read_cb(struct gatt_conn *conn, u16 handle, 
+                        const u8 *value, size_t len, int err)
+{
+    if (err) {
+        BT_ERR("Read failed: %d", err);
+        return;
+    }
+    
+    BT_INFO("Read successful: handle 0x%04x, value length: %zu", handle, len);
+    print_hex_dump(KERN_INFO, "Value: ", DUMP_PREFIX_OFFSET, 16, 1, value, len, true);
+}
+
+/* 执行特征值读取 */
+int gatt_read_characteristic(struct gatt_conn *conn, u16 handle)
+{
+    struct gatt_req *req;
+    
+    req = gatt_req_alloc(conn, GFP_KERNEL);
+    if (!req)
+        return -ENOMEM;
+    
+    req->handle = handle;
+    req->read_cb = gatt_read_cb;
+    
+    return gatt_read(conn, req);
+}</pre>
+            </div>
+            
+            <h3>写入特征值</h3>
+            <div class="code-block">
+                <pre>/* 写入特征值回调函数 */
+static void gatt_write_cb(struct gatt_conn *conn, u16 handle, int err)
+{
+    if (err) {
+        BT_ERR("Write failed: %d", err);
+        return;
+    }
+    
+    BT_INFO("Write successful: handle 0x%04x", handle);
+}
+
+/* 执行特征值写入 */
+int gatt_write_characteristic(struct gatt_conn *conn, u16 handle,
+                             const u8 *value, size_t len)
+{
+    struct gatt_req *req;
+    
+    req = gatt_req_alloc(conn, GFP_KERNEL);
+    if (!req)
+        return -ENOMEM;
+    
+    req->handle = handle;
+    req->write_cb = gatt_write_cb;
+    req->value = kmemdup(value, len, GFP_KERNEL);
+    req->len = len;
+    
+    if (!req->value) {
+        gatt_req_free(req);
+        return -ENOMEM;
+    }
+    
+    return gatt_write(conn, req);
+}</pre>
+            </div>
+            
+            <div class="note">
+                <p><strong>注意：</strong>写入操作分为"带响应写入"和"无响应写入"两种方式。带响应写入需要服务器确认，可靠性高但速度慢；无响应写入速度快但不保证可靠性。</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>通知和指示机制</h2>
+            <p>通知和指示是GATT服务器主动向客户端发送数据的机制，适用于实时数据传输场景。</p>
+            
+            <div class="svg-container">
+                <svg width="600" height="300" viewBox="0 0 600 300">
+                    <rect x="50" y="50" width="150" height="60" rx="10" fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                    <text x="125" y="85" text-anchor="middle" fill="white" font-weight="bold">GATT客户端</text>
+                    
+                    <rect x="400" y="50" width="150" height="60" rx="10" fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                    <text x="475" y="85" text-anchor="middle" fill="white" font-weight="bold">GATT服务器</text>
+                    
+                    <!-- 启用通知流程 -->
+                    <path d="M200 80 L250 80 L250 120 L200 120" stroke="#0288d1" stroke-width="2" fill="none"/>
+                    <text x="225" y="105" text-anchor="middle" fill="#0288d1" font-size="12">写入CCCD</text>
+                    
+                    <path d="M200 120 L150 120 L150 160 L200 160" stroke="#0288d1" stroke-width="2" fill="none"/>
+                    <text x="175" y="145" text-anchor="middle" fill="#0288d1" font-size="12">响应</text>
+                    
+                    <!-- 通知数据 -->
+                    <path d="M400 160 L350 160 L350 200 L400 200" stroke="#ff9800" stroke-width="2" fill="none"/>
+                    <text x="375" y="185" text-anchor="middle" fill="#ff9800" font-size="12">通知数据</text>
+                    
+                    <text x="300" y="230" text-anchor="middle" fill="#666" font-size="14">通知机制：服务器主动发送，无需客户端确认</text>
+                </svg>
+            </div>
+            
+            <h3>通知与指示的区别</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>特性</th>
+                        <th>通知 (Notification)</th>
+                        <th>指示 (Indication)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>确认机制</td>
+                        <td>无确认</td>
+                        <td>需要客户端确认</td>
+                    </tr>
+                    <tr>
+                        <td>可靠性</td>
+                        <td>可能丢失数据</td>
+                        <td>保证数据送达</td>
+                    </tr>
+                    <tr>
+                        <td>性能</td>
+                        <td>高吞吐量</td>
+                        <td>较低吞吐量</td>
+                    </tr>
+                    <tr>
+                        <td>适用场景</td>
+                        <td>传感器数据、实时监控</td>
+                        <td>重要事件、配置更改</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>启用通知机制</h3>
+            <div class="code-block">
+                <pre>/* 启用特征通知 */
+int enable_characteristic_notification(struct gatt_conn *conn, 
+                                      u16 value_handle, u16 cccd_handle)
+{
+    u8 value[2];
+    int ret;
+    
+    /* CCCD值: 0x0001 = 通知禁用, 0x0002 = 通知启用 */
+    value[0] = 0x01;  /* 启用通知 */
+    value[1] = 0x00;
+    
+    ret = gatt_write_characteristic(conn, cccd_handle, value, sizeof(value));
+    if (ret < 0) {
+        BT_ERR("Failed to enable notification: %d", ret);
+        return ret;
+    }
+    
+    BT_INFO("Notification enabled for handle 0x%04x", value_handle);
+    return 0;
+}
+
+/* 处理接收到的通知数据 */
+static void gatt_notification_handler(struct gatt_conn *conn, u16 handle,
+                                     const u8 *data, size_t len)
+{
+    BT_INFO("Notification received - Handle: 0x%04x, Length: %zu", handle, len);
+    
+    /* 处理通知数据 */
+    switch (handle) {
+    case BATTERY_LEVEL_HANDLE:
+        process_battery_level(data[0]);
+        break;
+    case TEMPERATURE_HANDLE:
+        process_temperature_data(data, len);
+        break;
+    default:
+        BT_INFO("Unknown notification handle: 0x%04x", handle);
+        break;
+    }
+}</pre>
+            </div>
+            
+            <div class="warning">
+                <p><strong>重要：</strong>在启用通知前，必须确保特征支持NOTIFY属性，并且已经发现了对应的CCCD描述符。通知启用后，服务器会在数据变化时自动发送更新。</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Linux内核GATT驱动架构</h2>
+            <p>Linux内核提供了完整的GATT协议栈实现，支持客户端和服务器角色。</p>
+            
+            <div class="svg-container">
+                <svg width="600" height="400" viewBox="0 0 600 400">
+                    <!-- 应用层 -->
+                    <rect x="50" y="30" width="500" height="40" rx="5" fill="#e1f5fe" stroke="#4fc3f7" stroke-width="1"/>
+                    <text x="300" y="55" text-anchor="middle" fill="#0288d1" font-weight="bold">应用程序/用户空间</text>
+                    
+                    <!-- BlueZ层 -->
+                    <rect x="50" y="90" width="500" height="40" rx="5" fill="#e8f5e9" stroke="#4caf50" stroke-width="1"/>
+                    <text x="300" y="115" text-anchor="middle" fill="#2e7d32" font-weight="bold">BlueZ D-Bus API / 蓝牙工具</text>
+                    
+                    <!-- 内核GATT层 -->
+                    <rect x="50" y="150" width="500" height="80" rx="5" fill="#fff3e0" stroke="#ff9800" stroke-width="1"/>
+                    <text x="300" y="175" text-anchor="middle" fill="#ef6c00" font-weight="bold">Linux内核GATT子系统</text>
+                    
+                    <rect x="70" y="190" width="110" height="30" rx="3" fill="#ffecb3" stroke="#ffa000" stroke-width="1"/>
+                    <text x="125" y="208" text-anchor="middle" fill="#5d4037" font-size="12">GATT客户端</text>
+                    
+                    <rect x="200" y="190" width="110" height="30" rx="3" fill="#ffecb3" stroke="#ffa000" stroke-width="1"/>
+                    <text x="255" y="208" text-anchor="middle" fill="#5d4037" font-size="12">GATT服务器</text>
+                    
+                    <rect x="330" y="190" width="110" height="30" rx="3" fill="#ffecb3" stroke="#ffa000" stroke-width="1"/>
+                    <text x="385" y="208" text-anchor="middle" fill="#5d4037" font-size="12">属性数据库</text>
+                    
+                    <rect x="460" y="190" width="70" height="30" rx="3" fill="#ffecb3" stroke="#ffa000" stroke-width="1"/>
+                    <text x="495" y="208" text-anchor="middle" fill="#5d4037" font-size="12">安全管理</text>
+                    
+                    <!-- L2CAP层 -->
+                    <rect x="50" y="250" width="500" height="40" rx="5" fill="#f3e5f5" stroke="#9c27b0" stroke-width="1"/>
+                    <text x="300" y="275" text-anchor="middle" fill="#6a1b9a" font-weight="bold">L2CAP协议层 (ATT通道)</text>
+                    
+                    <!-- HCI层 -->
+                    <rect x="50" y="310" width="500" height="40" rx="5" fill="#ffebee" stroke="#f44336" stroke-width="1"/>
+                    <text x="300" y="335" text-anchor="middle" fill="#c62828" font-weight="bold">HCI驱动 / 硬件控制器</text>
+                    
+                    <!-- 连接线 -->
+                    <line x1="300" y1="70" x2="300" y2="90" stroke="#666" stroke-width="1" stroke-dasharray="5,5"/>
+                    <line x1="300" y1="130" x2="300" y2="150" stroke="#666" stroke-width="1" stroke-dasharray="5,5"/>
+                    <line x1="300" y1="230" x2="300" y2="250" stroke="#666" stroke-width="1" stroke-dasharray="5,5"/>
+                    <line x1="300" y1="290" x2="300" y2="310" stroke="#666" stroke-width="1" stroke-dasharray="5,5"/>
+                </svg>
+            </div>
+            
+            <h3>关键数据结构和API</h3>
+            <div class="code-block">
+                <pre>/* GATT特征属性结构 */
+struct bt_gatt_attr {
+    const struct bt_uuid *uuid;
+    ssize_t (*read)(struct bt_conn *conn, const struct bt_gatt_attr *attr,
+                   void *buf, u16 len, u16 offset);
+    ssize_t (*write)(struct bt_conn *conn, const struct bt_gatt_attr *attr,
+                    const void *buf, u16 len, u16 offset, u8 flags);
+    void *user_data;
+    u16 handle;
+    u8 perm;
+};
+
+/* GATT服务定义 */
+static struct bt_gatt_attr battery_service_attrs[] = {
+    /* 电池服务声明 */
+    BT_GATT_PRIMARY_SERVICE(BT_UUID_BAS),
+    
+    /* 电池电平特征 */
+    BT_GATT_CHARACTERISTIC(BT_UUID_BAS_BATTERY_LEVEL,
+                          BT_GATT_CHRC_READ | BT_GATT_CHRC_NOTIFY,
+                          BT_GATT_PERM_READ, read_battery_level, NULL,
+                          &battery_level),
+    
+    /* 客户端特征配置描述符 */
+    BT_GATT_CCC(battery_ccc_cfg_changed,
+               BT_GATT_PERM_READ | BT_GATT_PERM_WRITE),
+};
+
+/* 注册GATT服务 */
+static struct bt_gatt_service battery_service = BT_GATT_SERVICE(battery_service_attrs);
+
+int register_battery_service(void)
+{
+    int err;
+    
+    err = bt_gatt_service_register(&battery_service);
+    if (err) {
+        BT_ERR("Battery service registration failed: %d", err);
+        return err;
+    }
+    
+    BT_INFO("Battery service registered successfully");
+    return 0;
+}</pre>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>实战示例：心率监测器</h2>
+            <p>以下是一个完整的心率监测器GATT服务实现示例：</p>
+            
+            <div class="code-block">
+                <pre>#include <linux/bluetooth/bluetooth.h>
+#include <linux/bluetooth/gatt.h>
+#include <linux/kernel.h>
+#include <linux/module.h>
+#include <linux/slab.h>
+
+/* 心率测量值 */
+static u8 heart_rate_measurement = 72;
+static struct bt_gatt_ccc_cfg heart_rate_ccc_cfg[BT_GATT_CCC_MAX] = {};
+
+/* 心率测量读取回调 */
+static ssize_t read_heart_rate(struct bt_conn *conn,
+                              const struct bt_gatt_attr *attr,
+                              void *buf, u16 len, u16 offset)
+{
+    const u8 *value = attr->user_data;
+    
+    return bt_gatt_attr_read(conn, attr, buf, len, offset, value,
+                            sizeof(*value));
+}
+
+/* CCC配置变更回调 */
+static void heart_rate_ccc_cfg_changed(const struct bt_gatt_attr *attr, u16 value)
+{
+    bool notif_enabled = (value == BT_GATT_CCC_NOTIFY);
+    
+    BT_INFO("Heart Rate notifications %s", notif_enabled ? "enabled" : "disabled");
+    
+    if (notif_enabled) {
+        /* 开始定期发送心率数据 */
+        schedule_heart_rate_notifications();
+    }
+}
+
+/* 发送心率通知 */
+static void send_heart_rate_notification(struct bt_conn *conn)
+{
+    int err;
+    
+    err = bt_gatt_notify(conn, &heart_rate_svc.attrs[2], 
+                        &heart_rate_measurement, sizeof(heart_rate_measurement));
+    if (err) {
+        BT_ERR("Heart Rate notification failed: %d", err);
+    } else {
+        BT_INFO("Heart Rate notification sent: %d BPM", heart_rate_measurement);
+    }
+}
+
+/* 心率服务属性 */
+static struct bt_gatt_attr heart_rate_attrs[] = {
+    /* 心率服务声明 */
+    BT_GATT_PRIMARY_SERVICE(BT_UUID_HRS),
+    
+    /* 心率测量特征 */
+    BT_GATT_CHARACTERISTIC(BT_UUID_HRS_MEASUREMENT, 
+                          BT_GATT_CHRC_NOTIFY,
+                          BT_GATT_PERM_NONE, 
+                          NULL, NULL, &heart_rate_measurement),
+    
+    /* 客户端特征配置描述符 */
+    BT_GATT_CCC(heart_rate_ccc_cfg, heart_rate_ccc_cfg_changed,
+               BT_GATT_PERM_READ | BT_GATT_PERM_WRITE),
+    
+    /* 身体传感器位置特征 */
+    BT_GATT_CHARACTERISTIC(BT_UUID_HRS_BODY_SENSOR_LOCATION,
+                          BT_GATT_CHRC_READ,
+                          BT_GATT_PERM_READ,
+                          read_body_sensor_location, NULL, NULL),
+};
+
+/* 定义心率服务 */
+static struct bt_gatt_service heart_rate_svc = BT_GATT_SERVICE(heart_rate_attrs);
+
+/* 初始化心率服务 */
+static int __init heart_rate_service_init(void)
+{
+    int err;
+    
+    BT_INFO("Initializing Heart Rate Service");
+    
+    err = bt_gatt_service_register(&heart_rate_svc);
+    if (err) {
+        BT_ERR("Failed to register Heart Rate service: %d", err);
+        return err;
+    }
+    
+    BT_INFO("Heart Rate Service initialized successfully");
+    return 0;
+}
+
+/* 清理心率服务 */
+static void __exit heart_rate_service_exit(void)
+{
+    bt_gatt_service_unregister(&heart_rate_svc);
+    BT_INFO("Heart Rate Service unregistered");
+}
+
+module_init(heart_rate_service_init);
+module_exit(heart_rate_service_exit);
+
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("蓝海资料掘金营");
+MODULE_DESCRIPTION("Heart Rate GATT Service Implementation");</pre>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>总结</h2>
+            <p>GATT协议是蓝牙低功耗通信的核心，掌握GATT服务发现、特征值读写和通知指示机制对于开发蓝牙设备至关重要。通过Linux内核提供的丰富API，开发者可以高效实现各种蓝牙应用。</p>
+            
+            <h3>关键要点</h3>
+            <ul>
+                <li>理解GATT的客户端-服务器架构和属性层次结构</li>
+                <li>掌握服务发现流程和相关的内核API</li>
+                <li>熟练使用特征值读写操作处理设备数据</li>
+                <li>合理运用通知和指示机制实现实时数据传输</li>
+                <li>熟悉Linux内核GATT驱动架构和关键数据结构</li>
+            </ul>
+            
+            <div class="note">
+                <p><strong>最佳实践建议：</strong></p>
+                <ul>
+                    <li>在服务发现完成后缓存重要的句柄值，避免重复发现</li>
+                    <li>合理使用通知和指示，根据数据重要性选择适当的机制</li>
+                    <li>实现适当的错误处理和重试机制</li>
+                    <li>考虑安全性和权限设置，保护敏感数据</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>蓝海资料掘金营</p>
+    </footer>
+</body>
+</html>

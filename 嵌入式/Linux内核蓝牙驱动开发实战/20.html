@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蓝牙安全管理 - Linux内核蓝牙驱动开发实战</title>
+    <style>
+        :root {
+            --primary: #4CAF50;
+            --secondary: #FFC107;
+            --accent: #2196F3;
+            --light: #E8F5E9;
+            --dark: #2E7D32;
+            --text: #333333;
+            --white: #FFFFFF;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background: linear-gradient(135deg, var(--light) 0%, #B3E5FC 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: var(--primary);
+            color: var(--white);
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        h2 {
+            color: var(--dark);
+            margin: 2rem 0 1rem 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 3px solid var(--secondary);
+        }
+        
+        h3 {
+            color: var(--accent);
+            margin: 1.5rem 0 0.5rem 0;
+        }
+        
+        .card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .content-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .content-section {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: var(--accent);
+            color: var(--white);
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        
+        pre {
+            background: #f5f5f5;
+            border-left: 4px solid var(--accent);
+            padding: 1rem;
+            overflow-x: auto;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+        
+        code {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+        }
+        
+        ul, ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 1.5rem 0;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 2rem;
+            margin-top: 2rem;
+            background: var(--dark);
+            color: var(--white);
+            border-radius: 15px;
+        }
+        
+        .highlight {
+            background-color: var(--secondary);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background: var(--accent);
+            color: white;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>蓝牙安全管理</h1>
+            <p>配对认证机制、加密密钥管理、安全模式配置</p>
+        </header>
+        
+        <section class="card">
+            <h2>蓝牙安全概述</h2>
+            <p>蓝牙安全管理是确保蓝牙设备间通信安全的关键机制。它涵盖了设备配对、认证、加密密钥生成与管理以及安全模式配置等多个方面。在Linux内核蓝牙驱动开发中，正确实现这些安全机制对于保护用户数据和隐私至关重要。</p>
+            
+            <div class="svg-container">
+                <svg width="600" height="200" viewBox="0 0 600 200">
+                    <rect x="50" y="80" width="100" height="60" rx="10" fill="#4CAF50" stroke="#2E7D32" stroke-width="2"/>
+                    <text x="100" y="115" text-anchor="middle" fill="white" font-weight="bold">配对认证</text>
+                    
+                    <rect x="200" y="80" width="100" height="60" rx="10" fill="#2196F3" stroke="#0D47A1" stroke-width="2"/>
+                    <text x="250" y="115" text-anchor="middle" fill="white" font-weight="bold">密钥管理</text>
+                    
+                    <rect x="350" y="80" width="100" height="60" rx="10" fill="#FFC107" stroke="#FF8F00" stroke-width="2"/>
+                    <text x="400" y="115" text-anchor="middle" fill="white" font-weight="bold">加密通信</text>
+                    
+                    <rect x="500" y="80" width="100" height="60" rx="10" fill="#E91E63" stroke="#AD1457" stroke-width="2"/>
+                    <text x="550" y="115" text-anchor="middle" fill="white" font-weight="bold">安全模式</text>
+                    
+                    <path d="M150 110 L200 110" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+                    <path d="M300 110 L350 110" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+                    <path d="M450 110 L500 110" stroke="#333" stroke-width="2" marker-end="url(#arrow)"/>
+                    
+                    <defs>
+                        <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                            <path d="M0,0 L0,6 L9,3 z" fill="#333"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+        </section>
+        
+        <div class="content-section">
+            <section class="card">
+                <h2>配对认证机制</h2>
+                <p>蓝牙配对是建立安全连接的第一步，涉及设备间的相互认证和密钥交换。</p>
+                
+                <h3>配对方法</h3>
+                <ul>
+                    <li><span class="badge">1</span> 传统配对（Legacy Pairing）</li>
+                    <li><span class="badge">2</span> 安全连接（Secure Connections）</li>
+                    <li><span class="badge">3</span> 临时配对（Just Works）</li>
+                    <li><span class="badge">4</span> 密码配对（Passkey Entry）</li>
+                    <li><span class="badge">5</span> 带外配对（Out of Band）</li>
+                </ul>
+                
+                <h3>配对流程</h3>
+                <ol>
+                    <li>设备发现与连接建立</li>
+                    <li>配对请求与能力交换</li>
+                    <li>认证阶段（根据IO能力选择方法）</li>
+                    <li>短期密钥（STK）或长期密钥（LTK）生成</li>
+                    <li>密钥分发与链路加密</li>
+                </ol>
+                
+                <h3>Linux内核实现</h3>
+                <pre><code>// 蓝牙配对相关数据结构示例
+struct smp_chan {
+    struct l2cap_conn *conn;
+    u8   preq[7];  // 配对请求
+    u8   prsp[7];  // 配对响应
+    u8   prnd[16]; // 配对随机数
+    u8   prsp[16]; // 从设备随机数
+    u8   tk[16];   // 临时密钥
+    u8   ltk[16];  // 长期密钥
+};
+
+// 配对处理函数
+int smp_pairing_req(struct l2cap_conn *conn, struct smp_cmd_pairing_req *req)
+{
+    struct smp_chan *smp;
+    int err;
+    
+    smp = smp_chan_create(conn);
+    if (!smp)
+        return -ENOMEM;
+    
+    memcpy(smp->preq, req, sizeof(*req));
+    
+    // 根据IO能力选择配对方法
+    err = smp_select_method(smp);
+    if (err)
+        goto done;
+    
+    // 执行配对流程
+    err = smp_perform_pairing(smp);
+    
+done:
+    if (err)
+        smp_chan_destroy(conn);
+    
+    return err;
+}</code></pre>
+            </section>
+            
+            <section class="card">
+                <h2>加密密钥管理</h2>
+                <p>蓝牙安全依赖于多种密钥的生成、存储和管理，确保通信的机密性和完整性。</p>
+                
+                <h3>密钥类型</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>密钥类型</th>
+                            <th>用途</th>
+                            <th>生命周期</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>LTK (Long Term Key)</td>
+                            <td>链路加密</td>
+                            <td>长期存储</td>
+                        </tr>
+                        <tr>
+                            <td>EDIV & Rand</td>
+                            <td>LTK标识</td>
+                            <td>与LTK相同</td>
+                        </tr>
+                        <tr>
+                            <td>IRK (Identity Resolving Key)</td>
+                            <td>身份解析</td>
+                            <td>长期存储</td>
+                        </tr>
+                        <tr>
+                            <td>CSRK (Connection Signature Key)</td>
+                            <td>数据签名</td>
+                            <td>长期存储</td>
+                        </tr>
+                        <tr>
+                            <td>STK (Short Term Key)</td>
+                            <td>临时加密</td>
+                            <td>单次会话</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>密钥分发流程</h3>
+                <div class="svg-container">
+                    <svg width="500" height="300" viewBox="0 0 500 300">
+                        <rect x="50" y="50" width="100" height="60" rx="10" fill="#4CAF50" stroke="#2E7D32" stroke-width="2"/>
+                        <text x="100" y="85" text-anchor="middle" fill="white" font-size="12">主设备</text>
+                        
+                        <rect x="350" y="50" width="100" height="60" rx="10" fill="#2196F3" stroke="#0D47A1" stroke-width="2"/>
+                        <text x="400" y="85" text-anchor="middle" fill="white" font-size="12">从设备</text>
+                        
+                        <path d="M150 80 L350 80" stroke="#333" stroke-width="2" stroke-dasharray="5,5"/>
+                        <text x="250" y="75" text-anchor="middle" fill="#333" font-size="10">配对请求</text>
+                        
+                        <path d="M350 100 L150 100" stroke="#333" stroke-width="2" stroke-dasharray="5,5"/>
+                        <text x="250" y="105" text-anchor="middle" fill="#333" font-size="10">配对响应</text>
+                        
+                        <path d="M150 130 L350 130" stroke="#333" stroke-width="2"/>
+                        <text x="250" y="125" text-anchor="middle" fill="#333" font-size="10">公钥交换</text>
+                        
+                        <path d="M150 160 L350 160" stroke="#333" stroke-width="2"/>
+                        <text x="250" y="155" text-anchor="middle" fill="#333" font-size="10">认证阶段</text>
+                        
+                        <path d="M150 190 L350 190" stroke="#333" stroke-width="2"/>
+                        <text x="250" y="185" text-anchor="middle" fill="#333" font-size="10">密钥分发</text>
+                        
+                        <path d="M150 220 L350 220" stroke="#333" stroke-width="2"/>
+                        <text x="250" y="215" text-anchor="middle" fill="#333" font-size="10">加密开始</text>
+                    </svg>
+                </div>
+                
+                <h3>内核密钥存储</h3>
+                <pre><code>// 蓝牙密钥结构定义
+struct smp_ltk {
+    struct list_head list;
+    bdaddr_t bdaddr;
+    u8       type;
+    u8       authenticated;
+    u8       enc_size;
+    u16      ediv;
+    u64      rand;
+    u8       val[16];
+};
+
+// 添加长期密钥到内核
+int hci_add_ltk(struct hci_dev *hdev, bdaddr_t *bdaddr, u8 addr_type, u8 type,
+                u8 authenticated, u8 enc_size, __le16 ediv, __le64 rand,
+                u8 *val)
+{
+    struct smp_ltk *key, *old_key;
+    
+    key = kzalloc(sizeof(*key), GFP_KERNEL);
+    if (!key)
+        return -ENOMEM;
+    
+    bacpy(&key->bdaddr, bdaddr);
+    key->type = type;
+    key->authenticated = authenticated;
+    key->enc_size = enc_size;
+    key->ediv = ediv;
+    key->rand = rand;
+    memcpy(key->val, val, 16);
+    
+    // 替换或添加新密钥
+    old_key = hci_find_ltk(hdev, bdaddr, addr_type, role);
+    if (old_key) {
+        list_replace(&old_key->list, &key->list);
+        kfree(old_key);
+    } else {
+        list_add(&key->list, &hdev->long_term_keys);
+    }
+    
+    return 0;
+}</code></pre>
+            </section>
+        </div>
+        
+        <section class="card">
+            <h2>安全模式配置</h2>
+            <p>蓝牙设备支持多种安全模式，根据应用需求和安全级别进行配置。</p>
+            
+            <h3>安全模式分类</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>模式</th>
+                        <th>描述</th>
+                        <th>安全级别</th>
+                        <th>适用场景</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>模式1（无安全）</td>
+                        <td>不启用任何安全机制</td>
+                        <td>无</td>
+                        <td>公开信息传输</td>
+                    </tr>
+                    <tr>
+                        <td>模式2（服务级安全）</td>
+                        <td>在L2CAP层实现安全控制</td>
+                        <td>中等</td>
+                        <td>通用应用</td>
+                    </tr>
+                    <tr>
+                        <td>模式3（链路级安全）</td>
+                        <td>在链路层实现安全控制</td>
+                        <td>高</td>
+                        <td>安全敏感应用</td>
+                    </tr>
+                    <tr>
+                        <td>模式4（服务级安全）</td>
+                        <td>基于安全简单配对</td>
+                        <td>最高</td>
+                        <td>现代蓝牙设备</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3>安全模式配置示例</h3>
+            <pre><code>// 设置蓝牙安全模式
+static int set_security_mode(struct hci_dev *hdev, u8 mode)
+{
+    struct hci_cp_write_security_mode cp;
+    
+    cp.mode = mode;
+    
+    return hci_send_cmd(hdev, HCI_OP_WRITE_SECURITY_MODE, 
+                       sizeof(cp), &cp);
+}
+
+// 配置服务安全级别
+int bt_security_set(struct bt_conn *conn, bt_security_t sec)
+{
+    struct bt_conn_security *sec_data;
+    int err;
+    
+    sec_data = kzalloc(sizeof(*sec_data), GFP_KERNEL);
+    if (!sec_data)
+        return -ENOMEM;
+    
+    sec_data->conn = conn;
+    sec_data->sec_level = sec;
+    
+    // 根据安全级别配置相应参数
+    switch (sec) {
+    case BT_SECURITY_LOW:
+        // 无加密或认证
+        break;
+    case BT_SECURITY_MEDIUM:
+        // 需要加密但无需认证
+        break;
+    case BT_SECURITY_HIGH:
+        // 需要加密和认证
+        break;
+    case BT_SECURITY_FIPS:
+        // FIPS兼容的最高安全级别
+        break;
+    default:
+        kfree(sec_data);
+        return -EINVAL;
+    }
+    
+    err = hci_conn_security(conn, sec, sec_data);
+    kfree(sec_data);
+    
+    return err;
+}
+
+// 内核安全配置接口
+static int bt_sock_setsockopt(struct socket *sock, int level, int optname,
+                              char __user *optval, unsigned int optlen)
+{
+    struct bt_security sec;
+    int err;
+    
+    if (optname == BT_SECURITY) {
+        if (copy_from_user(&sec, optval, sizeof(sec)))
+            return -EFAULT;
+        
+        // 验证安全级别
+        if (sec.level < BT_SECURITY_LOW || sec.level > BT_SECURITY_FIPS)
+            return -EINVAL;
+        
+        // 应用安全配置
+        err = bt_sock_set_security(sock->sk, sec.level);
+        if (err)
+            return err;
+    }
+    
+    return 0;
+}</code></pre>
+            
+            <h3>安全最佳实践</h3>
+            <ul>
+                <li>始终使用最新的安全连接（Secure Connections）配对方法</li>
+                <li>为敏感服务配置适当的安全模式</li>
+                <li>定期轮换长期密钥</li>
+                <li>实现安全的密钥存储机制</li>
+                <li>遵循最小权限原则配置服务访问</li>
+            </ul>
+        </section>
+        
+        <section class="card">
+            <h2>实战：配置蓝牙安全模式</h2>
+            <p>以下是在Linux系统中配置蓝牙安全模式的实用命令和配置示例。</p>
+            
+            <h3>BlueZ工具配置</h3>
+            <pre><code># 查看蓝牙适配器信息
+hciconfig -a
+
+# 设置蓝牙适配器安全模式
+hciconfig hci0 sspmode 1    # 启用安全简单配对
+hciconfig hci0 auth enable  # 启用认证
+hciconfig hci0 encrypt enable  # 启用加密
+
+# 通过bluetoothctl配置安全
+bluetoothctl
+[bluetooth]# agent on
+[bluetooth]# default-agent
+[bluetooth]# discoverable on
+[bluetooth]# pairable on
+[bluetooth]# exit</code></pre>
+            
+            <h3>内核模块参数</h3>
+            <pre><code># 加载蓝牙内核模块时指定安全参数
+modprobe btusb secure_connections=1
+modprobe bluetooth disable_ertm=1
+
+# 或通过sysfs动态配置
+echo 1 > /sys/module/bluetooth/parameters/disable_ertm
+echo 2 > /sys/kernel/debug/bluetooth/hci0/security_mode</code></pre>
+            
+            <h3>应用层安全配置</h3>
+            <pre><code>// 在BlueZ D-Bus API中配置安全
+GVariant *security_props;
+GError *error = NULL;
+
+// 设置设备安全属性
+security_props = g_variant_new("(s)", "medium");
+g_dbus_connection_call_sync(connection,
+                           "org.bluez",
+                           "/org/bluez/hci0",
+                           "org.bluez.Adapter1",
+                           "SetSecurity",
+                           g_variant_new("(s@as)", "device00:11:22:33:44:55", security_props),
+                           NULL,
+                           G_DBUS_CALL_FLAGS_NONE,
+                           -1,
+                           NULL,
+                           &error);
+
+// 配置服务安全级别
+GVariant *service_props;
+service_props = g_variant_new("(s)", "authorize");
+g_dbus_connection_call_sync(connection,
+                           "org.bluez",
+                           "/org/bluez/hci0/service_serial",
+                           "org.bluez.GattService1",
+                           "SetSecurity",
+                           service_props,
+                           NULL,
+                           G_DBUS_CALL_FLAGS_NONE,
+                           -1,
+                           NULL,
+                           &error);</code></pre>
+        </section>
+        
+        <footer>
+            <p>蓝海资料掘金营</p>
+        </footer>
+    </div>
+</body>
+</html>

@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蓝牙PAN协议驱动开发实战</title>
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #FFC107;
+            --accent-color: #2196F3;
+            --light-color: #E8F5E9;
+            --dark-color: #2E7D32;
+            --text-color: #333333;
+            --background-color: #F9FBE7;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+        
+        h2 {
+            color: var(--dark-color);
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+        
+        h3 {
+            color: var(--accent-color);
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: var(--light-color);
+            color: var(--dark-color);
+        }
+        
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        pre {
+            background-color: #f8f8f8;
+            border-left: 4px solid var(--accent-color);
+            padding: 1rem;
+            overflow-x: auto;
+            border-radius: 0 5px 5px 0;
+        }
+        
+        code {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #f0f0f0;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        
+        .architecture {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin: 1.5rem 0;
+        }
+        
+        .svg-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+        
+        footer {
+            background-color: var(--dark-color);
+            color: white;
+            text-align: center;
+            padding: 1.5rem 0;
+            margin-top: 3rem;
+            border-radius: 20px 20px 0 0;
+        }
+        
+        .highlight {
+            background-color: var(--light-color);
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            margin: 1rem 0;
+        }
+        
+        .step-list {
+            counter-reset: step-counter;
+            list-style-type: none;
+            padding-left: 0;
+        }
+        
+        .step-list li {
+            counter-increment: step-counter;
+            margin-bottom: 1rem;
+            padding-left: 3rem;
+            position: relative;
+        }
+        
+        .step-list li:before {
+            content: counter(step-counter);
+            background-color: var(--primary-color);
+            color: white;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            left: 0;
+            top: 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>蓝牙PAN协议驱动开发实战</h1>
+            <p>网络接口注册、数据包桥接、网络配置管理</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <section class="card">
+            <h2>课程概述</h2>
+            <p>蓝牙个人区域网络(PAN)协议允许蓝牙设备形成小型局域网，实现设备间的数据通信。本课程将深入探讨Linux内核中蓝牙PAN协议驱动的实现，包括网络接口注册、数据包桥接和网络配置管理等关键技术。</p>
+            
+            <div class="highlight">
+                <strong>学习目标：</strong>
+                <ul>
+                    <li>理解蓝牙PAN协议的基本原理</li>
+                    <li>掌握Linux网络接口注册机制</li>
+                    <li>实现数据包在蓝牙和以太网之间的桥接</li>
+                    <li>学习网络配置管理的最佳实践</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>蓝牙PAN协议简介</h2>
+            <p>蓝牙PAN(个人区域网络)协议定义了三种角色：</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>角色</th>
+                        <th>描述</th>
+                        <th>功能</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>PANU (PAN User)</td>
+                        <td>PAN用户</td>
+                        <td>使用网络服务的设备</td>
+                    </tr>
+                    <tr>
+                        <td>GN (Group Ad-hoc Network)</td>
+                        <td>组自组织网络</td>
+                        <td>在自组织网络中提供网络服务</td>
+                    </tr>
+                    <tr>
+                        <td>NAP (Network Access Point)</td>
+                        <td>网络接入点</td>
+                        <td>提供到外部网络的接入</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <p>在Linux内核中，蓝牙PAN驱动位于<code>net/bluetooth/bnep/</code>目录，负责处理BNEP(Bluetooth Network Encapsulation Protocol)协议。</p>
+        </section>
+
+        <section class="card">
+            <h2>网络接口注册</h2>
+            <p>在Linux内核中注册网络接口是蓝牙PAN驱动开发的第一步。以下是关键步骤：</p>
+            
+            <ol class="step-list">
+                <li>
+                    <h3>定义网络设备结构</h3>
+                    <p>使用<code>struct net_device</code>定义蓝牙PAN网络设备，并设置相应的操作函数。</p>
+                    <pre><code>struct net_device *bnep_dev;
+
+bnep_dev = alloc_netdev(sizeof(struct bnep_session),
+                       "bnep%d", NET_NAME_UNKNOWN,
+                       bnep_net_setup);</code></pre>
+                </li>
+                <li>
+                    <h3>设置网络设备操作</h3>
+                    <p>定义网络设备的操作函数，包括打开、关闭、发送等。</p>
+                    <pre><code>static const struct net_device_ops bnep_netdev_ops = {
+    .ndo_open        = bnep_net_open,
+    .ndo_stop        = bnep_net_close,
+    .ndo_start_xmit  = bnep_net_xmit,
+    .ndo_set_mac_address = bnep_net_set_mac_addr,
+};</code></pre>
+                </li>
+                <li>
+                    <h3>注册网络设备</h3>
+                    <p>使用<code>register_netdev()</code>函数将网络设备注册到内核。</p>
+                    <pre><code>int bnep_add_connection(struct bnep_connadd_req *req)
+{
+    // ... 初始化代码 ...
+    
+    err = register_netdev(dev);
+    if (err) {
+        pr_err("Can't register network device\n");
+        goto err_free_dev;
+    }
+    
+    return 0;
+}</code></pre>
+                </li>
+            </ol>
+        </section>
+
+        <section class="card">
+            <h2>数据包桥接</h2>
+            <p>蓝牙PAN驱动的核心功能是在蓝牙协议栈和网络协议栈之间桥接数据包。</p>
+            
+            <div class="architecture">
+                <h3>数据包桥接架构</h3>
+                <div class="svg-container">
+                    <svg width="100%" height="300" viewBox="0 0 800 300" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="50" y="50" width="150" height="60" rx="10" fill="#E3F2FD" stroke="#2196F3" stroke-width="2"/>
+                        <text x="125" y="85" text-anchor="middle" font-family="Arial" font-size="14" fill="#1565C0">网络协议栈</text>
+                        
+                        <rect x="300" y="50" width="150" height="60" rx="10" fill="#E8F5E9" stroke="#4CAF50" stroke-width="2"/>
+                        <text x="375" y="85" text-anchor="middle" font-family="Arial" font-size="14" fill="#2E7D32">蓝牙PAN驱动</text>
+                        
+                        <rect x="550" y="50" width="150" height="60" rx="10" fill="#FFF3E0" stroke="#FF9800" stroke-width="2"/>
+                        <text x="625" y="85" text-anchor="middle" font-family="Arial" font-size="14" fill="#E65100">蓝牙协议栈</text>
+                        
+                        <path d="M200 80 L300 80" stroke="#2196F3" stroke-width="2" marker-end="url(#arrowhead)"/>
+                        <path d="M450 80 L550 80" stroke="#4CAF50" stroke-width="2" marker-end="url(#arrowhead)"/>
+                        
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#4CAF50"/>
+                            </marker>
+                        </defs>
+                        
+                        <text x="250" y="100" text-anchor="middle" font-family="Arial" font-size="12" fill="#666">数据包接收</text>
+                        <text x="500" y="100" text-anchor="middle" font-family="Arial" font-size="12" fill="#666">数据包发送</text>
+                        
+                        <rect x="300" y="150" width="200" height="100" rx="10" fill="#F3E5F5" stroke="#9C27B0" stroke-width="2"/>
+                        <text x="400" y="180" text-anchor="middle" font-family="Arial" font-size="14" fill="#7B1FA2">数据包处理</text>
+                        
+                        <text x="400" y="200" text-anchor="middle" font-family="Arial" font-size="12" fill="#666">以太网帧 ↔ BNEP帧</text>
+                        <text x="400" y="220" text-anchor="middle" font-family="Arial" font-size="12" fill="#666">协议转换</text>
+                        <text x="400" y="240" text-anchor="middle" font-family="Arial" font-size="12" fill="#666">数据包过滤</text>
+                    </svg>
+                </div>
+            </div>
+            
+            <h3>数据包发送流程</h3>
+            <pre><code>static netdev_tx_t bnep_net_xmit(struct sk_buff *skb,
+                                struct net_device *dev)
+{
+    struct bnep_session *s = netdev_priv(dev);
+    struct bnep_proto_filter *f;
+    
+    // 应用协议过滤器
+    list_for_each_entry(f, &s->proto_filter, list) {
+        if (bnep_rx_netproto(s, skb, f) < 0) {
+            kfree_skb(skb);
+            return NETDEV_TX_OK;
+        }
+    }
+    
+    // 封装为BNEP帧并发送
+    if (bnep_send_frame(s, skb->data, skb->len) < 0) {
+        kfree_skb(skb);
+        dev->stats.tx_dropped++;
+        return NETDEV_TX_OK;
+    }
+    
+    dev->stats.tx_packets++;
+    dev->stats.tx_bytes += skb->len;
+    
+    kfree_skb(skb);
+    return NETDEV_TX_OK;
+}</code></pre>
+            
+            <h3>数据包接收流程</h3>
+            <pre><code>void bnep_net_rx(struct bnep_session *s, struct sk_buff *skb)
+{
+    struct net_device *dev = s->dev;
+    
+    // 更新网络设备统计信息
+    dev->stats.rx_packets++;
+    dev->stats.rx_bytes += skb->len;
+    
+    // 将数据包传递给网络协议栈
+    skb->protocol = eth_type_trans(skb, dev);
+    netif_rx(skb);
+}</code></pre>
+        </section>
+
+        <section class="card">
+            <h2>网络配置管理</h2>
+            <p>蓝牙PAN驱动的网络配置管理包括MAC地址管理、网络接口状态管理和连接管理。</p>
+            
+            <h3>MAC地址管理</h3>
+            <p>蓝牙PAN设备需要有效的MAC地址才能参与网络通信。</p>
+            <pre><code>static int bnep_net_set_mac_addr(struct net_device *dev, void *addr)
+{
+    struct sockaddr *sa = addr;
+    
+    if (!is_valid_ether_addr(sa->sa_data))
+        return -EADDRNOTAVAIL;
+    
+    memcpy(dev->dev_addr, sa->sa_data, ETH_ALEN);
+    return 0;
+}</code></pre>
+            
+            <h3>网络接口状态管理</h3>
+            <p>管理网络接口的打开和关闭状态。</p>
+            <pre><code>static int bnep_net_open(struct net_device *dev)
+{
+    struct bnep_session *s = netdev_priv(dev);
+    
+    netif_start_queue(dev);
+    return 0;
+}
+
+static int bnep_net_close(struct net_device *dev)
+{
+    netif_stop_queue(dev);
+    return 0;
+}</code></pre>
+            
+            <h3>连接管理</h3>
+            <p>管理蓝牙PAN连接的建立和断开。</p>
+            <pre><code>int bnep_del_connection(struct bnep_conndel_req *req)
+{
+    struct bnep_session *s;
+    
+    // 查找会话
+    s = bnep_get_session(req->dst);
+    if (!s)
+        return -ENOENT;
+    
+    // 注销网络设备
+    if (s->dev) {
+        unregister_netdev(s->dev);
+        free_netdev(s->dev);
+    }
+    
+    // 释放会话资源
+    kfree(s);
+    return 0;
+}</code></pre>
+        </section>
+
+        <section class="card">
+            <h2>实践案例：实现简单的蓝牙PAN驱动</h2>
+            <p>以下是一个简化的蓝牙PAN驱动实现示例：</p>
+            
+            <pre><code>#include <linux/module.h>
+#include <linux/netdevice.h>
+#include <linux/skbuff.h>
+#include <linux/etherdevice.h>
+
+static struct net_device *bnep_dev;
+
+static int bnep_net_open(struct net_device *dev)
+{
+    printk(KERN_INFO "BNEP device opened\n");
+    netif_start_queue(dev);
+    return 0;
+}
+
+static int bnep_net_close(struct net_device *dev)
+{
+    printk(KERN_INFO "BNEP device closed\n");
+    netif_stop_queue(dev);
+    return 0;
+}
+
+static netdev_tx_t bnep_net_xmit(struct sk_buff *skb, struct net_device *dev)
+{
+    // 简化实现 - 直接丢弃数据包
+    dev_kfree_skb(skb);
+    return NETDEV_TX_OK;
+}
+
+static const struct net_device_ops bnep_netdev_ops = {
+    .ndo_open = bnep_net_open,
+    .ndo_stop = bnep_net_close,
+    .ndo_start_xmit = bnep_net_xmit,
+};
+
+static void bnep_net_setup(struct net_device *dev)
+{
+    ether_setup(dev);
+    dev->netdev_ops = &bnep_netdev_ops;
+    dev->type = ARPHRD_ETHER;
+    
+    // 设置随机MAC地址
+    eth_random_addr(dev->dev_addr);
+}
+
+static int __init bnep_init(void)
+{
+    int err;
+    
+    bnep_dev = alloc_netdev(0, "bnep%d", NET_NAME_UNKNOWN, bnep_net_setup);
+    if (!bnep_dev)
+        return -ENOMEM;
+    
+    err = register_netdev(bnep_dev);
+    if (err) {
+        free_netdev(bnep_dev);
+        return err;
+    }
+    
+    printk(KERN_INFO "BNEP driver registered\n");
+    return 0;
+}
+
+static void __exit bnep_exit(void)
+{
+    unregister_netdev(bnep_dev);
+    free_netdev(bnep_dev);
+    printk(KERN_INFO "BNEP driver unregistered\n");
+}
+
+module_init(bnep_init);
+module_exit(bnep_exit);
+
+MODULE_LICENSE("GPL");
+MODULE_AUTHOR("蓝海资料掘金营");
+MODULE_DESCRIPTION("Simple BNEP Driver Example");</code></pre>
+        </section>
+
+        <section class="card">
+            <h2>调试与故障排除</h2>
+            <p>在开发蓝牙PAN驱动时，可能会遇到以下常见问题：</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>问题</th>
+                        <th>可能原因</th>
+                        <th>解决方案</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>网络接口注册失败</td>
+                        <td>设备名称冲突、内存不足</td>
+                        <td>检查设备名称唯一性，确保有足够内存</td>
+                    </tr>
+                    <tr>
+                        <td>数据包发送失败</td>
+                        <td>蓝牙连接断开、缓冲区满</td>
+                        <td>检查蓝牙连接状态，增加缓冲区大小</td>
+                    </tr>
+                    <tr>
+                        <td>MAC地址无效</td>
+                        <td>地址格式错误、地址冲突</td>
+                        <td>使用有效的MAC地址，确保地址唯一</td>
+                    </tr>
+                    <tr>
+                        <td>性能问题</td>
+                        <td>数据处理效率低、内存拷贝过多</td>
+                        <td>优化数据处理逻辑，减少内存拷贝</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="highlight">
+                <strong>调试技巧：</strong>
+                <ul>
+                    <li>使用<code>dmesg</code>查看内核日志</li>
+                    <li>使用<code>ifconfig</code>检查网络接口状态</li>
+                    <li>使用<code>tcpdump</code>捕获和分析网络数据包</li>
+                    <li>启用内核调试选项，如<code>CONFIG_DYNAMIC_DEBUG</code></li>
+                </ul>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>蓝海资料掘金营</p>
+        </div>
+    </footer>
+</body>
+</html>

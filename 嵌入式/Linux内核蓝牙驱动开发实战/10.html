@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蓝牙设备探测与识别 - Linux内核蓝牙驱动开发实战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #f9fbe7 50%, #e8f5e9 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #4fc3f7 0%, #29b6f6 50%, #03a9f4 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            border-bottom: 5px solid #0288d1;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid #4fc3f7;
+        }
+
+        h2 {
+            color: #0288d1;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px dashed #b3e5fc;
+        }
+
+        h3 {
+            color: #0097a7;
+            margin: 15px 0 10px;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        th {
+            background: #4fc3f7;
+            color: white;
+            padding: 12px 15px;
+            text-align: left;
+        }
+
+        td {
+            padding: 10px 15px;
+            border-bottom: 1px solid #e0f2f1;
+        }
+
+        tr:nth-child(even) {
+            background: #f1f8e9;
+        }
+
+        tr:hover {
+            background: #e1f5fe;
+        }
+
+        pre {
+            background: #f5f5f5;
+            border-left: 4px solid #4fc3f7;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+            border-radius: 5px;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+
+        code {
+            background: #e3f2fd;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+
+        .svg-container {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f9fbe7;
+            border-radius: 10px;
+        }
+
+        .architecture {
+            background: #f1f8e9;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #0288d1 0%, #0277bd 100%);
+            color: white;
+            margin-top: 30px;
+            border-top: 5px solid #01579b;
+        }
+
+        .note {
+            background: #fff9c4;
+            border-left: 4px solid #ffd600;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .highlight {
+            background: #e1f5fe;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>蓝牙设备探测与识别</h1>
+            <div class="subtitle">设备探测机制、设备ID匹配、设备树节点解析</div>
+        </header>
+
+        <div class="content">
+            <section>
+                <h2>概述</h2>
+                <p>在Linux内核蓝牙驱动开发中，设备探测与识别是驱动初始化的关键步骤。它涉及硬件设备的发现、识别和驱动绑定过程。本章将深入探讨蓝牙设备的探测机制、设备ID匹配原理以及设备树节点解析方法。</p>
+                
+                <div class="svg-container">
+                    <svg width="600" height="120" viewBox="0 0 600 120">
+                        <rect x="10" y="20" width="120" height="80" rx="10" fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                        <text x="70" y="65" text-anchor="middle" fill="white" font-weight="bold">硬件探测</text>
+                        
+                        <rect x="160" y="20" width="120" height="80" rx="10" fill="#29b6f6" stroke="#0288d1" stroke-width="2"/>
+                        <text x="220" y="65" text-anchor="middle" fill="white" font-weight="bold">ID匹配</text>
+                        
+                        <rect x="310" y="20" width="120" height="80" rx="10" fill="#03a9f4" stroke="#0288d1" stroke-width="2"/>
+                        <text x="370" y="65" text-anchor="middle" fill="white" font-weight="bold">驱动绑定</text>
+                        
+                        <rect x="460" y="20" width="120" height="80" rx="10" fill="#0288d1" stroke="#01579b" stroke-width="2"/>
+                        <text x="520" y="65" text-anchor="middle" fill="white" font-weight="bold">设备初始化</text>
+                        
+                        <polygon points="130,60 150,50 150,70" fill="#0288d1"/>
+                        <polygon points="280,60 300,50 300,70" fill="#0288d1"/>
+                        <polygon points="430,60 450,50 450,70" fill="#0288d1"/>
+                    </svg>
+                </div>
+            </section>
+
+            <section>
+                <h2>设备探测机制</h2>
+                <p>Linux内核通过多种机制探测和识别蓝牙设备，主要包括：</p>
+                
+                <h3>1. 总线探测机制</h3>
+                <p>蓝牙设备通常通过以下总线连接到系统：</p>
+                <ul>
+                    <li><strong>USB总线</strong>：大多数蓝牙适配器通过USB接口连接</li>
+                    <li><strong>UART总线</strong>：嵌入式系统中常见的连接方式</li>
+                    <li><strong>SDIO总线</strong>：某些无线组合模块使用</li>
+                    <li><strong>PCI/PCIe总线</strong>：内置蓝牙模块</li>
+                </ul>
+                
+                <h3>2. 探测过程</h3>
+                <p>设备探测的基本流程：</p>
+                <ol>
+                    <li>总线驱动程序扫描连接的设备</li>
+                    <li>读取设备的标识信息（Vendor ID, Product ID等）</li>
+                    <li>在驱动列表中查找匹配的驱动程序</li>
+                    <li>调用驱动的probe函数进行初始化</li>
+                </ol>
+                
+                <div class="architecture">
+                    <h3>设备探测架构图</h3>
+                    <svg width="100%" height="200" viewBox="0 0 600 200">
+                        <!-- 总线层 -->
+                        <rect x="50" y="20" width="500" height="40" fill="#e1f5fe" stroke="#4fc3f7" stroke-width="2"/>
+                        <text x="300" y="45" text-anchor="middle" fill="#0288d1" font-weight="bold">总线层 (USB/UART/PCIe)</text>
+                        
+                        <!-- 设备发现 -->
+                        <rect x="80" y="70" width="120" height="40" fill="#c8e6c9" stroke="#4caf50" stroke-width="2"/>
+                        <text x="140" y="95" text-anchor="middle" fill="#2e7d32">设备发现</text>
+                        
+                        <!-- ID读取 -->
+                        <rect x="240" y="70" width="120" height="40" fill="#fff9c4" stroke="#ffd600" stroke-width="2"/>
+                        <text x="300" y="95" text-anchor="middle" fill="#f57f17">ID读取</text>
+                        
+                        <!-- 驱动匹配 -->
+                        <rect x="400" y="70" width="120" height="40" fill="#ffccbc" stroke="#ff8a65" stroke-width="2"/>
+                        <text x="460" y="95" text-anchor="middle" fill="#d84315">驱动匹配</text>
+                        
+                        <!-- 箭头 -->
+                        <polygon points="200,90 220,85 220,95" fill="#0288d1"/>
+                        <polygon points="360,90 380,85 380,95" fill="#0288d1"/>
+                        
+                        <!-- 驱动层 -->
+                        <rect x="150" y="140" width="300" height="40" fill="#f3e5f5" stroke="#9c27b0" stroke-width="2"/>
+                        <text x="300" y="165" text-anchor="middle" fill="#6a1b9a" font-weight="bold">蓝牙驱动层 (hci_core, hci_ldisc)</text>
+                        
+                        <!-- 连接线 -->
+                        <line x1="300" y1="110" x2="300" y2="140" stroke="#0288d1" stroke-width="2"/>
+                    </svg>
+                </div>
+                
+                <div class="note">
+                    <strong>注意：</strong> 不同总线的探测机制有所差异，但基本原理相似。USB设备通过USB子系统探测，UART设备通过串行子系统探测。
+                </div>
+            </section>
+
+            <section>
+                <h2>设备ID匹配</h2>
+                <p>设备ID匹配是驱动与设备绑定的核心机制。Linux内核通过设备ID表来实现这一功能。</p>
+                
+                <h3>1. 设备ID表结构</h3>
+                <p>蓝牙驱动通常定义设备ID表来声明支持的设备：</p>
+                <pre><code>static const struct usb_device_id bt_usb_table[] = {
+    /* Generic Bluetooth USB device */
+    { USB_DEVICE_INFO(0xe0, 0x01, 0x01) },
+    
+    /* Specific devices */
+    { USB_DEVICE(0x0a12, 0x0001) },  /* Cambridge Silicon Radio */
+    { USB_DEVICE(0x0a5c, 0x21e8) },  /* Broadcom BCM20702A0 */
+    { USB_DEVICE(0x0489, 0xe07a) },  /* Foxconn / Hon Hai */
+    
+    /* Terminating entry */
+    { }
+};
+
+MODULE_DEVICE_TABLE(usb, bt_usb_table);</code></pre>
+                
+                <h3>2. ID匹配方式</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>匹配类型</th>
+                            <th>描述</th>
+                            <th>示例宏</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>精确匹配</strong></td>
+                            <td>匹配特定的厂商ID和产品ID</td>
+                            <td><code>USB_DEVICE(vid, pid)</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>类别匹配</strong></td>
+                            <td>匹配设备类别、子类和协议</td>
+                            <td><code>USB_DEVICE_INFO(class, subclass, protocol)</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>厂商匹配</strong></td>
+                            <td>匹配特定厂商的所有设备</td>
+                            <td><code>USB_VENDOR_DEVICE(vid)</code></td>
+                        </tr>
+                        <tr>
+                            <td><strong>接口匹配</strong></td>
+                            <td>基于接口类进行匹配</td>
+                            <td><code>USB_INTERFACE_INFO(class, subclass, protocol)</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>3. 驱动注册与匹配</h3>
+                <p>驱动程序通过以下方式注册设备ID表：</p>
+                <pre><code>static struct usb_driver bt_usb_driver = {
+    .name        = "btusb",
+    .probe       = btusb_probe,
+    .disconnect  = btusb_disconnect,
+    .id_table    = bt_usb_table,
+    .supports_autosuspend = 1,
+};
+
+module_usb_driver(bt_usb_driver);</code></pre>
+            </section>
+
+            <section>
+                <h2>设备树节点解析</h2>
+                <p>在嵌入式系统中，设备树(Device Tree)用于描述硬件配置。蓝牙设备也可以通过设备树节点进行配置。</p>
+                
+                <h3>1. 设备树节点结构</h3>
+                <p>典型的蓝牙设备树节点：</p>
+                <pre><code>/* UART连接的蓝牙设备示例 */
+&uart3 {
+    pinctrl-names = "default", "sleep";
+    pinctrl-0 = <&uart3_default>;
+    pinctrl-1 = <&uart3_sleep>;
+    status = "okay";
+    
+    bluetooth {
+        compatible = "brcm,bcm43438-bt";
+        max-speed = <3000000>;
+        shutdown-gpios = <&gpio 45 GPIO_ACTIVE_HIGH>;
+        device-wakeup-gpios = <&gpio 46 GPIO_ACTIVE_HIGH>;
+        host-wakeup-gpios = <&gpio 47 GPIO_ACTIVE_HIGH>;
+        vbat-supply = <&vbat_bt>;
+        vddio-supply = <&vddio_bt>;
+    };
+};</code></pre>
+                
+                <h3>2. 设备树匹配</h3>
+                <p>驱动程序通过compatible属性与设备树节点匹配：</p>
+                <pre><code>static const struct of_device_id bt_of_match[] = {
+    { .compatible = "brcm,bcm43438-bt" },
+    { .compatible = "brcm,bcm43430a0-bt" },
+    { .compatible = "realtek,rtl8723bs-bt" },
+    { .compatible = "intel,ibt-hci" },
+    { },
+};
+MODULE_DEVICE_TABLE(of, bt_of_match);</code></pre>
+                
+                <h3>3. 设备树属性解析</h3>
+                <p>在probe函数中解析设备树属性：</p>
+                <pre><code>static int bt_serial_probe(struct platform_device *pdev)
+{
+    struct device *dev = &pdev->dev;
+    struct bt_serial_data *data;
+    int err;
+    
+    /* 分配驱动数据 */
+    data = devm_kzalloc(dev, sizeof(*data), GFP_KERNEL);
+    if (!data)
+        return -ENOMEM;
+    
+    /* 解析GPIO属性 */
+    data->shutdown_gpio = devm_gpiod_get(dev, "shutdown", GPIOD_OUT_LOW);
+    if (IS_ERR(data->shutdown_gpio)) {
+        dev_err(dev, "Failed to get shutdown GPIO\n");
+        return PTR_ERR(data->shutdown_gpio);
+    }
+    
+    data->device_wakeup_gpio = devm_gpiod_get(dev, "device-wakeup", GPIOD_OUT_LOW);
+    data->host_wakeup_gpio = devm_gpiod_get(dev, "host-wakeup", GPIOD_IN);
+    
+    /* 解析电源属性 */
+    data->vbat_supply = devm_regulator_get(dev, "vbat");
+    if (IS_ERR(data->vbat_supply))
+        dev_warn(dev, "No vbat supply specified\n");
+    
+    data->vddio_supply = devm_regulator_get(dev, "vddio");
+    if (IS_ERR(data->vddio_supply))
+        dev_warn(dev, "No vddio supply specified\n");
+    
+    /* 解析最大速度 */
+    if (of_property_read_u32(dev->of_node, "max-speed", &data->max_speed)) {
+        data->max_speed = 115200; /* 默认速度 */
+    }
+    
+    platform_set_drvdata(pdev, data);
+    
+    /* 初始化蓝牙设备 */
+    err = bt_serial_init(data);
+    if (err)
+        return err;
+    
+    return 0;
+}</code></pre>
+                
+                <h3>4. 设备树属性说明</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>属性名</th>
+                            <th>类型</th>
+                            <th>描述</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>compatible</code></td>
+                            <td>字符串</td>
+                            <td>设备兼容性列表，用于驱动匹配</td>
+                        </tr>
+                        <tr>
+                            <td><code>max-speed</code></td>
+                            <td>整数</td>
+                            <td>UART通信的最大波特率</td>
+                        </tr>
+                        <tr>
+                            <td><code>shutdown-gpios</code></td>
+                            <td>GPIO描述符</td>
+                            <td>设备关机控制GPIO</td>
+                        </tr>
+                        <tr>
+                            <td><code>device-wakeup-gpios</code></td>
+                            <td>GPIO描述符</td>
+                            <td>设备唤醒控制GPIO</td>
+                        </tr>
+                        <tr>
+                            <td><code>host-wakeup-gpios</code></td>
+                            <td>GPIO描述符</td>
+                            <td>主机唤醒中断GPIO</td>
+                        </tr>
+                        <tr>
+                            <td><code>vbat-supply</code></td>
+                            <td>电源描述符</td>
+                            <td>电池电压电源</td>
+                        </tr>
+                        <tr>
+                            <td><code>vddio-supply</code></td>
+                            <td>电源描述符</td>
+                            <td>IO电压电源</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <section>
+                <h2>实战示例：完整的蓝牙驱动探测</h2>
+                <p>以下是一个完整的蓝牙USB驱动探测示例：</p>
+                <pre><code>#include <linux/module.h>
+#include <linux/usb.h>
+#include <linux/bluetooth.h>
+#include <linux/device.h>
+
+static int btusb_probe(struct usb_interface *intf,
+                       const struct usb_device_id *id)
+{
+    struct usb_device *udev = interface_to_usbdev(intf);
+    struct hci_dev *hdev;
+    int err;
+    
+    BT_INFO("btusb: Bluetooth device probe: %04x:%04x",
+            le16_to_cpu(udev->descriptor.idVendor),
+            le16_to_cpu(udev->descriptor.idProduct));
+    
+    /* 分配HCI设备结构 */
+    hdev = hci_alloc_dev();
+    if (!hdev) {
+        BT_ERR("btusb: Can't allocate HCI device");
+        return -ENOMEM;
+    }
+    
+    /* 设置HCI设备操作 */
+    hdev->bus = HCI_USB;
+    hdev->driver_data = intf;
+    SET_HCIDEV_DEV(hdev, &intf->dev);
+    
+    /* 设置发送函数 */
+    hdev->send = btusb_send_frame;
+    hdev->flush = btusb_flush;
+    
+    /* 设置设备信息 */
+    hdev->dev_type = id->driver_info ? id->driver_info :
+                     (udev->descriptor.bDeviceClass == 0xe0 ?
+                      HCI_PRIMARY : HCI_AMP);
+    
+    /* 注册HCI设备 */
+    err = hci_register_dev(hdev);
+    if (err < 0) {
+        BT_ERR("btusb: Can't register HCI device");
+        hci_free_dev(hdev);
+        return err;
+    }
+    
+    usb_set_intfdata(intf, hdev);
+    
+    return 0;
+}
+
+static void btusb_disconnect(struct usb_interface *intf)
+{
+    struct hci_dev *hdev = usb_get_intfdata(intf);
+    
+    BT_DBG("btusb: Bluetooth device disconnect");
+    
+    if (!hdev)
+        return;
+    
+    /* 注销HCI设备 */
+    hci_unregister_dev(hdev);
+    hci_free_dev(hdev);
+    
+    usb_set_intfdata(intf, NULL);
+}
+
+/* 设备ID表 */
+static const struct usb_device_id bt_usb_table[] = {
+    /* 通用蓝牙USB设备 */
+    { USB_DEVICE_INFO(0xe0, 0x01, 0x01) },
+    
+    /* 特定设备 */
+    { USB_DEVICE(0x0a12, 0x0001), .driver_info = BTUSB_BCM },
+    { USB_DEVICE(0x0a5c, 0x21e8), .driver_info = BTUSB_BCM },
+    { USB_DEVICE(0x0489, 0xe07a), .driver_info = BTUSB_REALTEK },
+    
+    /* 终止条目 */
+    { }
+};
+
+MODULE_DEVICE_TABLE(usb, bt_usb_table);
+
+/* USB驱动结构 */
+static struct usb_driver bt_usb_driver = {
+    .name        = "btusb",
+    .probe       = btusb_probe,
+    .disconnect  = btusb_disconnect,
+    .id_table    = bt_usb_table,
+    .supports_autosuspend = 1,
+};
+
+module_usb_driver(bt_usb_driver);
+
+MODULE_AUTHOR("BlueSea Mining Camp");
+MODULE_DESCRIPTION("Generic Bluetooth USB driver ver 1.0");
+MODULE_VERSION("1.0");
+MODULE_LICENSE("GPL");</code></pre>
+            </section>
+
+            <section>
+                <h2>总结</h2>
+                <p>蓝牙设备探测与识别是Linux内核蓝牙驱动开发的基础。通过本章学习，我们了解了：</p>
+                <ul>
+                    <li><span class="highlight">设备探测机制</span>：总线如何发现和识别连接的蓝牙设备</li>
+                    <li><span class="highlight">设备ID匹配</span>：驱动程序如何通过设备ID表与特定设备绑定</li>
+                    <li><span class="highlight">设备树节点解析</span>：在嵌入式系统中如何通过设备树配置蓝牙设备</li>
+                </ul>
+                
+                <div class="note">
+                    <strong>关键要点：</strong>
+                    <ul>
+                        <li>设备探测是驱动初始化的第一步，必须正确处理</li>
+                        <li>设备ID表是驱动与设备绑定的关键数据结构</li>
+                        <li>设备树提供了硬件无关的设备配置方法</li>
+                        <li>probe函数应该处理所有可能的错误情况</li>
+                    </ul>
+                </div>
+            </section>
+        </div>
+
+        <footer>
+            <p>蓝海资料掘金营</p>
+        </footer>
+    </div>
+</body>
+</html>

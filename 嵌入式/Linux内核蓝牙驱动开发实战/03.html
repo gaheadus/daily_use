@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蓝牙驱动开发环境搭建 - Linux内核蓝牙驱动开发实战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #f9fbe7 50%, #e8f5e9 100%);
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 0;
+            background: linear-gradient(45deg, #4fc3f7, #81c784);
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            color: white;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            border-left: 5px solid #4fc3f7;
+        }
+
+        h2 {
+            color: #2e7d32;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px dashed #81c784;
+        }
+
+        h3 {
+            color: #388e3c;
+            margin: 15px 0 10px;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        ul, ol {
+            margin-left: 25px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background-color: #4fc3f7;
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f5f5f5;
+        }
+
+        tr:hover {
+            background-color: #e1f5fe;
+        }
+
+        .code-block {
+            background: #263238;
+            color: #e0e0e0;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .svg-container {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .note {
+            background: #fff9c4;
+            border-left: 4px solid #ffd600;
+            padding: 12px 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            margin-top: 40px;
+            background: linear-gradient(45deg, #4fc3f7, #81c784);
+            border-radius: 15px;
+            color: white;
+            font-size: 1.1em;
+            box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .step-number {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            background: #4fc3f7;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 28px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>蓝牙驱动开发环境搭建</h1>
+            <p class="subtitle">Linux内核蓝牙驱动开发实战 - 第三章</p>
+        </header>
+
+        <div class="section">
+            <h2>课程简介</h2>
+            <p>本章将详细介绍如何搭建完整的蓝牙驱动开发环境，包括Linux内核源码的获取与编译、交叉编译工具链的配置以及开发板环境的准备。这是进行蓝牙驱动开发的基础，正确配置开发环境是后续开发工作的关键。</p>
+            
+            <div class="svg-container">
+                <svg width="800" height="200" viewBox="0 0 800 200">
+                    <rect x="50" y="80" width="150" height="60" rx="10" fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                    <text x="125" y="115" text-anchor="middle" fill="white" font-weight="bold">内核源码获取</text>
+                    
+                    <rect x="250" y="80" width="150" height="60" rx="10" fill="#81c784" stroke="#388e3c" stroke-width="2"/>
+                    <text x="325" y="115" text-anchor="middle" fill="white" font-weight="bold">内核编译</text>
+                    
+                    <rect x="450" y="80" width="150" height="60" rx="10" fill="#fff176" stroke="#f57f17" stroke-width="2"/>
+                    <text x="525" y="115" text-anchor="middle" fill="#5d4037" font-weight="bold">交叉编译配置</text>
+                    
+                    <rect x="650" y="80" width="150" height="60" rx="10" fill="#ffb74d" stroke="#ef6c00" stroke-width="2"/>
+                    <text x="725" y="115" text-anchor="middle" fill="white" font-weight="bold">开发板准备</text>
+                    
+                    <path d="M200 110 L250 110" stroke="#757575" stroke-width="2" marker-end="url(#arrow)"/>
+                    <path d="M400 110 L450 110" stroke="#757575" stroke-width="2" marker-end="url(#arrow)"/>
+                    <path d="M600 110 L650 110" stroke="#757575" stroke-width="2" marker-end="url(#arrow)"/>
+                    
+                    <defs>
+                        <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+                            <path d="M0,0 L0,6 L9,3 z" fill="#757575"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>一、内核源码获取与编译</h2>
+            
+            <h3><span class="step-number">1</span> 内核源码获取</h3>
+            <p>获取Linux内核源码有多种方式，推荐从官方仓库获取稳定版本：</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>获取方式</th>
+                        <th>命令/地址</th>
+                        <th>说明</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>官方Git仓库</td>
+                        <td>git clone git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git</td>
+                        <td>获取最新稳定版</td>
+                    </tr>
+                    <tr>
+                        <td>内核官方网站</td>
+                        <td>https://www.kernel.org</td>
+                        <td>下载发布版本</td>
+                    </tr>
+                    <tr>
+                        <td>发行版提供</td>
+                        <td>apt-get source linux-image-$(uname -r)</td>
+                        <td>获取与当前系统匹配的源码</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="code-block">
+<pre>
+# 克隆Linux内核源码
+git clone git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git
+cd linux
+
+# 切换到稳定版本（例如5.15）
+git checkout v5.15
+
+# 或者下载特定版本压缩包
+wget https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-5.15.92.tar.xz
+tar -xf linux-5.15.92.tar.xz
+cd linux-5.15.92
+</pre>
+            </div>
+            
+            <h3><span class="step-number">2</span> 内核配置与编译</h3>
+            <p>编译内核前需要进行配置，确保蓝牙相关驱动被启用：</p>
+            
+            <div class="code-block">
+<pre>
+# 安装编译依赖
+sudo apt-get install build-essential libncurses5-dev libssl-dev flex bison
+
+# 复制当前系统配置（可选）
+cp /boot/config-$(uname -r) .config
+
+# 配置内核
+make menuconfig
+
+# 确保以下蓝牙选项被启用：
+# - CONFIG_BT
+# - CONFIG_BT_RFCOMM
+# - CONFIG_BT_BNEP
+# - CONFIG_BT_HIDP
+# - CONFIG_BT_HCIBTUSB（USB蓝牙适配器）
+# - CONFIG_BT_HCIUART（串口蓝牙设备）
+
+# 编译内核
+make -j$(nproc)
+
+# 编译模块
+make modules
+
+# 安装模块
+sudo make modules_install
+
+# 安装内核
+sudo make install
+</pre>
+            </div>
+            
+            <div class="note">
+                <strong>注意：</strong> 在实际开发中，通常需要为目标硬件平台进行交叉编译，而不是为当前主机编译。
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>二、交叉编译工具链配置</h2>
+            
+            <h3><span class="step-number">1</span> 交叉编译工具链介绍</h3>
+            <p>交叉编译工具链允许我们在开发主机上编译运行在目标平台（如ARM架构开发板）上的代码。</p>
+            
+            <div class="svg-container">
+                <svg width="700" height="180" viewBox="0 0 700 180">
+                    <rect x="50" y="50" width="200" height="80" rx="10" fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                    <text x="150" y="90" text-anchor="middle" fill="white" font-weight="bold">x86开发主机</text>
+                    <text x="150" y="110" text-anchor="middle" fill="white">编译环境</text>
+                    
+                    <rect x="450" y="50" width="200" height="80" rx="10" fill="#81c784" stroke="#388e3c" stroke-width="2"/>
+                    <text x="550" y="90" text-anchor="middle" fill="white" font-weight="bold">ARM目标板</text>
+                    <text x="550" y="110" text-anchor="middle" fill="white">运行环境</text>
+                    
+                    <path d="M250 90 L450 90" stroke="#ff9800" stroke-width="3" stroke-dasharray="5,5"/>
+                    <text x="350" y="85" text-anchor="middle" fill="#ff9800" font-weight="bold">交叉编译工具链</text>
+                </svg>
+            </div>
+            
+            <h3><span class="step-number">2</span> 常用交叉编译工具链</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>工具链名称</th>
+                        <th>目标架构</th>
+                        <th>获取方式</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>arm-linux-gnueabihf</td>
+                        <td>ARM 32位（硬浮点）</td>
+                        <td>sudo apt-get install gcc-arm-linux-gnueabihf</td>
+                    </tr>
+                    <tr>
+                        <td>aarch64-linux-gnu</td>
+                        <td>ARM 64位</td>
+                        <td>sudo apt-get install gcc-aarch64-linux-gnu</td>
+                    </tr>
+                    <tr>
+                        <td>Linaro GCC</td>
+                        <td>ARM</td>
+                        <td>https://releases.linaro.org/components/toolchain/binaries/</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3><span class="step-number">3</span> 配置交叉编译环境</h3>
+            <div class="code-block">
+<pre>
+# 安装ARM交叉编译工具链
+sudo apt-get update
+sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
+
+# 验证安装
+arm-linux-gnueabihf-gcc --version
+
+# 设置环境变量（可选）
+export CROSS_COMPILE=arm-linux-gnueabihf-
+export ARCH=arm
+
+# 使用交叉编译工具链编译内核
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- menuconfig
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- -j$(nproc)
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- modules
+</pre>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>三、开发板环境准备</h2>
+            
+            <h3><span class="step-number">1</span> 开发板选择与连接</h3>
+            <p>选择适合的开发板是蓝牙驱动开发的重要一步：</p>
+            
+            <ul>
+                <li><strong>树莓派系列</strong> - 普及度高，社区支持完善</li>
+                <li><strong>BeagleBone系列</strong> - 开源硬件，适合学习</li>
+                <li><strong>NVIDIA Jetson</strong> - 性能强大，适合复杂应用</li>
+                <li><strong>友善之臂系列</strong> - 国产开发板，性价比高</li>
+            </ul>
+            
+            <h3><span class="step-number">2</span> 开发板蓝牙硬件</h3>
+            <p>确保开发板具备蓝牙功能或可连接蓝牙适配器：</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>蓝牙类型</th>
+                        <th>接口方式</th>
+                        <th>驱动模块</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>内置蓝牙</td>
+                        <td>SDIO/UART/USB</td>
+                        <td>hci_uart, hci_bcm, hci_h4</td>
+                    </tr>
+                    <tr>
+                        <td>USB蓝牙适配器</td>
+                        <td>USB接口</td>
+                        <td>btusb</td>
+                    </tr>
+                    <tr>
+                        <td>UART蓝牙模块</td>
+                        <td>串口</td>
+                        <td>hci_uart</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <h3><span class="step-number">3</span> 开发板系统部署</h3>
+            <p>将编译好的内核和驱动部署到开发板：</p>
+            
+            <div class="code-block">
+<pre>
+# 1. 准备SD卡或eMMC存储
+# 2. 写入基础系统（如Debian、Ubuntu、Buildroot）
+# 3. 将编译好的内核镜像（zImage或Image）复制到boot分区
+# 4. 将编译的模块安装到根文件系统
+# 5. 更新引导配置
+
+# 示例：将模块安装到目标文件系统
+sudo make ARCH=arm CROSS_COMPILE=arm-linux-gnueabihf- \
+INSTALL_MOD_PATH=/path/to/rootfs modules_install
+
+# 复制设备树文件（如果使用）
+cp arch/arm/boot/dts/*.dtb /path/to/boot/partition/
+
+# 复制内核镜像
+cp arch/arm/boot/zImage /path/to/boot/partition/
+</pre>
+            </div>
+            
+            <h3><span class="step-number">4</span> 开发板蓝牙测试</h3>
+            <p>系统启动后，验证蓝牙功能是否正常：</p>
+            
+            <div class="code-block">
+<pre>
+# 在开发板上执行以下命令：
+
+# 检查蓝牙设备
+hciconfig -a
+
+# 启动蓝牙服务
+sudo systemctl start bluetooth
+
+# 扫描蓝牙设备
+hcitool scan
+
+# 查看蓝牙内核模块
+lsmod | grep bt
+
+# 查看蓝牙内核消息
+dmesg | grep -i blue
+</pre>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>四、完整开发环境架构</h2>
+            
+            <div class="svg-container">
+                <svg width="750" height="400" viewBox="0 0 750 400">
+                    <!-- 开发主机 -->
+                    <rect x="50" y="50" width="200" height="120" rx="10" fill="#4fc3f7" stroke="#0288d1" stroke-width="2"/>
+                    <text x="150" y="80" text-anchor="middle" fill="white" font-weight="bold" font-size="14">开发主机</text>
+                    <text x="150" y="100" text-anchor="middle" fill="white" font-size="12">(x86/x64)</text>
+                    
+                    <rect x="70" y="110" width="160" height="50" rx="5" fill="#e1f5fe" stroke="#4fc3f7" stroke-width="1"/>
+                    <text x="150" y="125" text-anchor="middle" fill="#01579b" font-size="10">内核源码</text>
+                    <text x="150" y="140" text-anchor="middle" fill="#01579b" font-size="10">交叉工具链</text>
+                    <text x="150" y="155" text-anchor="middle" fill="#01579b" font-size="10">编译环境</text>
+                    
+                    <!-- 开发板 -->
+                    <rect x="500" y="50" width="200" height="120" rx="10" fill="#81c784" stroke="#388e3c" stroke-width="2"/>
+                    <text x="600" y="80" text-anchor="middle" fill="white" font-weight="bold" font-size="14">目标开发板</text>
+                    <text x="600" y="100" text-anchor="middle" fill="white" font-size="12">(ARM/MIPS等)</text>
+                    
+                    <rect x="520" y="110" width="160" height="50" rx="5" fill="#e8f5e9" stroke="#81c784" stroke-width="1"/>
+                    <text x="600" y="125" text-anchor="middle" fill="#1b5e20" font-size="10">定制内核</text>
+                    <text x="600" y="140" text-anchor="middle" fill="#1b5e20" font-size="10">蓝牙驱动</text>
+                    <text x="600" y="155" text-anchor="middle" fill="#1b5e20" font-size="10">测试应用</text>
+                    
+                    <!-- 连接线 -->
+                    <path d="M250 110 L500 110" stroke="#ff9800" stroke-width="2"/>
+                    <text x="375" y="105" text-anchor="middle" fill="#ff9800" font-weight="bold" font-size="12">交叉编译</text>
+                    
+                    <!-- 调试连接 -->
+                    <path d="M150 250 L600 250" stroke="#9c27b0" stroke-width="2" stroke-dasharray="5,5"/>
+                    <text x="375" y="245" text-anchor="middle" fill="#9c27b0" font-weight="bold" font-size="12">串口/网络调试</text>
+                    
+                    <!-- 开发流程 -->
+                    <rect x="50" y="300" width="650" height="80" rx="10" fill="#fff9c4" stroke="#ffd600" stroke-width="2"/>
+                    <text x="375" y="320" text-anchor="middle" fill="#5d4037" font-weight="bold" font-size="14">开发流程</text>
+                    
+                    <circle cx="100" cy="340" r="8" fill="#4fc3f7"/>
+                    <text x="100" y="355" text-anchor="middle" fill="#01579b" font-size="10">获取源码</text>
+                    
+                    <circle cx="200" cy="340" r="8" fill="#4fc3f7"/>
+                    <text x="200" y="355" text-anchor="middle" fill="#01579b" font-size="10">配置内核</text>
+                    
+                    <circle cx="300" cy="340" r="8" fill="#4fc3f7"/>
+                    <text x="300" y="355" text-anchor="middle" fill="#01579b" font-size="10">交叉编译</text>
+                    
+                    <circle cx="400" cy="340" r="8" fill="#4fc3f7"/>
+                    <text x="400" y="355" text-anchor="middle" fill="#01579b" font-size="10">部署测试</text>
+                    
+                    <circle cx="500" cy="340" r="8" fill="#4fc3f7"/>
+                    <text x="500" y="355" text-anchor="middle" fill="#01579b" font-size="10">调试优化</text>
+                    
+                    <circle cx="600" cy="340" r="8" fill="#4fc3f7"/>
+                    <text x="600" y="355" text-anchor="middle" fill="#01579b" font-size="10">提交代码</text>
+                    
+                    <path d="M108 340 L192 340" stroke="#4fc3f7" stroke-width="2"/>
+                    <path d="M208 340 L292 340" stroke="#4fc3f7" stroke-width="2"/>
+                    <path d="M308 340 L392 340" stroke="#4fc3f7" stroke-width="2"/>
+                    <path d="M408 340 L492 340" stroke="#4fc3f7" stroke-width="2"/>
+                    <path d="M508 340 L592 340" stroke="#4fc3f7" stroke-width="2"/>
+                </svg>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>五、常见问题与解决方案</h2>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>问题描述</th>
+                        <th>可能原因</th>
+                        <th>解决方案</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>编译内核时报错</td>
+                        <td>缺少依赖库或头文件</td>
+                        <td>安装build-essential, libncurses5-dev等开发包</td>
+                    </tr>
+                    <tr>
+                        <td>交叉编译工具链找不到</td>
+                        <td>环境变量未设置或工具链未安装</td>
+                        <td>检查CROSS_COMPILE和ARCH环境变量，确认工具链安装</td>
+                    </tr>
+                    <tr>
+                        <td>开发板无法启动新内核</td>
+                        <td>内核配置不匹配或设备树错误</td>
+                        <td>检查内核配置，确保包含目标平台支持</td>
+                    </tr>
+                    <tr>
+                        <td>蓝牙设备未识别</td>
+                        <td>驱动未加载或硬件问题</td>
+                        <td>检查dmesg输出，确认蓝牙驱动已加载</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <footer>
+            <p>蓝海资料掘金营</p>
+        </footer>
+    </div>
+</body>
+</html>

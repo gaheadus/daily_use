@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蓝牙协议栈初始化 - Linux内核蓝牙驱动开发实战</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0f7fa 0%, #f9fbe7 50%, #e8f5e9 100%);
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #4db6ac;
+        }
+
+        h1 {
+            color: #00695c;
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #00796b;
+            font-size: 1.8rem;
+            margin: 30px 0 15px;
+            padding-left: 10px;
+            border-left: 5px solid #4db6ac;
+        }
+
+        h3 {
+            color: #00897b;
+            font-size: 1.4rem;
+            margin: 20px 0 10px;
+        }
+
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        .highlight-box {
+            background-color: #e0f2f1;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #26a69a;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #b2dfdb;
+        }
+
+        th {
+            background-color: #4db6ac;
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f1f8e9;
+        }
+
+        tr:hover {
+            background-color: #e0f2f1;
+        }
+
+        ul, ol {
+            margin: 15px 0 15px 30px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        pre {
+            background-color: #f5f5f5;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+            border-left: 4px solid #4db6ac;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        code {
+            background-color: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+        }
+
+        .protocol-layers {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 30px 0;
+        }
+
+        .layer {
+            width: 80%;
+            padding: 15px;
+            margin: 5px 0;
+            text-align: center;
+            border-radius: 8px;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .application { background-color: #ff9800; }
+        .middleware { background-color: #4caf50; }
+        .l2cap { background-color: #2196f3; }
+        .hci { background-color: #9c27b0; }
+        .physical { background-color: #f44336; }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px solid #4db6ac;
+            color: #00796b;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .note {
+            background-color: #fff9c4;
+            border-left: 5px solid #ffd600;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .flow-step {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #e3f2fd;
+            border-radius: 8px;
+        }
+
+        .step-number {
+            background-color: #2196f3;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>蓝牙协议栈初始化</h1>
+            <p>协议栈启动流程、各层协议注册、资源初始化</p>
+        </header>
+
+        <section>
+            <h2>1. 蓝牙协议栈概述</h2>
+            <p>蓝牙协议栈是蓝牙技术的核心组成部分，它定义了蓝牙设备之间通信的规则和标准。Linux内核中的蓝牙协议栈采用分层架构，每一层都有特定的功能，各层之间通过标准接口进行通信。</p>
+            
+            <div class="protocol-layers">
+                <div class="layer application">应用层 (Application)</div>
+                <div class="layer middleware">中间件层 (Middleware)</div>
+                <div class="layer l2cap">L2CAP层 (Logical Link Control and Adaptation Protocol)</div>
+                <div class="layer hci">HCI层 (Host Controller Interface)</div>
+                <div class="layer physical">物理层 (Physical Layer)</div>
+            </div>
+        </section>
+
+        <section>
+            <h2>2. 协议栈启动流程</h2>
+            <p>Linux内核蓝牙协议栈的启动是一个多阶段的过程，涉及内核模块的加载、设备发现、协议注册和资源分配等步骤。</p>
+            
+            <div class="flow-step">
+                <div class="step-number">1</div>
+                <div>
+                    <h3>内核模块加载</h3>
+                    <p>蓝牙核心模块和相关协议模块通过insmod或modprobe命令加载到内核中。</p>
+                </div>
+            </div>
+            
+            <div class="flow-step">
+                <div class="step-number">2</div>
+                <div>
+                    <h3>协议栈初始化</h3>
+                    <p>调用蓝牙子系统的初始化函数，设置全局数据结构和回调函数。</p>
+                </div>
+            </div>
+            
+            <div class="flow-step">
+                <div class="step-number">3</div>
+                <div>
+                    <h3>HCI设备注册</h3>
+                    <p>检测并注册可用的蓝牙硬件控制器，建立主机与控制器之间的通信通道。</p>
+                </div>
+            </div>
+            
+            <div class="flow-step">
+                <div class="step-number">4</div>
+                <div>
+                    <h3>协议层注册</h3>
+                    <p>逐层注册L2CAP、SCO、RFCOMM等协议，建立协议处理函数和数据结构。</p>
+                </div>
+            </div>
+            
+            <div class="flow-step">
+                <div class="step-number">5</div>
+                <div>
+                    <h3>资源分配</h3>
+                    <p>分配必要的内核资源，如内存池、工作队列、定时器等。</p>
+                </div>
+            </div>
+            
+            <div class="flow-step">
+                <div class="step-number">6</div>
+                <div>
+                    <h3>服务发现</h3>
+                    <p>启动服务发现协议(SDP)，注册本地服务并发现远程设备服务。</p>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>3. 各层协议注册</h2>
+            <p>蓝牙协议栈的各层协议需要在系统启动时进行注册，以便内核能够正确处理蓝牙数据包。</p>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>协议层</th>
+                        <th>注册函数</th>
+                        <th>主要功能</th>
+                        <th>依赖关系</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>HCI</td>
+                        <td>hci_register_dev</td>
+                        <td>管理蓝牙硬件控制器</td>
+                        <td>无</td>
+                    </tr>
+                    <tr>
+                        <td>L2CAP</td>
+                        <td>l2cap_init</td>
+                        <td>逻辑链路控制和适配</td>
+                        <td>HCI</td>
+                    </tr>
+                    <tr>
+                        <td>SCO</td>
+                        <td>sco_init</td>
+                        <td>同步面向连接链路</td>
+                        <td>HCI</td>
+                    </tr>
+                    <tr>
+                        <td>RFCOMM</td>
+                        <td>rfcomm_init</td>
+                        <td>串口仿真协议</td>
+                        <td>L2CAP</td>
+                    </tr>
+                    <tr>
+                        <td>BNEP</td>
+                        <td>bnep_init</td>
+                        <td>蓝牙网络封装协议</td>
+                        <td>L2CAP</td>
+                    </tr>
+                    <tr>
+                        <td>SDP</td>
+                        <td>sdp_init</td>
+                        <td>服务发现协议</td>
+                        <td>L2CAP</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="highlight-box">
+                <h3>协议注册示例代码</h3>
+                <pre><code>// L2CAP协议初始化示例
+static int __init l2cap_init(void)
+{
+    int err;
+    
+    // 注册协议族
+    err = proto_register(&l2cap_proto, 0);
+    if (err < 0) {
+        BT_ERR("Failed to register L2CAP protocol");
+        return err;
+    }
+    
+    // 注册socket操作
+    err = bt_sock_register(BTPROTO_L2CAP, &l2cap_sock_family_ops);
+    if (err < 0) {
+        BT_ERR("Failed to register L2CAP socket");
+        proto_unregister(&l2cap_proto);
+        return err;
+    }
+    
+    // 初始化连接管理
+    err = l2cap_conn_init();
+    if (err < 0) {
+        bt_sock_unregister(BTPROTO_L2CAP);
+        proto_unregister(&l2cap_proto);
+        return err;
+    }
+    
+    BT_INFO("L2CAP socket layer initialized");
+    return 0;
+}
+
+module_init(l2cap_init);</code></pre>
+            </div>
+        </section>
+
+        <section>
+            <h2>4. 资源初始化</h2>
+            <p>蓝牙协议栈需要分配和管理多种系统资源，以确保高效的数据处理和设备通信。</p>
+            
+            <h3>4.1 内存管理</h3>
+            <ul>
+                <li><strong>SKB缓存</strong>: 为数据包分配专用的内存缓存池</li>
+                <li><strong>连接结构</strong>: 为每个蓝牙连接分配管理数据结构</li>
+                <li><strong>协议缓冲区</strong>: 各协议层专用的缓冲区管理</li>
+            </ul>
+            
+            <h3>4.2 工作队列和定时器</h3>
+            <ul>
+                <li><strong>工作队列</strong>: 处理异步任务，如设备发现、连接建立等</li>
+                <li><strong>内核定时器</strong>: 超时处理、重传机制、连接保持等</li>
+                <li><strong>延迟工作</strong>: 需要延迟执行的任务处理</li>
+            </ul>
+            
+            <h3>4.3 设备管理</h3>
+            <ul>
+                <li><strong>设备列表</strong>: 维护已发现和已连接的蓝牙设备</li>
+                <li><strong>服务记录</strong>: 管理本地和远程服务信息</li>
+                <li><strong>安全管理</strong>: 加密密钥、配对信息等安全数据</li>
+            </ul>
+            
+            <div class="highlight-box">
+                <h3>资源初始化代码示例</h3>
+                <pre><code>// 蓝牙核心资源初始化
+static int __init bt_init(void)
+{
+    int err;
+    
+    // 初始化SKB缓存池
+    err = skb_init();
+    if (err < 0) {
+        return err;
+    }
+    
+    // 初始化工作队列
+    bt_wq = alloc_workqueue("bluetooth", WQ_HIGHPRI | WQ_UNBOUND, 0);
+    if (!bt_wq) {
+        skb_exit();
+        return -ENOMEM;
+    }
+    
+    // 初始化设备列表
+    INIT_LIST_HEAD(&bt_dev_list);
+    rwlock_init(&bt_dev_list_lock);
+    
+    // 注册网络协议族
+    err = sock_register(&bt_sock_family_ops);
+    if (err < 0) {
+        destroy_workqueue(bt_wq);
+        skb_exit();
+        return err;
+    }
+    
+    // 初始化协议层
+    err = l2cap_init();
+    if (err < 0) {
+        goto error;
+    }
+    
+    err = sco_init();
+    if (err < 0) {
+        goto error;
+    }
+    
+    BT_INFO("Bluetooth core ver %s", VERSION);
+    return 0;
+    
+error:
+    sock_unregister(PF_BLUETOOTH);
+    destroy_workqueue(bt_wq);
+    skb_exit();
+    return err;
+}
+
+subsys_initcall(bt_init);</code></pre>
+            </div>
+        </section>
+
+        <section>
+            <h2>5. 初始化流程图</h2>
+            <div class="svg-container">
+                <svg width="800" height="500" viewBox="0 0 800 500">
+                    <!-- 背景 -->
+                    <rect x="0" y="0" width="800" height="500" fill="#e3f2fd" rx="10" ry="10"/>
+                    
+                    <!-- 标题 -->
+                    <text x="400" y="40" text-anchor="middle" font-family="Arial" font-size="20" font-weight="bold" fill="#00695c">蓝牙协议栈初始化流程</text>
+                    
+                    <!-- 流程步骤 -->
+                    <rect x="50" y="80" width="700" height="60" rx="10" ry="10" fill="#4db6ac"/>
+                    <text x="400" y="115" text-anchor="middle" font-family="Arial" font-size="16" fill="white">1. 内核模块加载</text>
+                    
+                    <rect x="50" y="160" width="700" height="60" rx="10" ry="10" fill="#26a69a"/>
+                    <text x="400" y="195" text-anchor="middle" font-family="Arial" font-size="16" fill="white">2. 蓝牙核心初始化</text>
+                    
+                    <rect x="50" y="240" width="700" height="60" rx="10" ry="10" fill="#009688"/>
+                    <text x="400" y="275" text-anchor="middle" font-family="Arial" font-size="16" fill="white">3. HCI层初始化与设备注册</text>
+                    
+                    <rect x="50" y="320" width="700" height="60" rx="10" ry="10" fill="#00897b"/>
+                    <text x="400" y="355" text-anchor="middle" font-family="Arial" font-size="16" fill="white">4. 高层协议注册(L2CAP, RFCOMM等)</text>
+                    
+                    <rect x="50" y="400" width="700" height="60" rx="10" ry="10" fill="#00796b"/>
+                    <text x="400" y="435" text-anchor="middle" font-family="Arial" font-size="16" fill="white">5. 资源分配与服务发现</text>
+                    
+                    <!-- 箭头 -->
+                    <polygon points="400,140 390,150 410,150 400,140" fill="#00695c"/>
+                    <line x1="400" y1="140" x2="400" y2="160" stroke="#00695c" stroke-width="2"/>
+                    
+                    <polygon points="400,220 390,230 410,230 400,220" fill="#00695c"/>
+                    <line x1="400" y1="220" x2="400" y2="240" stroke="#00695c" stroke-width="2"/>
+                    
+                    <polygon points="400,300 390,310 410,310 400,300" fill="#00695c"/>
+                    <line x1="400" y1="300" x2="400" y2="320" stroke="#00695c" stroke-width="2"/>
+                    
+                    <polygon points="400,380 390,390 410,390 400,380" fill="#00695c"/>
+                    <line x1="400" y1="380" x2="400" y2="400" stroke="#00695c" stroke-width="2"/>
+                </svg>
+            </div>
+        </section>
+
+        <section>
+            <h2>6. 常见问题与调试技巧</h2>
+            
+            <div class="note">
+                <h3>初始化失败常见原因</h3>
+                <ul>
+                    <li>硬件控制器未正确识别或驱动加载失败</li>
+                    <li>内核配置中蓝牙支持未启用或模块编译错误</li>
+                    <li>资源分配失败（内存、工作队列等）</li>
+                    <li>协议层依赖关系未正确建立</li>
+                    <li>权限问题导致设备节点创建失败</li>
+                </ul>
+            </div>
+            
+            <h3>调试技巧</h3>
+            <ul>
+                <li>使用<code>dmesg</code>查看内核日志，关注蓝牙相关输出</li>
+                <li>通过<code>hciconfig</code>和<code>hcitool</code>检查HCI设备状态</li>
+                <li>使用<code>btmon</code>监控蓝牙协议交互</li>
+                <li>检查<code>/sys/class/bluetooth</code>目录下的设备信息</li>
+                <li>启用动态调试：<code>echo 'module bluetooth +p' > /sys/kernel/debug/dynamic_debug/control</code></li>
+            </ul>
+        </section>
+
+        <footer>
+            蓝海资料掘金营
+        </footer>
+    </div>
+</body>
+</html>

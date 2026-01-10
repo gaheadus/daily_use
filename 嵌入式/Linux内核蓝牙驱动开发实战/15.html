@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蓝牙电源管理 - Linux内核蓝牙驱动开发实战</title>
+    <style>
+        :root {
+            --primary: #4CAF50;
+            --secondary: #FFC107;
+            --accent: #2196F3;
+            --light: #E8F5E9;
+            --dark: #2E7D32;
+            --text: #333333;
+            --white: #FFFFFF;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--light) 0%, #B3E5FC 100%);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: var(--white);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+            color: var(--white);
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid var(--secondary);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid var(--accent);
+        }
+        
+        h2 {
+            color: var(--dark);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px dashed var(--secondary);
+        }
+        
+        h3 {
+            color: var(--primary);
+            margin: 15px 0 10px;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        th {
+            background-color: var(--primary);
+            color: var(--white);
+            padding: 12px 15px;
+            text-align: left;
+        }
+        
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        
+        .code-block {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Courier New', Courier, monospace;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .highlight {
+            background-color: var(--secondary);
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        
+        footer {
+            background: linear-gradient(90deg, var(--dark) 0%, var(--primary) 100%);
+            color: var(--white);
+            text-align: center;
+            padding: 20px;
+            font-size: 1.1rem;
+        }
+        
+        .note {
+            background-color: #FFF9C4;
+            border-left: 4px solid var(--secondary);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 5px 5px 0;
+        }
+        
+        .diagram {
+            background-color: #f5f5f5;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>蓝牙电源管理</h1>
+            <div class="subtitle">电源状态管理、低功耗模式、唤醒机制实现</div>
+        </header>
+        
+        <div class="content">
+            <section>
+                <h2>引言</h2>
+                <p>在嵌入式系统和移动设备中，电源管理是至关重要的设计考量。蓝牙作为无线通信技术，其电源管理直接影响设备的续航能力和用户体验。Linux内核提供了完善的电源管理框架，蓝牙子系统在此基础上实现了多种低功耗机制。</p>
+                
+                <div class="svg-container">
+                    <svg width="600" height="200" viewBox="0 0 600 200">
+                        <rect x="50" y="50" width="100" height="60" rx="10" fill="#4CAF50" stroke="#2E7D32" stroke-width="2"/>
+                        <text x="100" y="85" text-anchor="middle" fill="white" font-weight="bold">应用层</text>
+                        
+                        <rect x="200" y="50" width="100" height="60" rx="10" fill="#2196F3" stroke="#0D47A1" stroke-width="2"/>
+                        <text x="250" y="85" text-anchor="middle" fill="white" font-weight="bold">蓝牙核心</text>
+                        
+                        <rect x="350" y="50" width="100" height="60" rx="10" fill="#FFC107" stroke="#FF8F00" stroke-width="2"/>
+                        <text x="400" y="85" text-anchor="middle" fill="white" font-weight="bold">HCI层</text>
+                        
+                        <rect x="450" y="50" width="100" height="60" rx="10" fill="#E91E63" stroke="#AD1457" stroke-width="2"/>
+                        <text x="500" y="85" text-anchor="middle" fill="white" font-weight="bold">硬件驱动</text>
+                        
+                        <line x1="150" y1="80" x2="200" y2="80" stroke="#666" stroke-width="2"/>
+                        <line x1="300" y1="80" x2="350" y2="80" stroke="#666" stroke-width="2"/>
+                        <line x1="450" y1="80" x2="500" y2="80" stroke="#666" stroke-width="2"/>
+                        
+                        <text x="175" y="75" text-anchor="middle" fill="#666" font-size="12">电源管理API</text>
+                        <text x="325" y="75" text-anchor="middle" fill="#666" font-size="12">协议栈PM</text>
+                        <text x="475" y="75" text-anchor="middle" fill="#666" font-size="12">硬件PM</text>
+                    </svg>
+                </div>
+            </section>
+            
+            <section>
+                <h2>电源状态管理</h2>
+                <p>Linux内核为蓝牙设备定义了几种电源状态，驱动程序需要正确处理这些状态转换。</p>
+                
+                <h3>主要电源状态</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>状态</th>
+                            <th>描述</th>
+                            <th>功耗</th>
+                            <th>恢复时间</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>ON (全功率)</td>
+                            <td>设备完全运行，所有功能可用</td>
+                            <td>高</td>
+                            <td>即时</td>
+                        </tr>
+                        <tr>
+                            <td>SUSPEND (挂起)</td>
+                            <td>设备部分功能关闭，保持基本状态</td>
+                            <td>中</td>
+                            <td>短</td>
+                        </tr>
+                        <tr>
+                            <td>OFF (关闭)</td>
+                            <td>设备完全关闭，需要重新初始化</td>
+                            <td>零</td>
+                            <td>长</td>
+                        </tr>
+                        <tr>
+                            <td>低功耗模式</td>
+                            <td>特定低功耗状态，如Sniff、Park等</td>
+                            <td>低</td>
+                            <td>中</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>状态转换实现</h3>
+                <p>蓝牙驱动通过实现电源管理操作集来处理状态转换：</p>
+                
+                <div class="code-block">
+<pre>static const struct dev_pm_ops bt_pm_ops = {
+    .suspend = bt_suspend,
+    .resume = bt_resume,
+    .freeze = bt_freeze,
+    .thaw = bt_thaw,
+    .poweroff = bt_poweroff,
+    .restore = bt_restore,
+};
+
+static int bt_suspend(struct device *dev)
+{
+    struct hci_dev *hdev = to_hci_dev(dev);
+    
+    /* 停止数据传输 */
+    hci_suspend_dev(hdev);
+    
+    /* 配置低功耗模式 */
+    if (hdev->bus->suspend)
+        return hdev->bus->suspend(hdev);
+    
+    return 0;
+}
+
+static int bt_resume(struct device *dev)
+{
+    struct hci_dev *hdev = to_hci_dev(dev);
+    
+    /* 恢复设备状态 */
+    if (hdev->bus->resume)
+        return hdev->bus->resume(hdev);
+    
+    /* 重新开始数据传输 */
+    hci_resume_dev(hdev);
+    
+    return 0;
+}</pre>
+                </div>
+            </section>
+            
+            <section>
+                <h2>低功耗模式</h2>
+                <p>蓝牙协议定义了多种低功耗模式，以适应不同的使用场景和功耗要求。</p>
+                
+                <h3>蓝牙经典低功耗模式</h3>
+                <ul>
+                    <li><span class="highlight">Sniff模式</span>：设备周期性地唤醒监听数据，适用于间歇性数据传输</li>
+                    <li><span class="highlight">Hold模式</span>：设备暂时停止监听，适用于短时间不需要通信的场景</li>
+                    <li><span class="highlight">Park模式</span>：设备深度睡眠，仅保持同步，适用于长时间空闲</li>
+                </ul>
+                
+                <h3>蓝牙低功耗(BLE)模式</h3>
+                <p>BLE专门为低功耗设计，提供了更精细的功耗控制：</p>
+                
+                <div class="svg-container">
+                    <svg width="500" height="300" viewBox="0 0 500 300">
+                        <!-- BLE连接事件图 -->
+                        <rect x="50" y="100" width="400" height="100" fill="#E3F2FD" stroke="#90CAF9" stroke-width="2"/>
+                        
+                        <!-- 广告间隔 -->
+                        <line x1="80" y1="80" x2="80" y2="180" stroke="#F44336" stroke-width="2" stroke-dasharray="5,5"/>
+                        <text x="80" y="70" text-anchor="middle" fill="#F44336" font-size="12">广告间隔</text>
+                        
+                        <!-- 连接事件 -->
+                        <rect x="100" y="120" width="30" height="60" fill="#4CAF50"/>
+                        <rect x="180" y="120" width="30" height="60" fill="#4CAF50"/>
+                        <rect x="260" y="120" width="30" height="60" fill="#4CAF50"/>
+                        <rect x="340" y="120" width="30" height="60" fill="#4CAF50"/>
+                        
+                        <text x="115" y="150" text-anchor="middle" fill="white" font-size="10">连接事件</text>
+                        <text x="195" y="150" text-anchor="middle" fill="white" font-size="10">连接事件</text>
+                        <text x="275" y="150" text-anchor="middle" fill="white" font-size="10">连接事件</text>
+                        <text x="355" y="150" text-anchor="middle" fill="white" font-size="10">连接事件</text>
+                        
+                        <!-- 睡眠期 -->
+                        <line x1="130" y1="140" x2="180" y2="140" stroke="#FF9800" stroke-width="2"/>
+                        <line x1="210" y1="140" x2="260" y2="140" stroke="#FF9800" stroke-width="2"/>
+                        <line x1="290" y1="140" x2="340" y2="140" stroke="#FF9800" stroke-width="2"/>
+                        
+                        <text x="155" y="135" text-anchor="middle" fill="#FF9800" font-size="10">睡眠</text>
+                        <text x="235" y="135" text-anchor="middle" fill="#FF9800" font-size="10">睡眠</text>
+                        <text x="315" y="135" text-anchor="middle" fill="#FF9800" font-size="10">睡眠</text>
+                        
+                        <text x="250" y="220" text-anchor="middle" fill="#333" font-size="14" font-weight="bold">BLE连接事件时序图</text>
+                    </svg>
+                </div>
+                
+                <h3>低功耗配置示例</h3>
+                <div class="code-block">
+<pre>/* 配置BLE连接参数以实现低功耗 */
+static int set_ble_connection_params(struct hci_conn *conn)
+{
+    struct hci_request req;
+    struct hci_cp_le_conn_update cp;
+    int err;
+    
+    hci_req_init(&req, conn->hdev);
+    
+    memset(&cp, 0, sizeof(cp));
+    cp.handle = cpu_to_le16(conn->handle);
+    
+    /* 设置连接间隔：影响功耗和延迟 */
+    cp.conn_interval_min = cpu_to_le16(0x0018);  /* 30ms */
+    cp.conn_interval_max = cpu_to_le16(0x0028);  /* 50ms */
+    
+    /* 设置从设备延迟：允许跳过连接事件 */
+    cp.conn_latency = cpu_to_le16(0x0004);       /* 4个连接事件 */
+    
+    /* 设置监控超时 */
+    cp.supervision_timeout = cpu_to_le16(0x01F4); /* 500ms */
+    
+    cp.min_ce_len = cpu_to_le16(0x0001);
+    cp.max_ce_len = cpu_to_le16(0x0001);
+    
+    hci_req_add(&req, HCI_OP_LE_CONN_UPDATE, sizeof(cp), &cp);
+    
+    err = hci_req_run(&req, NULL);
+    if (err < 0) {
+        bt_dev_err(conn->hdev, "Failed to update connection parameters: %d", err);
+    }
+    
+    return err;
+}</pre>
+                </div>
+            </section>
+            
+            <section>
+                <h2>唤醒机制实现</h2>
+                <p>蓝牙设备需要能够在特定条件下从低功耗状态唤醒，以处理传入的连接请求或数据传输。</p>
+                
+                <h3>唤醒源类型</h3>
+                <ol>
+                    <li><span class="highlight">外部中断唤醒</span>：通过GPIO中断唤醒系统</li>
+                    <li><span class="highlight">定时器唤醒</span>：在预定时间间隔后自动唤醒</li>
+                    <li><span class="highlight">射频唤醒</span>：检测到特定射频信号时唤醒</li>
+                    <li><span class="highlight">主机唤醒</span>：通过HCI命令由主机触发唤醒</li>
+                </ol>
+                
+                <h3>唤醒实现架构</h3>
+                <div class="svg-container">
+                    <svg width="550" height="350" viewBox="0 0 550 350">
+                        <!-- 唤醒机制架构图 -->
+                        <rect x="50" y="50" width="150" height="60" rx="10" fill="#4CAF50" stroke="#2E7D32" stroke-width="2"/>
+                        <text x="125" y="85" text-anchor="middle" fill="white" font-weight="bold">应用层</text>
+                        
+                        <rect x="250" y="50" width="150" height="60" rx="10" fill="#2196F3" stroke="#0D47A1" stroke-width="2"/>
+                        <text x="325" y="85" text-anchor="middle" fill="white" font-weight="bold">蓝牙协议栈</text>
+                        
+                        <rect x="50" y="150" width="150" height="60" rx="10" fill="#FFC107" stroke="#FF8F00" stroke-width="2"/>
+                        <text x="125" y="185" text-anchor="middle" fill="white" font-weight="bold">HCI驱动</text>
+                        
+                        <rect x="250" y="150" width="150" height="60" rx="10" fill="#E91E63" stroke="#AD1457" stroke-width="2"/>
+                        <text x="325" y="185" text-anchor="middle" fill="white" font-weight="bold">硬件抽象层</text>
+                        
+                        <rect x="50" y="250" width="150" height="60" rx="10" fill="#9C27B0" stroke="#6A1B9A" stroke-width="2"/>
+                        <text x="125" y="285" text-anchor="middle" fill="white" font-weight="bold">蓝牙控制器</text>
+                        
+                        <rect x="250" y="250" width="150" height="60" rx="10" fill="#607D8B" stroke="#37474F" stroke-width="2"/>
+                        <text x="325" y="285" text-anchor="middle" fill="white" font-weight="bold">射频硬件</text>
+                        
+                        <!-- 连接线 -->
+                        <line x1="125" y1="110" x2="125" y2="150" stroke="#666" stroke-width="2"/>
+                        <line x1="325" y1="110" x2="325" y2="150" stroke="#666" stroke-width="2"/>
+                        <line x1="125" y1="210" x2="125" y2="250" stroke="#666" stroke-width="2"/>
+                        <line x1="325" y1="210" x2="325" y2="250" stroke="#666" stroke-width="2"/>
+                        
+                        <line x1="200" y1="80" x2="250" y2="80" stroke="#666" stroke-width="2"/>
+                        <line x1="200" y1="180" x2="250" y2="180" stroke="#666" stroke-width="2"/>
+                        <line x1="200" y1="280" x2="250" y2="280" stroke="#666" stroke-width="2"/>
+                        
+                        <!-- 唤醒路径 -->
+                        <path d="M 325 310 L 325 330 L 50 330 L 50 310" stroke="#FF5722" stroke-width="3" fill="none" marker-end="url(#arrowhead)"/>
+                        <text x="187" y="320" text-anchor="middle" fill="#FF5722" font-size="12" font-weight="bold">唤醒信号路径</text>
+                        
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                <polygon points="0 0, 10 3.5, 0 7" fill="#FF5722"/>
+                            </marker>
+                        </defs>
+                    </svg>
+                </div>
+                
+                <h3>GPIO唤醒实现</h3>
+                <div class="code-block">
+<pre>/* 配置蓝牙设备的GPIO唤醒功能 */
+static int bt_configure_wake_gpio(struct hci_dev *hdev)
+{
+    struct bt_dev *btdev = hci_get_drvdata(hdev);
+    int ret;
+    
+    /* 申请GPIO */
+    if (gpio_is_valid(btdev->wake_gpio)) {
+        ret = devm_gpio_request_one(&hdev->dev, btdev->wake_gpio,
+                                   GPIOF_OUT_INIT_LOW, "bt_wake");
+        if (ret) {
+            bt_dev_err(hdev, "failed to request GPIO %d", btdev->wake_gpio);
+            return ret;
+        }
+    }
+    
+    /* 配置中断唤醒 */
+    if (gpio_is_valid(btdev->host_wake_gpio)) {
+        ret = devm_gpio_request_one(&hdev->dev, btdev->host_wake_gpio,
+                                   GPIOF_IN, "bt_host_wake");
+        if (ret) {
+            bt_dev_err(hdev, "failed to request host wake GPIO %d", 
+                       btdev->host_wake_gpio);
+            return ret;
+        }
+        
+        /* 配置中断处理 */
+        ret = devm_request_irq(&hdev->dev,
+                              gpio_to_irq(btdev->host_wake_gpio),
+                              bt_host_wake_irq,
+                              IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
+                              "bt_host_wake", hdev);
+        if (ret) {
+            bt_dev_err(hdev, "failed to request host wake IRQ");
+            return ret;
+        }
+        
+        /* 使能唤醒功能 */
+        device_init_wakeup(&hdev->dev, true);
+        ret = dev_pm_set_wake_irq(&hdev->dev, 
+                                 gpio_to_irq(btdev->host_wake_gpio));
+        if (ret) {
+            bt_dev_err(hdev, "failed to set wake IRQ");
+            device_init_wakeup(&hdev->dev, false);
+        }
+    }
+    
+    return 0;
+}
+
+/* 主机唤醒中断处理函数 */
+static irqreturn_t bt_host_wake_irq(int irq, void *dev_id)
+{
+    struct hci_dev *hdev = dev_id;
+    
+    /* 处理唤醒事件 */
+    if (gpio_get_value(bt_dev->host_wake_gpio)) {
+        /* 设备唤醒主机 */
+        pm_system_wakeup();
+        bt_dev_dbg(hdev, "Host wake IRQ: device waking up host");
+    } else {
+        /* 设备进入睡眠 */
+        bt_dev_dbg(hdev, "Host wake IRQ: device going to sleep");
+    }
+    
+    return IRQ_HANDLED;
+}</pre>
+                </div>
+                
+                <div class="note">
+                    <p><strong>注意：</strong>在实际实现中，需要根据具体的蓝牙芯片和硬件平台调整唤醒机制的实现细节。不同的芯片厂商可能有不同的唤醒协议和配置要求。</p>
+                </div>
+            </section>
+            
+            <section>
+                <h2>最佳实践与调试技巧</h2>
+                
+                <h3>电源管理调试</h3>
+                <ul>
+                    <li>使用 <span class="highlight">powertop</span> 工具监控蓝牙设备的功耗</li>
+                    <li>通过 <span class="highlight">/sys/kernel/debug/bluetooth/</span> 目录查看蓝牙电源状态</li>
+                    <li>使用 <span class="highlight">hcitool</span> 和 <span class="highlight">btmon</span> 监控蓝牙活动</li>
+                    <li>检查内核日志中的电源管理相关消息</li>
+                </ul>
+                
+                <h3>常见问题与解决方案</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>问题</th>
+                            <th>可能原因</th>
+                            <th>解决方案</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>设备无法从睡眠唤醒</td>
+                            <td>唤醒GPIO配置错误或中断未正确注册</td>
+                            <td>检查GPIO配置，验证中断处理函数</td>
+                        </tr>
+                        <tr>
+                            <td>功耗过高</td>
+                            <td>低功耗模式未正确启用或连接参数不合理</td>
+                            <td>优化连接间隔和从设备延迟参数</td>
+                        </tr>
+                        <tr>
+                            <td>恢复后连接丢失</td>
+                            <td>电源状态恢复过程中连接超时</td>
+                            <td>增加监控超时或优化恢复流程</td>
+                        </tr>
+                        <tr>
+                            <td>系统无法进入深度睡眠</td>
+                            <td>蓝牙设备阻止系统睡眠</td>
+                            <td>确保在适当的时候释放唤醒锁</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+        </div>
+        
+        <footer>
+            蓝海资料掘金营
+        </footer>
+    </div>
+</body>
+</html>
