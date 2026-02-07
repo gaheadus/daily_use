@@ -1,34 +1,25 @@
-# 快捷键
-ctrl + shift + p  : Show All Commands，或点左下角![img](https://github.com/gaheadus/daily_use/blob/master/Resources/vscode_command.png)  
-ctrl + p    : Go to File  
-ctrl+k->t   : 切换主题theme  
-ctrl+shift+v    :  markdown预览  
-
-ctrl+f     : 查找，在当前文件查找  
-ctrl + shift + f  : 查找，在多个文件查找。按f4跳转到下一个索引、shift+f4跳到上一个索引。  
-ctrl+h    : 替换   
-
-ctrl+鼠标左键 : Go to Defination  
-f12     : Go to Defination   
-shift+f12   : Go to References  
-ctrl+k -> f12 : 将编辑器分两栏，在右侧栏打开函数/宏/变量定义  
-alt+o    : 在同名的C文件和h头文件之间切换，如果存在同名C文件和h头文件的话  
-shift+alt+h  : Calls:Show Call Hierarchy，类似sourceinsight调用栈  
-
-f5      : Start Debugging  
-ctrl + `    : Toggle Terminal  
-
-![img](https://github.com/gaheadus/daily_use/blob/master/Resources/vscode_hot_keys.png)  
-
-
-
-# theme主题
-
-## 接近source insight 4.0的主题
-此配置以VSCode浅色主题为基础，模拟Source Insight经典样式。可以根据实际观察的Source Insight界面颜色进行微调。  
-```
-    //"workbench.colorTheme": "Visual Studio Light", // 建议先选择浅色主题作为基础
-    //"chat.viewSessions.orientation": "stacked",
+{
+    "security.allowedUNCHosts": [
+        "wsl.localhost"
+    ],
+    "editor.minimap.enabled": false,
+    "terminal.integrated.profiles.windows": {
+        "Cygwin": {
+            "path": "D:\\software\\cygwin64\\bin\\bash.exe",
+            "args": ["--login", "-i"],
+            "icon": "terminal-bash"
+        }
+    },
+    "terminal.integrated.defaultProfile.windows": "Cygwin",
+    "workbench.editorAssociations": {
+        "*.copilotmd": "vscode.markdown.preview.editor",
+        "*.doc": "default"
+    },
+    "git.path": "",
+    "gitlens.ai.model": "vscode",
+    "gitlens.ai.vscode.model": "copilot:gpt-4.1",
+    "ci.ctagPath": "D:\\software\\ctags-v6.1.0-clang-x64\\",
+    //"chat.viewSessions.orientation": "stacked", // 建议先选择浅色主题作为基础
     //"editor.fontFamily": "Consolas, 'Courier New', monospace",
     //"editor.fontSize": 13,
     //"editor.lineHeight": 1.5,
@@ -90,12 +81,12 @@ ctrl + `    : Toggle Terminal
                         "fontStyle": "bold"
                     }
                 },
-                {
-                    "scope": "entity.name.function.preprocessor", // 宏定义的作用域
-                    "settings": {
-                        "foreground": "#c50808" // 设置颜色，例如红色
-                    }
-                },
+				{
+					"scope": "entity.name.function.preprocessor", // 宏定义的作用域
+					"settings": {
+						"foreground": "#c50808" // 设置颜色，例如红色
+					}
+				},
                 {
                     "scope": "constant.numeric",
                     "settings": {
@@ -168,36 +159,9 @@ ctrl + `    : Toggle Terminal
                 }
             }
         }
-    }
-```
-
-## 精简：只配置函数名、宏定义、全局变量 字体加粗
-```
-    "editor.tokenColorCustomizations": {
-        "textMateRules": [ // 此设置在所有主题下生效
-            {
-                "scope": [
-                    "entity.name.function", // 函数名
-                    "meta.definition.method" // 类方法名
-                ],
-                "settings": {
-                    "fontStyle": "bold" // 设置为加粗
-                }
-            }
-        ]
     },
-
-    // 语义令牌高亮配置
-    "editor.semanticTokenColorCustomizations": {
-        // 此设置在所有主题下生效
-        "enabled": true, // 确保启用语义高亮
-        "rules": {
-            "variable.global": { // 此规则专门针对全局变量
-                "fontStyle": "bold"      // 可选：设置为粗体，使其更醒目
-            }
-        }
-    }
-```
-
-在VSCode中，可以通过 “开发者：检查编辑器令牌和范围” (Developer: Inspect Editor Tokens and Scopes)命令来查看。打开命令面板(Ctrl+Shift+P)，输入这个命令，然后将鼠标光标悬停在代码上，会弹出一个小窗口显示该处代码的准确作用域，这就是你配置textMateRules时需要的scope值。
-
+    "editor.fontLigatures": false,
+    "Codegeex.License": "",
+    "Codegeex.Privacy": true,
+    "workbench.colorTheme": "Visual Studio Light",
+}
