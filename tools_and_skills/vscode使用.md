@@ -26,6 +26,7 @@ ctrl + `    : Toggle Terminal
 
 ## 接近source insight 4.0的主题
 此配置以VSCode浅色主题为基础，模拟Source Insight经典样式。可以根据实际观察的Source Insight界面颜色进行微调。  
+更新：自定义配色配置成和最新的主题"VS Code Light"一样  
 ```
     //"workbench.colorTheme": "Visual Studio Light", // 建议先选择浅色主题作为基础
     //"chat.viewSessions.orientation": "stacked",
@@ -35,22 +36,25 @@ ctrl + `    : Toggle Terminal
 
     "workbench.colorCustomizations": {
         "[Visual Studio Light]": { // 此设置仅在"Visual Studio Light"主题下生效
+            "foreground":"#202020",
+            "titleBar.activeBackground": "#fafafd",
+            "titleBar.border": "#f0f1f2",
             // 编辑区颜色设置
             "editor.background": "#ffffff",
-            // 侧边栏文件列表区颜色设置
-            "sideBar.background": "#f9fafb",
-            "sideBar.foreground": "#373737",
-            "sideBar.border": "#e5e5e5",
             // 侧边栏按钮区颜色设置
-            "activityBar.background": "#f9fafb",
+            "activityBar.background": "#fafafd",
             "activityBar.foreground": "#3b3b3b",
-            "activityBar.border": "#e5e5e5",
+            "activityBar.border": "#f0f1f2",
+            // 侧边栏文件列表区颜色设置
+            "sideBar.background": "#fafafd",
+            "sideBar.foreground": "#373737",
+            "sideBar.border": "#f0f1f2",
             // 状态栏：基本颜色设置
-            "statusBar.background": "#f9fafb",
+            "statusBar.background": "#fafafd",
             "statusBar.foreground": "#191818",
-            "statusBar.border": "#e5e5e5",
+            "statusBar.border": "#f0f1f2",
             // 状态栏：特殊状态下的颜色
-            "statusBar.noFolderBackground": "#1e1d1d",
+            "statusBar.noFolderBackground": "#f0f0f3",
             "statusBar.debuggingBackground": "#725102",
             // 状态栏：错误与警告颜色
             "statusBarItem.errorBackground": "#725102",
@@ -90,12 +94,12 @@ ctrl + `    : Toggle Terminal
                         "fontStyle": "bold"
                     }
                 },
-                {
-                    "scope": "entity.name.function.preprocessor", // 宏定义的作用域
-                    "settings": {
-                        "foreground": "#c50808" // 设置颜色，例如红色
-                    }
-                },
+				{
+					"scope": "entity.name.function.preprocessor", // 宏定义的作用域
+					"settings": {
+						"foreground": "#c50808" // 设置颜色，例如红色
+					}
+				},
                 {
                     "scope": "constant.numeric",
                     "settings": {
@@ -168,7 +172,7 @@ ctrl + `    : Toggle Terminal
                 }
             }
         }
-    }
+    },
 ```
 
 ## 精简：只配置函数名、宏定义、全局变量 字体加粗

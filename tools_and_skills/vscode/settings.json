@@ -26,22 +26,25 @@
 
     "workbench.colorCustomizations": {
         "[Visual Studio Light]": { // 此设置仅在"Visual Studio Light"主题下生效
+            "foreground":"#202020",
+            "titleBar.activeBackground": "#fafafd",
+            "titleBar.border": "#f0f1f2",
             // 编辑区颜色设置
             "editor.background": "#ffffff",
-            // 侧边栏文件列表区颜色设置
-            "sideBar.background": "#f9fafb",
-            "sideBar.foreground": "#373737",
-            "sideBar.border": "#e5e5e5",
             // 侧边栏按钮区颜色设置
-            "activityBar.background": "#f9fafb",
+            "activityBar.background": "#fafafd",
             "activityBar.foreground": "#3b3b3b",
-            "activityBar.border": "#e5e5e5",
+            "activityBar.border": "#f0f1f2",
+            // 侧边栏文件列表区颜色设置
+            "sideBar.background": "#fafafd",
+            "sideBar.foreground": "#373737",
+            "sideBar.border": "#f0f1f2",
             // 状态栏：基本颜色设置
-            "statusBar.background": "#f9fafb",
+            "statusBar.background": "#fafafd",
             "statusBar.foreground": "#191818",
-            "statusBar.border": "#e5e5e5",
+            "statusBar.border": "#f0f1f2",
             // 状态栏：特殊状态下的颜色
-            "statusBar.noFolderBackground": "#1e1d1d",
+            "statusBar.noFolderBackground": "#f0f0f3",
             "statusBar.debuggingBackground": "#725102",
             // 状态栏：错误与警告颜色
             "statusBarItem.errorBackground": "#725102",
@@ -163,5 +166,6 @@
     "editor.fontLigatures": false,
     "Codegeex.License": "",
     "Codegeex.Privacy": true,
+    "chat.viewSessions.orientation": "stacked",
     "workbench.colorTheme": "Visual Studio Light",
 }
