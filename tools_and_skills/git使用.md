@@ -1124,6 +1124,19 @@ rebase， re-base， 重新(re)定义基(base)。
 [返回*专题*](#专题)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#git)    
 
 
+### 忽略指定文件(夹)  
+方法1： \.gitignore，影响git status结果  
+方法2： \.git/info/exclude，不影响git status结果  
+方法3： 忽略已被跟踪的文件，用 update-index 命令：  
+\$ git update-index --skip-worktree \<file\>  
+敲完这段命令，不管你怎么改文件，git status 看过去永远是干干净净的。  
+要是哪天真想把修改提交上去，再把状态改回来就好：  
+\$ git update-index --no-skip-worktree \<file\>  
+
+
+
+
+
 ## 网址收藏
 https://learngitbranching.js.org/  
 http://www.softwhy.com/qiduan/git_course/  
