@@ -730,6 +730,157 @@ egrep命令用于在文件内查找指定的字符串。egrep执行效果与grep
 [*返回:专题讲解*](#专题讲解)          &emsp;&emsp;              [*返回:页首*](#Linux命令)
 
 
+
+#### ggrep、sed、awk概要
+##### grep - 文本搜索
+```
+grep [选项] 模式 文件
+常用选项： 
+•-i：忽略大小写
+•-v：反向匹配(显示不包含模式的行)
+•-n：显示行号
+•-r或 -R：递归搜索目录
+•-l：只显示包含匹配的文件名
+•-c：统计匹配行数
+•-E：使用扩展正则表达式(等同于egrep)
+•-A/-B/-CN：显示前后N行上下文
+示例： 
+grep "error" log.txt            # 搜索包含"error"的行
+grep -i "error" log.txt         # 忽略大小写
+grep -n "error" log.txt         # 显示行号
+grep -r "function" ./src        # 递归搜索目录
+grep -v "test" data.txt         # 显示不包含"test"的行
+grep -E 'err|warn'app.log       # 扩展正则，多关键词
+grep -c 'error' app.log         # 统计匹配行数
+grep -l 'error'*.log            # 只显示文件名
+```
+
+##### sed - 流编辑器
+```
+sed [选项] '命令' 文件
+常用命令： 
+•s：替换
+•d：删除
+•p：打印
+•a：追加
+•i：插入，原地修改文件
+•-n：静默模式
+•N,MP：打印第N到M行
+•^：行首锚点
+•$：行尾/末行
+示例： 
+替换操作
+sed 's/old/new/' file.txt           # 每行第一个old替换为new
+sed 's/old/new/g' file.txt          # 全局替换
+sed 's/old/new/2' file.txt          # 每行第二个old替换为new
+
+删除操作
+sed '3d' file.txt                   # 删除第3行
+sed '1,5d' file.txt                 # 删除1-5行
+sed '$d' file.txt                   # 删除最后一行
+sed '/pattern/d' file.txt           # 删除匹配行
+
+其他操作
+sed -n '1,5p' file.txt              # 只打印1-5行
+sed '2a\new line' file.txt          # 在第2行后追加
+
+sed -i 's/old/new/g' file.txt       # 直接修改原文件
+sed -i.bak 's/old/new/' file.txt    # 直接修改文件并备份
+
+在 sed中，-i选项用于直接修改文件。它后面可以跟一个后缀，用于在修改前备份原文件。
+语法是：-i[SUFFIX]或 --in-place[=SUFFIX]
+所以，-i.bak是正确的，它表示在修改文件之前，将原文件备份为 file.txt.bak(假设原文件是file.txt)，然后对file.txt进行修改。
+注意：-i和 .bak之间没有空格。如果写成 -i .bak，那么 .bak会被解释为一个单独的参数，但 -i选项后面跟的备份后缀是可选且必须紧跟在 -i后面，不能有空格。所以正确的写法是 -i.bak。
+示例：
+sed -i.bak 's/old/new/' file.txt
+执行后，会生成一个备份文件 file.txt.bak，其内容为修改前的内容，而 file.txt 文件中的内容已经将每行第一个 old 替换为 new。
+如果不希望备份，只修改文件，可以直接使用 -i，后面不跟任何后缀：
+sed -i 's/old/new/' file.txt
+```
+
+
+##### awk - 按列处理结构化文本
+```
+awk [选项] '模式 {动作}' 文件
+内建变量： 
+•$0：整行内容
+•$1, $2, ...：第1、2...个字段
+•NF：字段数量
+•NR：当前行号
+•FS：字段分隔符(默认为空格)
+•OFS：输出字段分隔符
+•-F ：指定分隔符(默认空格)
+•BEGIN{} ：处理开始前执行
+•END{}   ：处理结束后执行
+示例： 
+基本打印
+awk '{print $1}' file.txt           # 打印每行第一个字段
+awk '{print $NF}' file.txt          # 打印最后一个字段
+awk '{print $1,$3}' file.txt        # 打印第1、3列
+
+条件过滤
+awk '/error/' file.txt               # 打印包含error的行
+awk '$3 > 100' file.txt              # 第3个字段大于100的行
+awk 'NR >= 2 && NR <= 5' file.txt    # 打印2-5行
+awk 'NR==3,NR==8' file.txt           # 打印第3到8行
+
+字段处理
+awk -F':' '{print $1, $3}' /etc/passwd   # 指定:为分隔符，打印1、3字段
+awk 'BEGIN{FS=":"; OFS="\t"} {print $1, $3}' file.txt
+
+计算统计
+awk '{sum += $1} END {print sum}' file.txt  # 统计第1列求和
+awk '{print NR, $0}' file.txt               # 添加行号
+
+
+组合使用示例
+使用管道组合工具
+ps aux | grep python | awk '{print $2}'     # 获取Python进程PID
+cat log.txt | grep "ERROR" | sed 's/ERROR/CRITICAL/g'
+
+复杂处理
+awk -F, '$3 > 50 {print $1, $2}' data.csv | sort | uniq
+sed 's/  */ /g' file.txt | awk '{print $2, $1}'   # 压缩多个空格并交换字段
+
+实用技巧 
+1.提取IP地址：
+grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' file.txt
+2.删除空白行：
+sed '/^$/d' file.txt
+grep -v '^$' file.txt
+3.统计单词频率：
+awk '{for(i=1;i<=NF;i++) count[$i]++} END{for(w in count) print w, count[w]}' file.txt | sort -k2 -nr
+4.批量重命名：
+ls *.txt | sed 's/\(.*\)\.txt/mv & \1.bak/' | bash
+这些工具功能强大且灵活，掌握它们能极大提高Linux命令行下的文本处理效率。
+--腾讯元宝AI
+
+补充：
+统计ERROR来源IP
+grep 'ERROR' app.log \
+| awk '{print $5}' \
+| sort| uniq -c | sort-rn | head -10
+grep过滤 → awk取列 → 排序去重 → Top10
+
+批量替换目录下所有配置文件
+find . -name '*.conf' \
+| xargs sed -i 's/old.com/new.com/g'
+find找文件 → xargs批量执行 → sed替换
+
+Nginx日志分析:Top10访问URL
+awk '{print $7}' access.log \
+| sort | uniq-c \
+| sort-rn | head -10
+awk取URL列 → 排序去重统计 → 取前10
+
+提取特定时间段的日志
+grep '2024-03-15 1[0-2]' app.log \
+| grep -E 'ERROR|WARN' \
+| awk '{print $1,$2,$5,$6}'
+时间范围grep → 级别过滤 → awk取关键列
+```
+
+
 #### type
 type,查找指定命令的类型  
 $ type -a cd  
