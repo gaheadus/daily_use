@@ -1,5 +1,4 @@
 # visio使用  
-[visio教程官网](#visio教程官网)  &emsp;&emsp;&emsp;&emsp;  [基本操作](#基本操作)
 
 
 ## visio教程官网
@@ -46,4 +45,3 @@ word画图按键，快捷键
 		word画简单框图，专业画图用visio。  
 参考：visio画图总结.docx，除了标注和visio画图不一样的，其他和visio画图一样。  
 
-[返回*visio使用*](#visio使用)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*基本操作*](#基本操作)  

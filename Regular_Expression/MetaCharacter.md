@@ -3,46 +3,46 @@
 ## 常用元字符
 |  **Character classes**  |  **字符集、字符组**  |  **备注**  |
 | --- | --- | --- |
-| **.**                 |  any single character except newline  |  |
-| \w \d \s              |  word, digit, whitespace    |  |
-| \W \D \S              |  not word, digit, whitespace  |  |
-| [abc]                 |  any of a, b, or c                           |    A single character of: a, b, or c  |
-| [^abc]                |  not a, b, or c                                |    A single character except: a, b, or c  |
-| [a-g]                 |  character between a \& g              |    Any single character in the range a-g  |
-| [a-zA-Z]              |                                              |    Any single character in the range a-z or A-Z  |
-| **Anchors**           |   **锚点，定位符**    |  |
-| ^                     |  matches the position at the start of the line  |  |
-| $                     |  matches the position at the end of the line  |  |
-| \<                    |  matches the position at the start of a word  |  |
-| \>                    |  matches the position at the end of a word  |  |
-| \b                    |  any word boundary  |  |
-| \B                    |  not-word boundary  |  |
+| `.`                 |  any single character except newline  |  |
+| `\w` `\d` `\s`      |  word, digit, whitespace    |  |
+| `\W` `\D` `\S`      |  not word, digit, whitespace  |  |
+| `[abc]`             |  any of a, b, or c                           |    A single character of: a, b, or c  |
+| `[^abc]`            |  not a, b, or c                                |    A single character except: a, b, or c  |
+| `[a-g]`             |  character between a \& g              |    Any single character in the range a-g  |
+| `[a-zA-Z]`          |                                              |    Any single character in the range a-z or A-Z  |
+| `Anchors`           |   **锚点，定位符**    |  |
+| `^`                    |  matches the position at the start of the line  |  |
+| `$`                    |  matches the position at the end of the line  |  |
+| `\<`                   |  matches the position at the start of a word  |  |
+| `\>`                   |  matches the position at the end of a word  |  |
+| `\b`                   |  any word boundary  |  |
+| `\B`                   |  not-word boundary  |  |
 | **Escaped characters** |   **转义字符**  |  |
-| \\. \\* \\\           |  escaped special characters  |  |
-| \t \n \r              |  tab, linefeed, carriage return  |  |
-| \s                    |  any whitespace character  |  |
-| \S                    |  any non-whitespace character  |  |
-| \d                    |  any digit  |  |
-| \D                    |  any non-digit  |  |
-| \w                    |  any word character (letter, number, underscore)  |  |
-| \W                    |  any non-word character  |  |
-| \b                    |  any word boundary  |  |
-| \u00A9                |  unicode escaped ?
+| `\.` `\*` `\\`         |  escaped special characters  |  |
+| `\t` `\n` `\r`         |  tab, linefeed, carriage return  |  |
+| `\s`                   |  any whitespace character  |  |
+| `\S`                   |  any non-whitespace character  |  |
+| `\d`                   |  any digit  |  |
+| `\D`                   |  any non-digit  |  |
+| `\w`                   |  any word character (letter, number, underscore)  |  |
+| `\W`                   |  any non-word character  |  |
+| `\b`                   |  any word boundary  |  |
+| `\u00A9`               |  unicode escaped ?
 | **Groups \& Lookaround** |    **分组 \& 环视**  |  |
-| (abc)                 |  capture group                              |   (...)  Capture everything enclosed  |
-| \1                    |  backreference to group #1          |   反向引用分组，如\1、\2、\3  |
-| (?:abc)               |  non-capturing group  |  |
-| (?=)                  |  positive lookahead  |  |
-| (?!)                  |  negative lookahead  |  |
+| `(abc)`                 |  capture group                              |   (...)  Capture everything enclosed  |
+| `\1`                    |  backreference to group #1          |   反向引用分组，如\1、\2、\3  |
+| `(?:abc)`               |  non-capturing group  |  |
+| `(?=)`                  |  positive lookahead  |  |
+| `(?!)`                  |  negative lookahead  |  |
 | **Quantifiers \& Alternation** |    **数量 \& 可选**  |  |
-| a?                    |  zero or one of a  |  |
-| a\*                   |  zero or more of a  |  |
-| a+                    |  one or more of a  |  |
-| a{3}                  |  exactly 3 of a  |  |
-| a{3,6}                |  between 3 and 6 of a  |  |
-| a{3,}                 |  3 or more of a  |  |
-| a+?  a{2,}?           |  match as few as possible  |  |
-| ab\|cd                |  match ab or cd                         |    (a\|b)  a or b |
+| `a?`                    |  zero or one of a  |  |
+| `a*`                    |  zero or more of a  |  |
+| `a+`                    |  one or more of a  |  |
+| `a{3}`                  |  exactly 3 of a  |  |
+| `a{3,6}`                |  between 3 and 6 of a  |  |
+| `a{3,}`                 |  3 or more of a  |  |
+| `a+?`  `a{2,}?`         |  match as few as possible  |  |
+| `ab|cd`                 |  match ab or cd                         |    (a\|b)  a or b |
 
 要适当参考英文原文，因为有时候中文翻译不是太精准。
 

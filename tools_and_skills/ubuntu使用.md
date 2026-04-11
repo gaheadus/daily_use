@@ -126,10 +126,10 @@ service smbd restart     //重启
 
 技巧：无显示器的情况下使用启动远程Ubuntu的向日葵图形版  
 参考：ssh登录远程图形界面  
-$ ssh -X dukang@192.168.1.107  
-$ firefox //打开远程Ubuntu的firefox，下载向日葵图形版，https://sunlogin.oray.com/，sunloginclient-11.0.0.36662-amd64.deb  
-$ dpkg -i sunloginclient-11.0.0.36662-amd64.deb  
-$ /usr/local/sunlogin/bin/sunloginclient  //启动Ubuntu向日葵（退出图形界面后仍然在后台运行）  
+\$ ssh -X dukang@192.168.1.107  
+\$ firefox //打开远程Ubuntu的firefox，下载向日葵图形版，https://sunlogin.oray.com/，sunloginclient-11.0.0.36662-amd64.deb  
+\$ dpkg -i sunloginclient-11.0.0.36662-amd64.deb  
+\$ /usr/local/sunlogin/bin/sunloginclient  //启动Ubuntu向日葵（退出图形界面后仍然在后台运行）  
 后续就可以在windows上用向日葵连接Ubuntu了。  
 MobaXterm使用ssh -X dukang@192.168.1.107 gnome-session远程桌面不稳定、占内存、偶尔进程奔溃，相比较而言向日葵使用简单、稳定，当然用“(推荐)windows远程访问ubuntu 16.04 / ubuntu 18.04”一节的方式使用远程桌面最好，不需要第三方软件，简单、稳定。  
 在没有界面的情况下，使用MobaXterm ssh -X dukang@192.168.1.107 gnome-session远程安装、打开向日葵图形版，然后在windows上用向日葵远程连接Ubuntu，切换到更稳定的向日葵远程桌面，后面就可以关闭Ubuntu向日葵图形界面了：向日葵仍然会在后台运行。  
