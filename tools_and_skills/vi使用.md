@@ -2,7 +2,7 @@
 首先，学会用。  
 **三种模式：命令行模式、末行模式、编辑模式** 。  
 **三种模式之间切换**  
-![vi三种模式之间切换](https://github.com/gaheadus/daily_use/blob/master/Resources/vi.png)
+![vi三种模式之间切换](../Resources/vi.png)
 
 
 **常用功能**  

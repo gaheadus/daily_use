@@ -245,7 +245,7 @@ Octotree-2.4.6：https://chrome.google.com/webstore/detail/octotree-github-code-
 
 ### windows如何获取某个文件正在被哪个进程调用？  
 任务管理器  ->  性能  ->  打开资源监视器  ->  磁盘  ->  磁盘活动，打开如下：  
-![磁盘活动](https://github.com/gaheadus/daily_use/blob/master/Resources/%E7%A3%81%E7%9B%98%E6%B4%BB%E5%8A%A8.png)  
+![磁盘活动](../Resources/磁盘活动.png)  
 在“磁盘”下方弹出的“磁盘活动”列表中，第三列“文件”就是当前被进程打开的文件。  
 第一列即是打开这个文件的进程名称，可考虑在任务管理器中结束该进程，如果有重名的多个进程，以第二列 PID 为准。  
 

@@ -418,4 +418,6 @@ echo &quot;ab2c121a&quot;|perl -ne &#39;print $1 if /(?&lt;!--2)(c.\*)/;&#39;  #
 
 正向预搜索内部的表达式,始终采用&quot;普通模式（从左向右）&quot;模式,反向预搜索内部的表达式,始终采用 &quot;从右向左&quot;模式.  
 例如：想要匹配字符a但不匹配abc,可以为/a(?!bc)/ 再如：想要所有以.pl结尾但不是a.pl的文件名,可以/.\*(?&lt;!a)\\.pl/; 注意要从右向左。  
+
+
 [返回*正则表达式,搜索,替换*](#正则表达式搜索替换)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [返回*目录*](#SourceInsight使用)  

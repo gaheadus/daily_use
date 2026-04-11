@@ -1,5 +1,5 @@
 # 快捷键
-ctrl + shift + p  : Show All Commands，或点左下角![img](https://github.com/gaheadus/daily_use/blob/master/Resources/vscode_command.png)  
+ctrl + shift + p  : Show All Commands，或点左下角![img](../Resources/vscode_command.png)  
 ctrl + p    : Go to File  
 ctrl+k->t   : 切换主题theme  
 ctrl+shift+v    :  markdown预览  
@@ -18,7 +18,7 @@ shift+alt+h  : Calls:Show Call Hierarchy，类似sourceinsight调用栈
 f5      : Start Debugging  
 ctrl + `    : Toggle Terminal  
 
-![img](https://github.com/gaheadus/daily_use/blob/master/Resources/vscode_hot_keys.png)  
+![img](../Resources/vscode_hot_keys.png)  
 
 
 

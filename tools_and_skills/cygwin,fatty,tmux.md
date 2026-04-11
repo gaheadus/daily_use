@@ -7,17 +7,17 @@ http://www.cygwin.com/ ，下载setup-x86_64.exe。
 方法一 图像界面安装  
 •运行cygwin安装文件setup-x86_64.exe，选择需要安装的包，将 View 选为 Full，然后在右侧 搜索 对应包，安装最新版本即可。  
 •选择boost_build这一项  
-![再选择这四项](https://github.com/gaheadus/daily_use/blob/master/Resources/%E9%80%89%E6%8B%A9boost_build%E8%BF%99%E4%B8%80%E9%A1%B9.png)  
+![选择boost_build这一项](../Resources/选择boost_build这一项.png)  
 •再选择这四项  
-![再选择这四项](https://github.com/gaheadus/daily_use/blob/master/Resources/%E5%86%8D%E9%80%89%E6%8B%A9%E8%BF%99%E5%9B%9B%E9%A1%B9.png)  
+![再选择这四项](../Resources/再选择这四项.png)  
 •及gdb  
-![再选择这四项](https://github.com/gaheadus/daily_use/blob/master/Resources/%E5%8F%8Agdb.png)  
+![及gdb](../Resources/及gdb.png)  
 
   
 方法二 命令行安装gcc/g++  
 安装cygwin如果按照默认的方式一直点下去的话，安装完了会发现没有安装gcc/g++。  
 这个时候可以在安装文件的目录打开命令行，并输入：  
-setup-x86_64.exe -q -P wget -P gcc-g++ -P make -P diffutils -P libmpfr-devel -P libgmp-devel -P libmpc-devel  
+`setup-x86_64.exe -q -P wget -P gcc-g++ -P make -P diffutils -P libmpfr-devel -P libgmp-devel -P libmpc-devel`  
 其中，"setup-x86_64.exe"对应安装文件的名称。  
 接着就会出来安装的界面，等待下载完成即可。  
 
@@ -32,9 +32,9 @@ fatty + tmux 搭配使用，实现cygwin多标签、多窗口和分屏 。
 使用cygwin编译  
 fatty 的 github 地址为：https://github.com/juho-p/fatty 。  
 安装步骤：  
-$ git clone https://github.com/juho-p/fatty.git  
-$ cd fatty  
-$ make  //使用cygwin编译。编译报错：windres: preprocessing failed
+`$ git clone https://github.com/juho-p/fatty.git`  
+`$ cd fatty`  
+`$ make`  //使用cygwin编译。编译报错：windres: preprocessing failed
 原因：windres预处理失败。cygwin自带的windres版本为windres2.36.1，不兼容，可以使用windres2.25替换cygwin自带的windres。  
 解决：  
 方法1：使用windres2.25替换cygwin自带的windres。  
@@ -42,9 +42,9 @@ $ make  //使用cygwin编译。编译报错：windres: preprocessing failed
 --**更新：mingw64\bin有一个windres2.3，使用这个替换cygwin自带windres，推荐。**  
 方法3：删除fatty/src/Makefile里面的预处理，使用cygwin自带windres编译。如下：  
 修改fatty/src/Makfile，  
-$(RC) --preprocessor '$(CC) -E -xc -DRC_INVOKED -MMD -MT $@ $(CPPFLAGS)' $< $*.o  
+`$(RC) --preprocessor '$(CC) -E -xc -DRC_INVOKED -MMD -MT $@ $(CPPFLAGS)' $< $*.o`  
 删除windres预编译，改为：  
-$(RC) $< $*.o  
+`$(RC) $< $*.o`  
 编译成功，fatty.exe能正常使用。  
 
 ## fatty使用
@@ -72,14 +72,10 @@ shift+↑↓：滑动窗口，相当于鼠标滚轮
   
 
 # tmux,多窗口和分屏
-- [安装tmux](#安装tmux)  
-- [配置鼠标支持](#配置鼠标支持)  
-- [tmux命令](#tmux命令)  
-- [tmux快捷键](#tmux快捷键)  
 
 ## 安装tmux
-$ apt install tmux  /  $ apt-cyg install tmux  
-$ tmux //启动tmux，按ctrl+d或输exit退出tmux返回原来shell  
+`$ apt install tmux`  /  `$ apt-cyg install tmux`  
+`$ tmux` //启动tmux，按ctrl+d或输exit退出tmux返回原来shell  
 
 ## 配置鼠标支持
 tmux配置鼠标支持，在~/.tmux.conf文件中(如果没有这个配置文件的话先创建)，增加：set-option -g mouse on ，重启tmux即可。  
@@ -93,7 +89,7 @@ tmux配置鼠标支持，在~/.tmux.conf文件中(如果没有这个配置文件
 
 
 ## tmux命令
-$ tmux //启动tmux，按ctrl+d或输exit退出tmux返回原来shell  
+`$ tmux` //启动tmux，按ctrl+d或输exit退出tmux返回原来shell  
 
 会话相关命令：  
 查看已有会话：tmux ls  
@@ -105,14 +101,14 @@ $ tmux //启动tmux，按ctrl+d或输exit退出tmux返回原来shell
 杀死会话：tmux kill-session -t <session-name> 或 tmux kill-session -t 0  
 
 窗格相关命令：  
-$ tmux split-window  //划分上下两个窗格 -- 鼠标操作比命令更方便  
-$ tmux split-window -h  //划分左右两个窗格  
-$ tmux select-pane -U   //光标切换到上方窗格  
-$ tmux select-pane -D   //光标切换到下方窗格  
-$ tmux select-pane -L   //光标切换到左边窗格  
-$ tmux select-pane -R   //光标切换到右边窗格  
-$ tmux swap-pane -U  //当前窗格上移  
-$ tmux swap-pane -D  //当前窗格下移  
+`$ tmux split-window`  //划分上下两个窗格 -- 鼠标操作比命令更方便  
+`$ tmux split-window -h`  //划分左右两个窗格  
+`$ tmux select-pane -U`   //光标切换到上方窗格  
+`$ tmux select-pane -D`   //光标切换到下方窗格  
+`$ tmux select-pane -L`   //光标切换到左边窗格  
+`$ tmux select-pane -R`   //光标切换到右边窗格  
+`$ tmux swap-pane -U`  //当前窗格上移  
+`$ tmux swap-pane -D`  //当前窗格下移  
 
 ## tmux快捷键
 tmux 有大量快捷键，所有的快捷键都需要通过前缀键唤起，默认的前缀键是ctrl+b -- 先按ctrl+b，然后再按其他键，如按n就可以切换到下一个窗口。  
@@ -148,5 +144,4 @@ ctrl+o：上移当前窗格
 Alt+o：下移当前窗格  
 space：切换窗格布局  
 
-[返回*目录*](#目录)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [*返回目录*](#目录)    
 
