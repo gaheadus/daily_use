@@ -412,4 +412,10 @@ echo &quot;ab2c121a&quot;|perl -ne &#39;print $1 if /(?&lt;!--2)(c.\*)/;&#39;  #
 例如：想要匹配字符a但不匹配abc,可以为/a(?!bc)/ 再如：想要所有以.pl结尾但不是a.pl的文件名,可以/.\*(?&lt;!a)\\.pl/; 注意要从右向左。  
 
 
-[返回*正则表达式,搜索,替换*](#正则表达式搜索替换)  &emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;  [返回*目录*](#SourceInsight使用)  
+
+## 多行搜索
+RE：wpa_supplicant_event.+ctx.+?\n\s+?NULL  
+使用Perl Compatible正则，匹配第777行+778行，但不匹配第767行、第772行。  
+![sourceinsight多行搜索](../Resources/sourceinsight多行搜索.png)
+ 
+

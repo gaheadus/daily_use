@@ -234,7 +234,31 @@ string1、string2也可以不是字符，可以是其他的位置限定符，如
 类似，`string1\bstring2`，这里`\b`无法确定是对string1限制还是对string2限制，`\>`和`\<`的意义更明确，如果写成`string1\>string2`则明确表示是对string1进行限制，写成`string1\<string2`明确表示对string2进行限制。但是有的工具不支持`\>`和`\<`。  
 
 
-### 四、工具
+
+## 四、notepad++正则
+### 1、多行搜索
+
+正则：`Memory at 18000610:|(?<=Memory at 18000610:\r\n)[0-9a-f]{8}: [0-9a-f]{8}`，匹配如下浅绿色两行：
+```
+>
+>AT+rmem 18000610 4
+Memory at 18000610:
+00000000: 00000000
++OK
+>
+>AT+rmem 18444000 4
+Memory at 18444000:
+00000000: 00000000
++OK
+>
+```
+搜索结果：  
+![18444000寄存器的搜索结果](../Resources/18444000寄存器的搜索结果.png) 、 
+![18000610寄存器的搜索结果](../Resources/18000610寄存器的搜索结果.png)  
+
+
+
+## 五、工具
 http://regexr.com/ ，推荐，可以用来练习、调试正则表达式。  
 http://www.regexpal.com/ ,  
 Notepad\+\+软件支持正则表达式搜索(notepad\+\+正则表达式搜索,ctrl+f->Regular expression)  
