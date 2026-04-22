@@ -1,11 +1,9 @@
 # wifi 802.11
-[速率表](#速率表)  &emsp;&emsp;  [认证和数据加密](#认证和数据加密)  &emsp;&emsp;  [p2p](#p2p)  &emsp;&emsp;  [网址收藏](#网址收藏)  
-
 
 ## 速率表
 [11abg速率](#11abg速率)  &emsp;&emsp;  [mcs index ( 11n & 11ac )](#mcs-index--11n--11ac-)  
 ### 11abg速率
-| 标准           | 频率,带宽,非重叠信道 | 调制方式           | 数据传输速率(Mbps) -兼容性  | 传输距离(m) |
+| 标准            | 频率,带宽,非重叠信道    | 调制方式            | 数据传输速率(Mbps) -兼容性     | 传输距离(m)   |
 | -------------- | -------------------- | ------------------ | --------------------------- | ----------- |
 | 802.11,1997    | 2.4G,20MHz,3         | FHSS,DSSS          | 1,2                         | 20~100      |
 | 802.11b,1999.9 | 2.4G,20MHz,3         | DSSS,CCK           | 1,2,5.5,11  -b              | 38~140      |
@@ -18,18 +16,18 @@
 
 | **Protocol**        | **Data rate (Mbit/s)** | **Modulation Method** |
 | ------------------- | ---------------------- | --------------------- |
-| 802.11b<br>802.11g | 1                      | DSSS/DBPSK            |
-| 802.11b<br>802.11g | 2                      | DSSS/DQPSK            |
-| 802.11b<br>802.11g | 5.5, 11                | CCK/DQPSK             |
-| 802.11g<br>802.11a | 6, 9                   | OFDM/BPSK             |
-| 802.11g<br>802.11a | 12, 18                 | OFDM/QPSK             |
-| 802.11g<br>802.11a | 24, 36                 | OFDM/16-QAM           |
-| 802.11g<br>802.11a | 48, 54                 | OFDM/64-QAM           |
+| 802.11b<br>802.11g  | 1                      | DSSS/DBPSK            |
+| 802.11b<br>802.11g  | 2                      | DSSS/DQPSK            |
+| 802.11b<br>802.11g  | 5.5, 11                | CCK/DQPSK             |
+| 802.11g<br>802.11a  | 6, 9                   | OFDM/BPSK             |
+| 802.11g<br>802.11a  | 12, 18                 | OFDM/QPSK             |
+| 802.11g<br>802.11a  | 24, 36                 | OFDM/16-QAM           |
+| 802.11g<br>802.11a  | 48, 54                 | OFDM/64-QAM           |
 
 
 
 ### mcs index ( 11n & 11ac )
-![mcs index](../Resources/mcs index.png)  
+![mcs_data_rate](../Resources/mcs_data_rate.bmp)  
 
 
 
@@ -49,9 +47,9 @@ https://blog.csdn.net/gueter/article/details/4812822
 ## 术语
 ### 天线与流
 ![天线与流](../Resources/天线与流.png)  
-**M×N:n，M指发射天线的数目，N指接收天线的数目，n指空间流数目。  
+**M×N:n，M指发射天线的数目，N指接收天线的数目，n指空间流数目**。  
 空间流？应该是指无线信号从发射端传输到接收端形成的一个空间通道，流是通道的意思。  
-由此看来，流数应该是动态变化的，n应该是指最多支持的流数。** 有可能多条发送天线对应到一条流、或者多条接收天线对应到一条流？因此流数总是小于等于天线数（n小于等于M、N的最小值）。  
+由此看来，流数应该是动态变化的，n应该是指最多支持的流数。** 有可能多条发送天线对应到一条流、或者多条接收天线对应到一条流？因此流数总是小于等于天线数（n小于等于M、N的最小值）**。  
 在不同时刻流是不一样的，例如时刻t1空间存在一个从天线A1 -> B1的传输通道--记为流Stream1，同一时刻t1存在从天线A2 -> B3的传输通道--记为流Stream2，…；时刻t2空间存在一个从天线A1和天线A2 -> B4的传输通道--记为流Stream5，…  
 Explanation of 2×2:2, 3×3:3 -- Lets take one of these apart to understand what each number represents. For instance 2x2:2, the first 2 represents TX (Sending Antenna), the second 2 represents Rx (Receiving Antenna), and the last 2 represents spatial streams in this means that it’s capable of handling two spatial streams.
 
