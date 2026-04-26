@@ -4,9 +4,15 @@ ctrl + p    : Go to File
 ctrl+k->t   : 切换主题theme  
 ctrl+shift+v    :  markdown预览  
 
-ctrl+f     : 查找，在当前文件查找  
-ctrl + shift + f  : 查找，在多个文件查找。按f4跳转到下一个索引、shift+f4跳到上一个索引。  
-ctrl+h    : 替换   
+搜索函数和变量：  
+ctrl+shift+f ：全局搜索，在整个工作区中搜索文本，包括函数和变量名。按f4跳转到下一个索引、shift+f4跳到上一个索引。按f4跳转到下一个索引、shift+f4跳到上一个索引。  
+ctrl+f ：在当前文件中搜索。按f3跳到下一个搜索结果。  
+ctrl+t ：符号搜索，在整个工作区中搜索符号(函数、变量、类等)。  
+ctrl+shift+o ：文件内符号导航，列出当前文件中的所有符号并快速导航。  
+f12 ：转到定义  
+shift+f12 ：查找所有引用  
+
+ctrl+h        : 替换  
 
 ctrl+鼠标左键 : Go to Defination  
 f12     : Go to Defination   
