@@ -134,6 +134,15 @@ git ls-files //查看已追踪文件
 ### reflog  
 git reflog  
 git reflog -n 10  
+git reflog \--date=iso  
+git reflog \--date=iso \| grep "2026"  # 按时间范围筛选   
+git reflog \--grep="checkout"          # 查找所有切换分支记录  
+
+恢复误删分支
+即使分支已被 git branch -D 删除，只要reflog未过期：  
+git reflog show refs/heads/feature/login      # 查看被删分支的 reflog  
+git branch feature/login <commit-hash>        # 重建分支  
+
 git reflog show \--all  
 git reflog show \<branch\>  
 git reflog expire \--expire=now \--all  

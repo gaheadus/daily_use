@@ -332,6 +332,24 @@ $ find . -name "\\*.c" //将目前目录及其子目录下所有延伸档名是c
 $ find . -type f //将目前目录其其下子目录中所有一般文件列出  
 $ find . -ctime -20 //将目前目录及其子目录下所有最近20 分钟内更新过的文件列出  
 
+find /path/to/search -name filename //在指定的路径 /path/to/search 中查找名为 filename 的文件或目录。
+find /path/to/search -not -path /exclude/directory //排除指定的目录 /exclude/directory
+find /path/to/search -not -path /exclude/directory -name "*.txt" //-not -path 放在其他搜索条件之前，以确保正确排除指定路径
+find /path/to/search -name "*.txt" -prune -o -name "*.cpp" -print //注意有-prune选项时必须加-print才能显示正确的结果
+
+$ find -name connection.c //在当前目录下查找名为connection.c的文件。省略路径默认表示当前所在路径。
+$ find -iname conNecTIon.c //忽略大小写
+$ find /mnt/hgfs -name connection.c //指定查找的目录
+$ find . -name "*config*"  //使用通配符，必须在搜索字符串外加双引号
+$ find . -name ".config"    //使用通配符，必须在搜索字符串外加双引号
+$ find /mnt/hgfs -name connection.c -exec ls -l {} +
+$ find /mnt/hgfs -name connection.c -exec ls -l {} \;
+$ find /mnt/hgfs -name connection.c | xargs ls -l
+$ find . -name "*.conf" -ls  //类似 ls -l 显示详细信息
+$ find . -name "*.tmp" -delete  //直接删除找到的文件	
+$ find . -name "*.log" -exec rm {} \;  //对结果执行Shell命令，{}代表找到的文件名，\;代表命令结束
+
+
 查找文件和目录：find path -name 'key_word'  
 查找文件：find path -name 'key_word' -type f  
 查找目录：find path -name 'key_word' -type d  
