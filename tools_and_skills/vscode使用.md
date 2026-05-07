@@ -28,9 +28,14 @@ ctrl + `    : Toggle Terminal
 
 
 
-# theme主题
+# 问题解决
+1、cursor 使用ctrl+t搜索函数定义，无法找到符号，如何解决？  
+按下 Ctrl+Shift+P 打开命令面板，输入并执行 Developer: Reload Window 重新加载窗口，让语言服务器重新启动。
 
-## 接近source insight 4.0的主题
+
+
+# theme主题
+### 接近source insight 4.0的主题  
 此配置以VSCode浅色主题为基础，模拟Source Insight经典样式。可以根据实际观察的Source Insight界面颜色进行微调。  
 更新：自定义配色配置成和最新的主题"VS Code Light"一样  
 ```
