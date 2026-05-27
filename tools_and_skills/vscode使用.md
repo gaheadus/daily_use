@@ -8,7 +8,8 @@ ctrl+shift+v    :  markdown预览
 ctrl+shift+f ：全局搜索，在整个工作区中搜索文本，包括函数和变量名。按f4跳转到下一个索引、shift+f4跳到上一个索引。按f4跳转到下一个索引、shift+f4跳到上一个索引。  
 ctrl+f ：在当前文件中搜索。按f3跳到下一个搜索结果。  
 ctrl+t ：符号搜索，在整个工作区中搜索符号(函数、变量、类等)。  
-ctrl+shift+o ：文件内符号导航，列出当前文件中的所有符号并快速导航。  
+ctrl+shift+o ：符号搜索，在当前文件内搜索符号(函数、变量、类等)。  
+ctrl+f和ctrl+shift+o的区别：ctrl+shift+o搜索符号，ctrl+f搜索任意字符，包括符号。  
 f12 ：转到定义  
 shift+f12 ：查找所有引用  
 
