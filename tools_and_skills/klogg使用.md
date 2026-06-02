@@ -1,16 +1,30 @@
 # 用法
-•组合搜索：例如，查找包含 "ERROR" 但不包含 "Timeout" 的日志，搜索："ERROR" and not ("Timeout")。  
-支持括号分组：("error" or "warning") and "server1" --只能用小写and/or，大写AND/OR报错KLOGG WARNING: failed to read some lines before this one，看来把大写AND/OR当做被搜索字符串了。并且，不支持not，与宣传的有差别。   
-•多条件匹配：查找数据库连接错误或认证失败的日志："database.*error" or "authentication.*failed"  
-
-("924" | "438")".\*event"  ---- 搜索924或438后跟event的行，.\* will match any sequence of characters on a single line  
-写成("924" | "438")".\*event"正确，写成("924" or "438")".\*event"却报错，bug太多。  
----- 看来&|支持更好？  
+•组合搜索：例如，查找包含 "ERROR" 但不包含 "Timeout" 的日志，搜索：("ERROR") and not ("Timeout")。  
+支持括号分组：("error" or "warning") and ("server1")   
+•多条件匹配：查找数据库连接错误或认证失败的日志：("database.*error") or ("authentication.*failed")  
 
 
-and、or、not运算符，将![klogg_regular_expression.png](../Resources/klogg_regular_expression.png)选上，Enable regular expression logical combining，并且被搜索的字符串必须加上双引号，例如搜索同时包含ssc和read的行，输入"ssc" and "read"。  
+and/or/not/&/\|逻辑运算符，将![klogg_regular_expression.png](../Resources/klogg_regular_expression.png)选上，Enable regular expression logical combining，并且被搜索的字符串必须加上双引号和小括号，例如：("_pmu_print_active_modules") AND ("PMU Status")。  
 ![klogg_regular_expression2.png](../Resources/klogg_regular_expression2.png)  
- 如果不加双引号会报错Error in expression: Patterns must be enclosed in quotes。很好理解，如果不加双引号，怎么知道是要搜索and这个字符串本身还是将and理解为运算符？  
+例如：("_pmu_print_active_modules") AND NOT ("PMU Status")
+![klogg_regular_expression3.png](../Resources/klogg_regular_expression3.png)  
+如果不加双引号会报错Error in expression: Patterns must be enclosed in quotes。
+很好理解，如果不加双引号，怎么知道是要搜索and这个字符串本身还是将and理解为运算符？  
+
+# 总结
+("_pmu_print_active_modules") AND NOT ("BUSY")  
+结论1：**使用AND/OR/NOT/&/\|等逻辑运算符时，搜索字符加上双引号和小括号。**  
+
+("924" \|"438") and not ("event")、("924" \|"438") or not ("event")  
+结论2：**NOT不能单独使用，NOT前面必须有AND或OR。**  
+
+("924" or "438") and ("event") 、("924" or "438") and not ("event")  
+("924" or "438") or ("event")  、("924" or "438") or not ("event")  
+("924" or "438") & ("event")  
+("924" or "438") \| ("event")  
+--结论：如果小括号后面有and/or/&/|，那么小括号里面的and/or/&/\|能正常匹配。  
+       如果小括号后面没有and/or/&/\|，那么小括号里面只能用&/\|。  
+推荐：**小括号与后面其他被搜索字符之间使用逻辑运算符连接起来**，这样，不管小括号里面使用and/or还是&\|都可以正常工作。--回到了前面的结论：**逻辑运算符的前面的字符、后面的字符都加上双引号和小括号**。  
 
 
 
