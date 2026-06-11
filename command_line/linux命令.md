@@ -959,14 +959,16 @@ tar -jcvf FileName.tar.bz2 DirName
 tar -Jxvf FileName.tar.xz  
 tar -Jcvf FileName.tar.xz DirName  
 
+tar -czvf /work/backup/android/call.tar.gz -C /work/project/android/platform call  
+tar -xzvf /work/backup/android/call.tar.gz -C /work/project/android/platform  
 
 
 
 ### 文件的切割、合并
 Linux下文件切割、合并 的 三种方法：  
-$ split + cat  
-$ dd + cat  
-$ knife + cat  
+\$ split + cat  
+\$ dd + cat  
+\$ knife + cat  
 
 #### 1.split+cat,简单,推荐  
 Linux下文件的切割与合并(split+cat)  

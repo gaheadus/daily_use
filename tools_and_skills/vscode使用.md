@@ -10,14 +10,14 @@ ctrl+f ：在当前文件中搜索。按f3跳到下一个搜索结果。
 ctrl+t ：符号搜索，在整个工作区中搜索符号(函数、变量、类等)。  
 ctrl+shift+o ：符号搜索，在当前文件内搜索符号(函数、变量、类等)。  
 ctrl+f和ctrl+shift+o的区别：ctrl+shift+o搜索符号，ctrl+f搜索任意字符，包括符号。  
-f12 ：转到定义  
+ctrl+鼠标左键 : 跳转到定义  
+f12 ：跳转到定义  
 shift+f12 ：查找所有引用  
+alt+f12 ：预览定义（不跳转）  
+
 
 ctrl+h        : 替换  
 
-ctrl+鼠标左键 : Go to Defination  
-f12     : Go to Defination   
-shift+f12   : Go to References  
 ctrl+k -> f12 : 将编辑器分两栏，在右侧栏打开函数/宏/变量定义  
 alt+o    : 在同名的C文件和h头文件之间切换，如果存在同名C文件和h头文件的话  
 shift+alt+h  : Calls:Show Call Hierarchy，类似sourceinsight调用栈  
