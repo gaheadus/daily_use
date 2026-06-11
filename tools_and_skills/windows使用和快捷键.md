@@ -239,6 +239,7 @@ Octotree-2.4.6：https://chrome.google.com/webstore/detail/octotree-github-code-
 
 
 ## 6.专题
+
 #### 打开cmd命令窗口  
 方法一：传统方法  
 使用Windows 命令提示符（cmd）进入指定位置。  
@@ -261,6 +262,12 @@ Octotree-2.4.6：https://chrome.google.com/webstore/detail/octotree-github-code-
 扩展：事实上，不仅cmd可以用这样的方式打开，其他的windows自带程序和命令都可以用这种方式打开。例如在文件夹路径里输入powershell、回车，可以在当前路径下打开powershell，同样，在文件夹路径里输入calc、回车，可以打开windows自带计算器，……。  
 其他非windows自带程序，只要将其路径添加到windows环境变量，同样可以使用这样的方式打开。  
 甚至，可以在文件夹浏览器路径里输入网址，自动打开网页浏览器打开对应网页。  
+
+
+#### 以管理员身份执行命令/程序
+win+r，输cmd，右键选择“以管理员身份运行”，或输cmd后按ctrl+shift+enter。
+在普通CMD窗口中动态提权：`runas /user:administrator ipconfig`  
+
 
 
 #### windows如何获取某个文件正在被哪个进程调用？  
@@ -310,5 +317,5 @@ o禁用命令：netsh interface set interface "以太网" disable
 o启用命令：netsh interface set interface "以太网" enable  
 2.禁用/启用无线网络（假设你的无线网卡名称为“Wi-Fi”）：  
 o禁用命令：netsh interface set interface "Wi-Fi" disable  
-o启用命令：netsh interface set interface "Wi-Fi" enable4  
+o启用命令：netsh interface set interface "Wi-Fi" enable  
 

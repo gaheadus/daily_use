@@ -1,6 +1,6 @@
 # 用法
 •组合搜索：例如，查找包含 "ERROR" 但不包含 "Timeout" 的日志，搜索：("ERROR") and not ("Timeout")。  
-支持括号分组：("error" or "warning") and ("server1")   
+支持括号分组：("error" or "warning") and ("server1") 、 ( ("error") or ("warning") ) and ("server1")  
 •多条件匹配：查找数据库连接错误或认证失败的日志：("database.*error") or ("authentication.*failed")  
 
 
