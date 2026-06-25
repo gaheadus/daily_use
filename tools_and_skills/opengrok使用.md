@@ -1,3 +1,33 @@
+# opengrok生成索引
+Windows：  
+```
+java -Xmx8g ^
+  -Djava.util.logging.config.file="D:\software\opengrok-1.13.26\etc\logging.properties" ^
+  -jar "D:\software\opengrok-1.13.26\lib\opengrok.jar" ^
+  -c "ctags.exe" ^
+  -P -v ^
+  -s "D:\software\opengrok-1.13.26\source" ^
+  -d "D:\software\opengrok-1.13.26\data" ^
+  -i "*.o" -i "*.d" -i "opengrok*.log" -i "d:.git" -i "d:.svn*" -i "d:.vscode" -i "d:.cursor" ^ 
+  -W "D:\software\opengrok\etc\configuration.xml" ^
+  1>"D:\opengrok-1.13.26\log\sync_log.txt" 2>&1
+```
+
+linux:  
+```
+java \
+  -Xmx4g \
+  -Djava.util.logging.config.file="/home/dukang/software/opengrok/etc/logging.properties" \
+  -jar /home/dukang/software/opengrok/opengrok-1.14.0/lib/opengrok.jar \
+  -c /usr/bin/ctags \
+  -P -v \
+  -s /home/dukang/software/opengrok/source -d /home/dukang/software/opengrok/data \
+  -i '*.o' -i '*.d' -i 'opengrok*.log' -i 'd:.git' -i 'd:.svn' -i 'd:.vscode' -i 'd:.cursor' \
+  -W /home/dukang/software/opengrok/etc/configuration.xml
+```
+
+
+
 # opengrok搜索
 ## 搜索语法  
 - To find where setResourceMonitors is defined:  `defs:setResourceMonitors`  
