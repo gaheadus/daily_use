@@ -1,0 +1,35 @@
+[global]
+    workgroup = WORKGROUP
+    server string = WSL Samba
+    security = user
+    map to guest = Never
+    guest account = dukang
+
+    # 根治文件更新不及时（Samba 4.15 兼容版）
+    # Samba 4.22+ 新增，关掉 Win 端目录列表缓存
+    # smb3 directory leases = no
+    oplocks = no
+    level2 oplocks = no
+    strict locking = yes
+    fake oplocks = yes
+
+    strict sync = yes
+    sync always = yes
+    change notify = yes
+
+    # 杂项
+    getwd cache = no
+    kernel oplocks = no
+    unix extensions = yes
+    store dos attributes = no
+    create mask = 0644
+    directory mask = 0755
+    veto files = /.*/.DS_Store/
+
+[home]
+    path = /home/dukang
+    browseable = yes
+    read only = no
+    valid users = dukang
+    force user = dukang
+    inherit permissions = yes
