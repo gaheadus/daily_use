@@ -228,12 +228,19 @@ git remote prune \<name\>
 git remote update  
 
 ### push  
-git push  
-git push origin main  
+git push                       //默认推送当前分支  
+git push origin main           //推送本地main分支到远程同名分支  
+git push origin main:main      //等价  
+git push origin localB:remoteB  //推送指定分支到指定远程分支  
+git push origin HEAD:remoteB  //推送当前分支最新提交到指定远程分支  
 git push -u origin main  
 git push \--force  
-git push \--force-with-lease //安全地强制推送，比 \--force 更安全  
-git push origin \--delete dev  
+git push \--force-with-lease   //安全地强制推送，比\--force 更安全  
+git push origin \--delete dev  //删除远程分支  
+git push origin -d dev         //简写  
+git push origin :dev           //删除远程分支--旧的写法  
+本地缓存同步：删除远程分支后，其他团队成员或你本地的Git缓存可能仍会保留该分支的追踪引用。建议执行以下命令来清理本地已过时的远程分支信息：git fetch -p (-p或\--prune表示修剪掉所有在远程已不存在的引用)。  
+
 
 ### pull  
 git pull  
