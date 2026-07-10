@@ -22,22 +22,27 @@ git config \--global \--unset \<key\>
 通过 ssh -T 测试，输出 SSH Key 绑定的用户名：  
 \$ ssh -T git@gitee.com  
 
+
 ### init  
 git init  
 git init -b main  
+
 
 ### help  
 git help  
 git add \--help  
 git commit \--help  
 
+
 ### version  
 git version  
+
 
 # 2. 日常开发与提交 (Add, Commit, Status, Log)  
 ### status  
 git status  
 git status -s //简洁版状态输出  
+
 
 ### add  
 git add src/test.c  
@@ -48,6 +53,7 @@ git add -u //只添加已追踪文件的修改/删除
 git add -A //等同于 add . + add -u，全部提交暂存，同git add \--all  
 git add -f //强制添加忽略的文件  
 git add -p //交互式添加，用于精细控制提交内容  
+
 
 ### commit  
 git commit  
@@ -60,6 +66,7 @@ git commit -v //显示diff
 git commit -s //sign-off  
 git commit -S //GPG签名  
 git commit \--allow-empty -m "chore: trigger CI build"  
+
 
 ### rm  
 基础删除操作  
@@ -93,6 +100,7 @@ git restore test.c
 git restore \--source=HEAD~1 \-- test.c  
 git reset HEAD test.c  
 
+
 ### diff  
 git diff //查看工作区 vs 暂存区改动  
 git diff \--staged //查看暂存区 vs 本地仓库改动  
@@ -105,6 +113,7 @@ git diff \--name-only
 git diff \--stat  
 git diff \<branch1\>..\<branch2\>  
 git diff \--word-diff  
+
 
 ### log  
 git log  
@@ -125,11 +134,14 @@ git log \--since="2 weeks ago"
 git log \--until="2023-12-31"  
 git log \--follow //跟踪重命名  
 
+
 ### shortlog  
 git shortlog //汇总提交日志，按作者分组显示。  
 
+
 ### ls-files  
 git ls-files //查看已追踪文件  
+
 
 ### reflog  
 git reflog  
@@ -148,6 +160,7 @@ git reflog show \<branch\>
 git reflog expire \--expire=now \--all  
 git reflog delete \<ref\>  
 
+
 ### show  
 git show a1b2c3d //查看某次提交的详细信息和差异  
 git show a1b2c3d:test.c //查看某次提交中某个文件的内容  
@@ -158,10 +171,12 @@ git show \--name-only SHA
 git show \--name-status SHA  
 git show \--stat SHA  
 
+
 ### grep  
 git grep //在代码库中搜索指定的文本  
 git grep "function\_name"  
 git grep "TODO"  
+
 
 ### blame  
 git blame test.c //查看文件每一行的修改人和修改时间  
@@ -170,6 +185,7 @@ git blame -w //忽略空白
 git blame -C //检测移动  
 git blame -M  
 git blame \<commit\> \-- \<file\>  
+
 
 # 3. 分支管理 (Branch, Checkout, Switch, Worktree)  
 ### branch  
@@ -187,12 +203,14 @@ git branch \--set-upstream-to=origin/\<branch\>
 git branch \--unset-upstream  
 git branch \--contains \<commit\>  
 
+
 ### switch  
 git switch \<branch\>  
 git switch -c \<new-branch\>  //创建并切换  
 git switch -C \<new-branch\>  //强制  
 git switch \--detach \<commit\>  
 git switch - //切换到上一个分支  
+
 
 ### worktree  
 git worktree list  
@@ -214,6 +232,7 @@ git clone https://github.com/user/repo.git
 git clone -b dev https://github.com/user/repo.git  
 git clone \--depth 1 https://github.com/user/repo.git  
 
+
 ### remote  
 git remote -v  
 git remote add \<name\> \<url\>  
@@ -226,6 +245,7 @@ git remote set-url origin https://new-url.git
 git remote show \<name\>  
 git remote prune \<name\>  
 git remote update  
+
 
 ### push  
 git push                       //默认推送当前分支  
@@ -251,11 +271,13 @@ git pull \--ff-only
 git pull \--no-ff  
 git pull -v  
 
+
 ### fetch  
 git fetch  
 git fetch \--all  
 git fetch origin main  
 git fetch \--prune  
+
 
 # 5. 合并与变基 (Merge, Rebase, Cherry-pick)  
 ### merge  
@@ -269,6 +291,7 @@ git merge \--no-commit
 git merge \--no-ff dev //禁用快进合并，保留分支历史  
 git merge \--squash feature //将分支的所有提交压缩成一个提交合并进来  
 
+
 ### rebase  
 git rebase main //将当前分支变基到main分支之上  
 git rebase -i HEAD~3 //交互式变基，整理最近3次提交  
@@ -276,6 +299,7 @@ git rebase \--abort
 git rebase \--continue  
 git rebase \--skip //跳过当前引起冲突的提交  
 git rebase \--onto main dev feature //将feature分支从dev之上迁移到main之上  
+
 
 ### cherry-pick  
 git cherry-pick \<commit\>  
@@ -286,6 +310,7 @@ git cherry-pick \--continue
 git cherry-pick -n 5d3a1b2 // \--no-commit  
 git cherry-pick -x 5d3a1b2 //记录来源  
 
+
 # 6. 撤销与重置 (Reset, Revert, Clean, Stash)  
 ### reset  
 git reset HEAD test.c  
@@ -295,10 +320,12 @@ git reset \--hard HEAD^
 git reset \--hard SHA  
 git reset \--hard origin/main //将本地分支强行重置为和远程分支一模一样  
 
+
 ### revert  
 git revert SHA  
 git revert HEAD  
 git revert -n HEAD  
+
 
 ### restore  
 git restore 是 Git 2.23 版本引入的新命令，专门用于撤销修改**或**恢复文件，旨在替代 git checkout 的文件恢复功能，语义更加清晰。  
@@ -350,6 +377,7 @@ git restore src/deleted\_file.txt
 | \--patch | -p | 交互模式 | 选择性恢复部分代码块 |
 | \--ignore-unmerged | - | 忽略未合并 | 在冲突解决时使用 |
 
+
 ### checkout  
 git checkout \-- test.c  
 git checkout HEAD \-- test.c  
@@ -359,10 +387,10 @@ git checkout -b \<branch\> \<start-point\>
 git checkout -  
 注意：Git 2.23后推荐使用 switch 替代 checkout 进行分支切换。  
 
+
 ### stash  
 git stash  
 git stash push -m "temp work"  
-git stash save "wip: unfinished login" //旧命令  
 git stash list  
 git stash show stash@{0}  
 git stash show stash@{0} -p  
@@ -373,6 +401,19 @@ git stash apply stash@{0}
 git stash drop //删除最近一条储藏  
 git stash drop stash@{0}  
 git stash clear //清空所有储藏  
+git stash save "wip: unfinished login" //旧命令  
+
+部分暂存  
+git stash push -m "comment" \-- src/main/java/order/    //只暂存指定文件，其余改动留在工作区  
+git stash push -m "comment2" \-- application.yml       //暂存单个文件  
+git stash push -p -m "partial stash"                   //逐块确认，输入y暂存/n跳过/q退出  
+注意：-p按hunk粒度选择，同一个文件可以只暂存部分改动。但拆得太细恢复时容易漏，建议按功能模块分。  
+
+分支切换  
+git stash branch feature-new stash@{0}    //从stash创建新分支并切换过去  
+恢复stash的同时创建新分支，适合"临时改动越写越多，发现应该独立成新分支"的场景。  
+这个命令相当于：创建新分支 → 切过去 → apply stash → drop stash，一步到位。  
+
 
 ### clean  
 git clean -f //强制删除未跟踪的文件  
@@ -380,6 +421,7 @@ git clean -fd //强制删除未跟踪的文件和目录
 git clean -fx //删除忽略文件  
 git clean -i //interactive  
 git clean -n //查看将要被删除的未跟踪文件，空跑测试  
+
 
 # 7. 补丁与邮件工作流 (Format-patch, Am)  
 ### format-patch  
@@ -392,6 +434,7 @@ git format-patch -o ./patches origin..HEAD
 git format-patch -o dir  
 git format-patch \--cover-letter  
 
+
 ### am  
 git am 0001-fix-bug.patch  
 git am -3 0001-fix-bug.patch // three-way  
@@ -400,8 +443,11 @@ git am \--continue
 git am \--skip  
 git am \--reject  
 
+
 ### apply  
 git apply //应用补丁文件，通常由git diff生成  
+
+
 
 # 8. 标签管理 (Tag)  
 ### tag  
@@ -418,14 +464,18 @@ git push origin \--tags
 git push origin \--delete \<tagname\>  
 git tag -f \<tagname\>  //force  
 
+
 # 9. 其他实用命令 (Reflog, Show, Grep)  
 ### bitsect  
+
 
 ### gc  
 git gc  
 
+
 ### fsck  
 git fsck  
+
 
 # 10. 低级(管道)命令  
 cat-file  
@@ -444,6 +494,7 @@ unpack-objects
 update-index  
 update-ref  
 write-tree  
+
 
 # 11. 辅助工具  
 annotate  
