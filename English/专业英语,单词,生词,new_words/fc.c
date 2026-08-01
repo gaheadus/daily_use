@@ -84,12 +84,6 @@ snoop(){"英 [snuːp] 美 [snuːp]
             Someone's been snooping around my apartment. 有个人一直在我住所周围窥探。
             journalists snooping on politicians 跟踪政治人物的记者 "}
 
-regist(){" 注册;用户注册
-           1.Login or Regist a new ID to see the new developments. 登陆或注册后方可查看新产品。
-           2.This porject let all application systems in the control of the platform, and provides the user regist and verification service,
-             message service, public information service, enterprise struction information service and other services for application systems. 
-             该项目主要是将所有的应用系统纳入到一个公共的平台之上，并向应用系统提供用户注册和验证服务、消息服务、公共信息服务、企业结构信息服务等其它的服务。"}
-
 register(){"英 [ˈredʒɪstə(r)]   美 [ˈredʒɪstər]  
               v.登记;注册;记录;(正式地或公开地)发表意见，提出主张;显示(读数);流露出;注意到;把…挂号邮寄
               n.登记簿;登记表;注册簿;声区;音区;(适合特定场合使用的)语体风格，语域;调风口，节气门
@@ -106,6 +100,12 @@ register(){"英 [ˈredʒɪstə(r)]   美 [ˈredʒɪstər]
                 a parish register (= of births, marriages and deaths)  教区登记簿
                 to be on the electoral register / register of voters 成为登记在册的选民
                 注册公司 / 商标 The ship was registered in Panama. 这艘船是在巴拿马注册的。           "}
+
+regist(){" regist 常因少写末尾字母er而被视为拼写错误，在正式文档中应避免使用。
+           1.Login or Regist a new ID to see the new developments. 登陆或注册后方可查看新产品。
+           2.This porject let all application systems in the control of the platform, and provides the user regist and verification service,
+             message service, public information service, enterprise struction information service and other services for application systems. 
+             该项目主要是将所有的应用系统纳入到一个公共的平台之上，并向应用系统提供用户注册和验证服务、消息服务、公共信息服务、企业结构信息服务等其它的服务。‌‌‌" }
 
 registor(){"寄存器;暂存器
               1.Two stages of a ferroelectric shift registor 二级铁电移位寄存器
@@ -140,6 +140,7 @@ symmetric(){"英[sɪ'metrɪk] 美[sɪ'metrɪk]
     词语辨析：
             symetric常用指相对来说是“虚”的东西的对称性，比如对称加密算法等等
             symetrical则指相对来说是“实”的东西的对称性，比如说轴对称，左右对称等。"}
+
 asymmetric(){"英[ˌeɪsɪˈmetrɪk] 美[ˌeɪsɪˈmetrɪk]
                adj.不对称;不对等的
     解析：
