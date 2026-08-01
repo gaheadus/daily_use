@@ -203,6 +203,11 @@ git branch \--set-upstream-to=origin/\<branch\>
 git branch \--unset-upstream  
 git branch \--contains \<commit\>  
 
+### show-branch
+git show-branch
+git show-branch --sha1-name
+git show-branch --sha1-name --more=2
+
 
 ### switch  
 git switch \<branch\>  
@@ -513,3 +518,22 @@ stash
 submodule  
 svn  
 web\--browse  
+
+
+
+# 12. 问题与解决
+
+### windows下git报错：  
+使用git报错：  
+`$ git status`  
+警告：不能访问 `'.git/config': Permission denied`  
+致命错误：在读取配置文件时遇到未知错误  
+--cursor的解决方法  
+原因： .git/index 的 ACL 异常——所有者是 Administrators，当前用户 dukang 没有读写权限，还带有一条 NULL SID 拒绝项，所以打开索引失败。  
+处理： 用 git read-tree 重建了新的 index，并替换了损坏的那个文件。  
+建议在管理员 PowerShell 里再清一下 .git 上残留的异常继承权限，避免以后再写出同类文件：  
+`takeown /F "D:\ziliao\code\opensource\klogg\.git" /R /D Y`  
+`icacls "D:\ziliao\code\opensource\klogg\.git" /reset /T /C`  
+`icacls "D:\ziliao\code\opensource\klogg\.git" /grant "%USERNAME%:(OI)(CI)F" /T`  
+这类 ACL 损坏常见于以管理员身份跑过 Git、杀毒/同步软件改权限，或某些工具错误改写了安全描述符。  
+
