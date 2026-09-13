@@ -23,6 +23,29 @@ http://www.cygwin.com/ ，下载setup-x86_64.exe。
 
 
 
+# cygwin使用
+Cygwin执行过程log保存：  
+使用Script记录mintty执行过程的所有操作和log打印，例如：  
+```
+$ script mylog.txt
+Script started, file is mylog.txt
+$ ls -l
+total 4
+drwxr-xr-x 1 user None 0 Sep 12 10:00 test
+$ echo "hello"
+hello
+$ exit
+Script done, file is mylog.txt
+```
+追加模式：`script -a output.txt`  
+注意：script 会记录所有控制字符（如颜色），生成的纯文本文件可能包含乱码。如果你只需要纯文本，可以用cat查看时忽略控制字符，或使用col -b过滤：`cat output.txt | col -b > clean.txt`  
+推荐使用sed命令去除乱码：  
+`sed -E 's/\x1B\[[0-9;]*[a-zA-Z]//g; s/\x1B[][()#%][0-9;]*[a-zA-Z]?//g; s/\x1B[PX^_]//g' mylog.txt > clean.txt`  
+
+
+
+
+
 # fatty,多标签
 fatty + tmux 搭配使用，实现cygwin多标签、多窗口和分屏 。  
 
