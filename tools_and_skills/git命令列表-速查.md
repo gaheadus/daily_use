@@ -1,3 +1,17 @@
+# 高级用法
+## cursor软件中的一些git用法
+`git -C "D:\ziliao\code\opensource\klogg" diff HEAD~3 HEAD -- src/ui/src/crawlerwidget.cpp`  
+`git -C "D:\ziliao\code\opensource\klogg" log --all --oneline -- src/logdata/src/logfiltereddata.cpp | head -20`  
+`git -C "D:\ziliao\code\opensource\klogg" show 8bbd446b -- tests/ui/logfiltereddata_test.cpp`  
+`git -C "D:\ziliao\code\opensource\klogg" log --all --oneline -- src/logdata/src/logfiltereddataworker.cpp tests/ui/logfiltereddata_test.cpp`  
+`git -C "D:\ziliao\code\opensource\klogg" log --all --oneline --grep="tbb\|TBB" -- src/logdata | head -20`  
+`git -C "D:\ziliao\code\opensource\klogg" log --all --oneline --grep="tbb\|TBB" --no-walk`  
+`git -C "D:\ziliao\code\opensource\klogg" show dec87ae7 --stat`  
+
+
+
+
+
 # 1. 配置与初始化 (Config & Init)  
 ### config  
 git config \--list  
@@ -536,4 +550,5 @@ web\--browse
 `icacls "D:\ziliao\code\opensource\klogg\.git" /reset /T /C`  
 `icacls "D:\ziliao\code\opensource\klogg\.git" /grant "%USERNAME%:(OI)(CI)F" /T`  
 这类 ACL 损坏常见于以管理员身份跑过 Git、杀毒/同步软件改权限，或某些工具错误改写了安全描述符。  
+
 
