@@ -50,7 +50,7 @@ Following logic operations are supported:
 `ctrl+shift+f`  ： 高级搜索，过滤，在下方列出匹配的行。或者ctrl+s。   
 要区分搜索和过滤，`ctrl+shift+f`，既有搜索，也有过滤，下边显示搜索和过滤的结果，`ctrl+f`只搜索，搜索结果在正文中高亮显示。  
 
-`ctrl+l`	：跳到指定行  
+`ctrl+l`	：跳到指定行。容易记错，和sourceinsight/notepad++等软件不同，这些软件跳行快捷键为ctrl+g。  
 
 `m`	：标记当前行，将选中行加入Marks  
 `[` / `]`  ： 跳转到上一个/下一个标记行。和`m`搭配使用，在标记行之间跳转显示。  

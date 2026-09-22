@@ -552,3 +552,28 @@ web\--browse
 这类 ACL 损坏常见于以管理员身份跑过 Git、杀毒/同步软件改权限，或某些工具错误改写了安全描述符。  
 
 
+
+
+# 专题
+## git查找/搜索
+1.git log --grep，在提交注释中搜索  
+`git log --grep eslint`  //在提交注释中搜索eslint关键词  
+`git log --grep --oneline eslint`  //在提交注释中搜索eslint关键词, 简化输出信息  
+`git log --grep='eslint' --oneline`  
+`git log --grep eslint --author liangyuetian@outlook.com` //在提交注释中搜索eslint关键词,并且筛选提交人  
+
+2.git grep/git log -S/-G/-L，在提交内容中搜索  
+`git grep eslint`  //在提交文件中搜索关键词  
+`git grep -n eslint` //-n 显示行号  
+`git grep --count 'pay_box'` //--count只输出匹配的文件和匹配的个数  
+`git grep -p 'pay_box'`    //-p输出前后字符，用来判断这个关键字的类型  
+
+`git log -S eslint`         //查看关键字是什么时候引入的，可以使用-S选项来显示新增和删除该字符串的提交  
+`git log -S eslint --oneline`  //简化输出信息  
+`git log -S 'eslint' --pretty=format:'%h %ad %s' --date=short`  
+
+`git log -G 'MicVolume|Video' --all --pretty=format:'%h %ad %s' --date=short` //正则匹配（改名、附近一起改也算）  
+
+`git log -L :countDownDiff:date.js` //查看指定文件、指定函数的变更记录。注意冒号:紧挨着函数名countDownDiff，-L后有空格。  
+
+`git show fa83f9d3 -p | grep -n -C 8 'Video\|MicVolume'`  //看某个提交里具体删了什么  
