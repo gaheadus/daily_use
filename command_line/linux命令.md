@@ -21,7 +21,7 @@ http://www.51gjie.com/linux
 $ command [-options] parameter1 parameter2 ...  
 命令    选项    参数1    参数2  
 例：  
-$ ls -l test/test1  
+`ls -l test/test1`  
 解释：  
 1.选项前会带-号，例如-h；有时候会使用选项的完整全名，则选项前带有--符号，如--help；  
 2.parameter1 parameter2..为依附在选项后面的参数，或者是命令的参数；//分别简称为:选项参数，命令参数。  
@@ -38,17 +38,17 @@ $ find ./test -path "./test/test3" -prune -o -print
 ### 输入、输出，重定向    
 1.重定向输入输出  
 重定向符：>输出重定向，<输入重定向，|管道重定向，tee多路输出重定向。  
-$ ls > list.txt //重定向输出,
-**$ ls > list.txt 2>&1**  
-$ cat < list.txt //重定向输入,cat list.txt, 参考:《Linux程序设计(第4版)Neil Matthew,陈健译》-- 11.3.3 输入和输出重定向  
-$ cat file.txt | grep string  //管道重定向输入输出。grep命令的输入是被重定向的cat命令的输出。  
-$ ls | tee > list.txt  //多路重定向输出  
+`ls > list.txt`，重定向输出,
+**`$ ls > list.txt 2>&1`**  
+`cat < list.txt`，重定向输入,cat list.txt, 参考:《Linux程序设计(第4版)Neil Matthew,陈健译》-- 11.3.3 输入和输出重定向  
+`cat file.txt | grep string`，管道重定向输入输出。grep命令的输入是被重定向的cat命令的输出。  
+`ls | tee > list.txt`，多路重定向输出  
 管道重定向，将前一个命令的输出、重定向到后一个命令的输入，将前一个命令的输出当做后一个命令的输入。  
 tee,多路重定向输出，向标准输出设备输出结果，同时将此结果重定向输出到其他文件。  
 
 **为什么使用2>&1？**  
-$./test.sh > test.log 2>&1  
-$./test.sh > test.log 2>test.log  
+`./test.sh > test.log 2>&1`  
+`./test.sh > test.log 2>test.log`  
 同样是将错误输出到和1一样的test.log  
 那为什么我们要用2>&1呢？这是因为如果用command > file 2>file的写法，stdout和stderr都直接送到file中, file会被打开两次,这样stdout和stderr会互相覆盖,这样写相当使用了FD1和FD2两个同时去抢占file的管道，而command >file 2>&1这条命令就将stdout直接送向file, stderr 继承了FD1管道后,再被送往file,此时,file只被打开了一次,也只使用了一个管道FD1,它包括了stdout和stderr的内容。  
 从IO效率上,前一条命令的效率要比后面一条的命令效率要低；所以我们要使用2>&1。  
@@ -56,54 +56,54 @@ $./test.sh > test.log 2>test.log
 
 
 2.特殊形式指定输入输出  
-$ find . -type f -exec ls -l {} \\;  
+`find . -type f -exec ls -l {} \;`  
 注：{}花括号代表前面find查找出来的文件名。-- ls的输入由{}指定。  
-$ find . -type f -print | xargs ls -l  
+`find . -type f -print | xargs ls -l`  
 通常情况下，xargs从管道或者stdin中读取数据，但是它也能够从文件的输出中读取数据。  
 --xargs从管道中读取数据，并传递给ls命令作为输入。  
 
 
 ### 转义  
-$ cd指针\\(指针与数组、函数指针\\)  //特殊字符(、)要用\\进行转义  
+`cd指针\\(指针与数组、函数指针\\)`，特殊字符(、)要用\\进行转义  
 
-$ find test \\( -path test/test4 -o -path test/test3 \\) -prune -o -print  
+`find test \( -path test/test4 -o -path test/test3 \) -prune -o -print`  
 圆括号表示表达式的组合。\\表示引用，即指示 shell 不对后面的字符作特殊解释，而留给 find 命令去解释其意义。  
-$ find . -name \\* -type f -print | xargs grep "hostnames"  //在当前目录下的所有普通文件中搜索hostnames这个词  
+`find . -name \\* -type f -print | xargs grep "hostnames"`，在当前目录下的所有普通文件中搜索hostnames这个词  
 注意，在上面的例子中， \\用来取消find命令中的\\*在shell中的特殊含义。  
-$ find . -type f -exec ls -l {} \\;  
--exec command {} \\; -- 对find结果对应的文件执行该参数所给出的shell命令。注意{}和\\;之间有空格。  
+`find . -type f -exec ls -l {} \;`  
+-exec command {} \; -- 对find结果对应的文件执行该参数所给出的shell命令。注意{}和\\;之间有空格。  
 command命令以;为结束标志，所以这句命令后面的分号是不可缺少的，考虑到各个系统中分号会有不同的意义，所以前面加反斜杠。  
 参考find命令。  
 
 
 ### 技巧  
 连续执行两条命令  
-$ cd ~/bin && ls 或者  
-$ cd ~/bin ; ls  
+`cd ~/bin && ls` 或者  
+`cd ~/bin ; ls`  
 
 命令替换  
 命令替换与重定向有些类似,不同的是,命令替换将一个命令的输出作为另一个命令的参数,常用命令格式为:  
-$ cmd1 `cmd2`  
+``cmd1 `cmd2` ``  
 其中cmd12的输出作为cmd1的参数,注意这里的符号是反引号,被它括起来的内容将作为命令执行,执行的结果作为cmd1的参数。  
 例  
-$ grep test vi\*  
-$ grep test `ls vi*`  
+`grep test vi\*`  
+``grep test `ls vi*` ``  
 
 
 ## 常用Linux命令  
 
 ### ls  
-ls, 列出文件与目录, list  
+`ls`, 列出文件与目录, list  
 常用功能，技巧  
-$ ls  
-$ ls [-aAdfFhilnrRSt] 文件名或目录名称..  
-$ ls -l | grep ^d  //只列子目录  
-$ ls -F | grep /$   //只列子目录  
-$ ls -l | grep ^-   //只普通文件  
-$ ls -l | grep ^l   //只连接文件  
-$ ls -l | wc -l //统计当前目录下的文件数  
-$ ls -l | grep ^d | wc -l //统计目录个数  
-$ find -name Android.mk | wc -l //查找当前目录下Android.mk文件的个数  
+`ls`  
+`ls [-aAdfFhilnrRSt]`，文件名或目录名称..  
+`ls -l | grep ^d`，只列子目录  
+`ls -F | grep /$`，只列子目录  
+`ls -l | grep ^-`，只普通文件  
+`ls -l | grep ^l`，只连接文件  
+`ls -l | wc -l`，统计当前目录下的文件数  
+`ls -l | grep ^d | wc -l`，统计目录个数  
+`find -name Android.mk | wc -l`，查找当前目录下Android.mk文件的个数  
 
 ![ls -l 命令详解](https://github.com/gaheadus/daily_use/blob/master/Resources/ls%20-l%20%E5%91%BD%E4%BB%A4%E8%AF%A6%E8%A7%A3.jpg)  
 
@@ -162,7 +162,7 @@ pwd,查看当前工作目录
 
 ### tree
 **$ tree -d -L 2**  
-**$ tree -A -d -L 2 //如果显示乱码，则加-A参数**  
+**`tree -A -d -L 2`**，如果显示乱码，则加-A参数**  
 
 1)tree  -a 显示所有文件和目录（不加-a,则隐藏目录不显示)  
 (2)tree -d 显示目录名称而非内容  
@@ -245,7 +245,7 @@ https://www.runoob.com/linux/linux-command-manual.html
 which,可执行文件查找  
 $ which grep  
 which命令的作用是，在PATH变量指定的路径中，搜索某个系统命令的位置，并且返回第一个搜索结果。可以使用which命令查看某个系统命令是否存在，以及执行的是哪一个位置的命令。不同的 PATH 配置所找到的命令会不一样。  
-which [-a] command  //-a,将所有由PATH目录中可以找到的指令均列出，而不止第一个被找到的指令名称。  
+`which [-a] command`，-a,将所有由PATH目录中可以找到的指令均列出，而不止第一个被找到的指令名称。  
 实例：查找文件、显示命令路径  
 [root@localhost \~]# which pwd  
 /bin/pwd  
@@ -257,10 +257,10 @@ which [-a] command  //-a,将所有由PATH目录中可以找到的指令均列出
 
 #### whereis
 whereis,可执行文件查找, man page查找  
-$ whereis ifconfig  
+`whereis ifconfig`  
 ifconfig: /sbin/ifconfig /usr/share/man/man8/ifconfig.8.gz  
 
-$ whereis [-bmsu] 文件或目录名  
+`whereis [-bmsu]`，文件或目录名  
 选项与参数：  
 -l :可以列出whereis 会去查询的几个主要目录  
 -b :只找 binary格式的文件  
@@ -284,12 +284,12 @@ passwd: /usr/share/man/man1/passwd.1.gz /usr/share/man/man5/passwd.5.gz
 
 #### locate
 locate,数据库查找    
-$ locate pwd  #查找和pwd相关的所有文件
-$ locate /etc/sh #搜索etc目录下所有以sh开头的文件。  
-$ locate \~/m #搜索用户主目录下，所有以m开头的文件。  
-$ locate -i \~/m #搜索用户主目录下，所有以m开头的文件，并且忽略大小写。  
+`locate pwd`，查找和pwd相关的所有文件
+`locate /etc/sh`，搜索etc目录下所有以sh开头的文件。  
+`locate \~/m`，搜索用户主目录下，所有以m开头的文件。  
+`locate -i \~/m`，搜索用户主目录下，所有以m开头的文件，并且忽略大小写。  
 
-$ locate [-iclSr] keyword  
+`locate [-iclSr] keyword`  
 -i ：忽略大小写的差异；  
 -c ：不输出档名，仅计算找到的文件数量  
 -l ：仅输出几行的意思，例如输出五行则是 -l 5  
@@ -314,56 +314,60 @@ locate命令比find快得多，原因在于它不搜索具体目录，而是搜�
 
 
 #### find
-[find基础](#find基础) &emsp; [find命令之prune](#find命令之prune) &emsp; [find命令之exec/ok](#find命令之execok) &emsp; [find命令之xargs](#find命令之xargs)  
-[find的结果](#find的结果) &emsp; [find命令之-name、-path、-prune](#find命令之-name-path-prune)  
+
+
+##### find例子
+`find -name connection.c`  
+`find -name .git -prune -o -name recent -prune -o -name .cache -prune -o -name '*.tmp' -prune -o -type f -exec ls -l {} +`  
+`find -name .git -prune -o -name recent -prune -o -name .cache -prune -o -name '*.tmp' -prune -o -type f -print0 | xargs -0 ls -l`  
 
 
 ##### find基础
 find,查找文件  
-$ find -name connection.c //在当前目录下查找名为connection.c的文件  
-$ find . -name “connect\\*”  //可以使用通配符  
-$ find /mnt/hgfs -name connection.c -exec ls -l {} \\;  
-$ find /mnt/hgfs -name connection.c | xargs ls -l  
-$ find . -name "\\*.c" //将目前目录及其子目录下所有延伸档名是c 的文件列出来  
-$ find . -type f //将目前目录其其下子目录中所有一般文件列出  
-$ find . -ctime -20 //将目前目录及其子目录下所有最近20 分钟内更新过的文件列出  
+`find -name connection.c` ，在当前目录下查找名为connection.c的文件  
+`find . -name “connect\\*”`，可以使用通配符  
+find /mnt/hgfs -name connection.c -exec ls -l {} \\;  
+find /mnt/hgfs -name connection.c | xargs ls -l  
+`find . -name "\\*.c"`，将目前目录及其子目录下所有延伸档名是c 的文件列出来  
+`find . -type f`，将目前目录其其下子目录中所有一般文件列出  
+`find . -ctime -20`，将目前目录及其子目录下所有最近20 分钟内更新过的文件列出  
 
-find /path/to/search -name filename //在指定的路径 /path/to/search 中查找名为 filename 的文件或目录。
-find /path/to/search -not -path /exclude/directory //排除指定的目录 /exclude/directory
-find /path/to/search -not -path /exclude/directory -name "*.txt" //-not -path 放在其他搜索条件之前，以确保正确排除指定路径
-find /path/to/search -name "*.txt" -prune -o -name "*.cpp" -print //注意有-prune选项时必须加-print才能显示正确的结果
+`find /path/to/search -name filename`，在指定的路径 /path/to/search 中查找名为 filename 的文件或目录。
+`find /path/to/search -not -path /exclude/directory`，排除指定的目录 /exclude/directory
+`find /path/to/search -not -path /exclude/directory -name "*.txt"`，-not -path 放在其他搜索条件之前，以确保正确排除指定路径
+`find /path/to/search -name "*.txt" -prune -o -name "*.cpp" -print`，注意有-prune选项时必须加-print才能显示正确的结果
 
-$ find -name connection.c //在当前目录下查找名为connection.c的文件。省略路径默认表示当前所在路径。
-$ find -iname conNecTIon.c //忽略大小写
-$ find /mnt/hgfs -name connection.c //指定查找的目录
-$ find . -name "*config*"  //使用通配符，必须在搜索字符串外加双引号
-$ find . -name ".config"    //使用通配符，必须在搜索字符串外加双引号
-$ find /mnt/hgfs -name connection.c -exec ls -l {} +
-$ find /mnt/hgfs -name connection.c -exec ls -l {} \;
-$ find /mnt/hgfs -name connection.c | xargs ls -l
-$ find . -name "*.conf" -ls  //类似 ls -l 显示详细信息
-$ find . -name "*.tmp" -delete  //直接删除找到的文件	
-$ find . -name "*.log" -exec rm {} \;  //对结果执行Shell命令，{}代表找到的文件名，\;代表命令结束
+`find -name connection.c`，在当前目录下查找名为connection.c的文件。省略路径默认表示当前所在路径。
+`find -iname conNecTIon.c`，忽略大小写
+`find /mnt/hgfs -name connection.c`，指定查找的目录
+`find . -name "*config*"`，使用通配符，必须在搜索字符串外加双引号
+`find . -name ".config"`，使用通配符，必须在搜索字符串外加双引号
+`find /mnt/hgfs -name connection.c -exec ls -l {} +`  
+`find /mnt/hgfs -name connection.c -exec ls -l {} \;`  
+`find /mnt/hgfs -name connection.c | xargs ls -l`  
+`find . -name "*.conf" -ls`，类似 ls -l 显示详细信息
+`find . -name "*.tmp" -delete`，直接删除找到的文件	
+`find . -name "*.log" -exec rm {} \;`，对结果执行Shell命令，{}代表找到的文件名，\;代表命令结束
 
 
-查找文件和目录：find path -name 'key_word'  
-查找文件：find path -name 'key_word' -type f  
-查找目录：find path -name 'key_word' -type d  
+查找文件和目录：`find path -name 'key_word'`  
+查找文件：`find path -name 'key_word' -type f`  
+查找目录：`find path -name 'key_word' -type d`  
 
-#-print 将查找到的文件输出到标准输出(默认就有该选项，不需要写)  
-#-exec command {} \\;  将查到的文件执行command操作,注意{}和\\;之间有空格,{}内部没有空格。  
-#-ok 和-exec相同，只不过在操作前要询用户  
+`-print` 将查找到的文件输出到标准输出(默认就有该选项，不需要写)  
+`-exec command {} \;`，将查到的文件执行command操作,注意{}和\\;之间有空格,{}内部没有空格。  
+`-ok` 和`-exec`相同，只不过在操作前要询用户  
 格式中的[expression]是一个表达式。最基本的表达式分为三类：设置项(option)、测试项(test)、动作项(action)，这三类又可以通过逻辑运算符(operator)组合在一起形成更大更复杂的表达式。设置项(如-depth,-maxdepth等)针对这次查找任务，而不是仅仅针对某一个文件，设置项总是返回true；测试项(test)则不同，它针对具体的一个文件进行匹配测试，如-name,-num,-user等，返回true或者false；动作项(action)则是对某一个文件进行某种动作(最常见的如-print)，返回true或者false。正是[expression]部分的丰富，才使得find如此强大。此部分较复杂，后面慢慢说明。  
 例如：  
-find /packages/apps -name 'contacts' -type d//查找目录(名)  
-find -name 'contacts' -type d //默认当前目录下查找，可省略路径名  
-find . -name 1.txt //在当前目录及其子目录下查找文件“1.txt”；(.表示当前目录,可以省略不写，如：find -name 1.txt。)  
-find /tmp -name 1.txt //在“/tmp”目录及其子目录下查找文件“1.txt”。  
-$find . -name CallLog.java -print  #默认就有.和-print,不需要写，直接写成$find -name CallLog.java就可以。  
+`find /packages/apps -name 'contacts' -type d`，查找目录(名)  
+`find -name 'contacts' -type d`，默认当前目录下查找，可省略路径名  
+`find . -name 1.txt`，在当前目录及其子目录下查找文件“1.txt”；(.表示当前目录,可以省略不写，如`find -name 1.txt`)  
+`find /tmp -name 1.txt`，在“/tmp”目录及其子目录下查找文件“1.txt”。  
+`find . -name CallLog.java -print`，默认就有.和`-print`,不需要写，直接写成`find -name CallLog.java`就可以。  
 #默认就是在当前目录、默认打印到标准输出。  
 
-**$ find [path] [options] [tests] [actions]**  
-**$ find [path] [options] expression** //也有资料表示成这种形式  
+**`$ find [path] [options] [tests] [actions]`**  
+**`find [path] [options] expression`**，也有资料表示成这种形式  
 参考：linux程序设计(第4版),Neil Matthew,陈建, 第2章shell程序设计--2.6.5 命令--17 find、grep  
 选项和参数：
 path：所要搜索的目录及其所有子目录。省略的时候默认为当前目录。  
@@ -421,20 +425,20 @@ expression: 可使用的选项有二三十个之多,在此只介绍最常用的�
 
 
 ##### find的结果  
-$ find [path] [options] [tests] [actions]  
-$ find [path] [options] expression  //也有资料表示成这种形式  
+`$ find [path] [options] [tests] [actions]`  
+`find [path] [options] expression`，也有资料表示成这种形式  
 如果path是绝对路径，那么find的结果也是绝对路径，如果path是相对路径，那么find的结果也是相对路径。  
-sgk@ubuntu:/mnt/hgfs/github/daily_use$ find . -name *.md //结果是相对路径  
+`find . -name *.md`，结果是相对路径  
 ./article/我生命中的三个故事.乔布斯.md  
 ./CC++/ASCII码表.md  
 ./CC++/C语言数据类型&类型转换.md  
 ./CC++/C语言运算符优先级.md  
-sgk@ubuntu:/mnt/hgfs/github/daily_use$ find -name *.md //省略path，表示从当前目录开始查找，也是相对路径  
+`find -name *.md`，省略path，表示从当前目录开始查找，也是相对路径  
 ./article/我生命中的三个故事.乔布斯.md  
 ./CC++/ASCII码表.md  
 ./CC++/C语言数据类型&类型转换.md  
 ./CC++/C语言运算符优先级.md  
-sgk@ubuntu:/mnt/hgfs/github/daily_use$ find /mnt/hgfs/github/daily_use -name *.md //结果是绝对路径  
+`find /mnt/hgfs/github/daily_use -name *.md`，结果是绝对路径  
 /mnt/hgfs/github/daily_use/article/我生命中的三个故事.乔布斯.md  
 /mnt/hgfs/github/daily_use/CC++/ASCII码表.md  
 /mnt/hgfs/github/daily_use/CC++/C语言数据类型&类型转换.md  
@@ -490,8 +494,8 @@ else
 [root@localhost soft]# find test \\( -path test/test4 -o -path test/test3 \\) -prune -o -name "\\*.log" -print  
 
 $ find -name Contacts -prune -o -name Mms -prune -o -name PhoneApp.java  
-./Contacts //为什么会打印？  
-./Mms       //为什么会打印？  
+`./Contacts`，为什么会打印？  
+`./Mms`，为什么会打印？  
 ./Phone/src/com/android/phone/PhoneApp.java  
 $ find -name Contacts -prune -o -name Mms -prune -o -name PhoneApp.java -print  
 ./Phone/src/com/android/phone/PhoneApp.java     → 加-print才能显示正确的结果  
@@ -501,7 +505,7 @@ $ find -name Contacts -prune -o -name Mms -prune -o -name PhoneApp.java -print
 
 ##### find命令之exec/ok
 实例1：ls -l命令放在find命令的-exec选项中  
-[root@localhost test]# find . -type f -exec ls -l {} \\;  
+`[root@localhost test]# find . -type f -exec ls -l {} \;`  
 -rw-r--r-- 1 root root 127 10-28 16:51 ./log2014.log  
 -rw-r--r-- 1 root root 0 10-28 14:47 ./test4/log3-2.log  
 -rw-r--r-- 1 root root 0 10-28 14:47 ./test4/log3-3.log  
@@ -511,7 +515,7 @@ $ find -name Contacts -prune -o -name Mms -prune -o -name PhoneApp.java -print
 
 find是我们很常用的一个Linux命令，但是我们一般查找出来的并不仅仅是看看而已，还会有进一步的操作，这个时候exec的作用就显现出来了。  
 exec解释：  
--exec command {} \\; -- 对find结果对应的文件执行该参数所给出的shell命令。注意{}和\\;之间有空格,{}内部没有空格。command命令以;为结束标志，所以这句命令后面的分号是不可缺少的，考虑到各个系统中分号会有不同的意义，所以前面加反斜杠。  
+`-exec command {} \;` -- 对find结果对应的文件执行该参数所给出的shell命令。注意{}和\\;之间有空格,{}内部没有空格。command命令以;为结束标志，所以这句命令后面的分号是不可缺少的，考虑到各个系统中分号会有不同的意义，所以前面加反斜杠。  
 **{}   花括号代表前面find查找出来的文件名。**  
 使用find时，只要把想要的操作写在一个文件里，就可以用exec来配合find查找，很方便的。在有些操作系统中只允许-exec选项执行诸如ls或ls -l这样的命令。大多数用户使用这一选项是为了查找旧文件并删除它们。建议在真正执行rm命令删除文件之前，最好先用ls命令看一下，确认它们是所要删除的文件。 exec选项后面跟随着所要执行的命令或脚本，然后是一对儿{}，一个空格和一个\\，最后是一个分号。为了使用exec选项，必须要同时使用print选项。如果验证一下find命令，会发现该命令只输出从当前路径起的相对路径及文件名。  
 
@@ -525,7 +529,7 @@ exec解释：
 说明：在上面的例子中， find命令在当前目录中查找所有文件名以.log结尾、更改时间在5日以上的文件，并删除它们，只不过在删除之前先给出提示。 按y键删除文件，按n键不删除。  
 
 实例4：-exec中使用grep命令  
-[root@localhost test]# find /etc -name "passwd\\*" -exec grep "root" {} \\;  
+`[root@localhost test]# find /etc -name "passwd\\*" -exec grep "root" {} \;`  
 root:x :0:0:root:/root:/bin/bash  
 root:x :0:0:root:/root:/bin/bash  
 说明：任何形式的命令都可以在-exec选项中使用。  在上面的例子中我们使用grep命令。find命令首先匹配所有文件名为“ passwd\\*”的文件，例如passwd、passwd.old、passwd.bak，然后执行grep命令看看在这些文件中是否存在一个root用户。  
@@ -536,7 +540,7 @@ root:x :0:0:root:/root:/bin/bash
 实例6：用exec选项执行cp命令  
 [root@localhost test]# find . -name "\\*.log" -exec cp {} test3 \\;  
 
-$find ./.thumbnails/\\* -type f -atime +7 -exec rm {} \\; //用户家目录下的.thumnails目录下是一些缓存信息，删除7天以上的缓存  
+`find ./.thumbnails/\\* -type f -atime +7 -exec rm {} \\;`，用户家目录下的.thumnails目录下是一些缓存信息，删除7天以上的缓存  
 
 
 ##### find命令之xargs  
@@ -602,23 +606,23 @@ $ find . -path './kernel' -prune -o -name '.gitignore' -type f | xargs rm -rfv
 #### xargs  
 xargs是一条Unix和类Unix操作系统的常用命令。它的作用是将参数列表转换成小块分段传递给其他命令，以避免参数列表过长的问题。  
 例如，下面的命令：  
-rm `find /path -type f`  
+``rm `find /path -type f` ``   
 如果path目录下文件过多就会因为“参数列表过长”而报错无法执行。但改用xargs以后，问题即获解决。  
-find /path -type f -print0 | xargs -0 rm  
+`find /path -type f -print0 | xargs -0 rm`  
 本例中xargs将find产生的长串文件列表拆散成多个子串，然后对每个子串调用rm。-print0表示输出以null分隔(-print使用换行)；-0表示输入以null分隔。这样要比如下使用find命令效率高的多。  
-find /path -type f -exec rm '{}' \\;  
+`find /path -type f -exec rm '{}' \;`  
 上面这条命令会对每个文件调用"rm"命令。当然使用新版的"find"也可以得到和"xargs"命令同样的效果：  
-find /path -type f -exec rm '{}' +  
+`find /path -type f -exec rm '{}' +`  
 xargs的作用一般等同于大多数Unix shell中的反引号，但更加灵活易用，并可以正确处理输入中有空格等特殊字符的情况。对于经常产生大量输出的命令如find、locate和grep来说非常有用。  
 示例  
-find . -name "\\*.foo" | xargs grep bar  
+`find . -name "\\*.foo" | xargs grep bar`  
 该命令大体等价于  
-grep bar `find . -name "\\*.foo"`  
-find . -name "\\*.foo" -print0 | xargs -0 grep bar  
+``grep bar `find . -name "\\*.foo"` ``   
+`find . -name "\\*.foo" -print0 | xargs -0 grep bar`  
 使用了GNU特殊规定的空字符。  
-find . -name "\\*.foo" -print0 | xargs -0 -t -r vi  
+`find . -name "\\*.foo" -print0 | xargs -0 -t -r vi`  
 与上面的基本相同但启动vi进行编辑。-t参数会提前打印错误信息。-r参数是一个GNU扩展，表明在无输入情况下则不构造命令执行。  
-find . -name "\\*.foo" -print0 | xargs -0 -i mv {} /tmp/trash  
+`find . -name "\\*.foo" -print0 | xargs -0 -i mv {} /tmp/trash`  
 使用-i参数将{}中内容替换为列表中的内容。  
 
 
@@ -635,7 +639,7 @@ grep过滤.o文件怎么写？grep "\.o"？grep "\*.o"？
 
 
 grep,搜索文件中匹配符  
-[root@localhost test]# grep 'linux' test.txt     /  grep -n 'linux' test.txt //显示对应的行号  
+`grep 'linux' test.txt` / `grep -n 'linux' test.txt`，显示对应的行号  
 [root@localhost test]# cat test.txt | grep 'linux'  /  cat test.txt | grep -n 'linux'  
 
 grep [options] pattern filenames  
@@ -669,7 +673,7 @@ grep: General Regular Expression Parser.
 -o 只输出文件中匹配到的部分。  
 
 grep可单独使用，也可以配合其他命令、与管道符’|’一起使用，过滤。  
-例如：$ ls | grep ‘Android’ //过滤，只显示包含Android字符的结果，单引号也可以不要，$ ls | grep Android，$ ls | grep ‘Android’都可以，但是，如果要过滤的字符串包含空格，那么必须用单引号括起来，例：$ ls | grep ‘du kang’  
+例如：`ls | grep ‘Android’`，过滤，只显示包含Android字符的结果，单引号也可以不要，`ls | grep Android，$ ls | grep  ‘Android’`都可以，但是，如果要过滤的字符串包含空格，那么必须用单引号括起来，例`ls | grep ‘du kang’`  
 
 grep的工作方式是这样的，它在一个或多个文件中搜索字符串模板。如果模板包括空格，则必须被引用。模板(pattern)后的所有字符串被看作文件名。搜索的结果被送到标准输出，不影响原文件内容。  
 grep可用于shell脚本，因为grep通过返回一个状态值来说明搜索的状态，如果模板搜索成功，则返回0，如果搜索不成功，则返回1，如果搜索的文件不存在，则返回2。我们利用这些返回值就可进行一些自动化的文本处理工作。  
@@ -719,14 +723,14 @@ POSIX字符类
 [:xdigit:] 十六进制数字(0-9，a-f，A-F)  
 
 例子  
-(1)ls -l | grep '^a'  //通过管道过滤ls -l输出的内容，只显示以a开头的行。  
-(2)grep 'test' d\\*   //显示所有以d开头的文件中包含test的行。  
-(3)grep 'test' aa bb cc  //显示在aa，bb，cc文件中匹配test的行。  
+(1) `ls -l | grep '^a'`，通过管道过滤ls -l输出的内容，只显示以a开头的行。  
+(2) `grep 'test' d\\*`，显示所有以d开头的文件中包含test的行。  
+(3) `grep 'test' aa bb cc`，显示在aa，bb，cc文件中匹配test的行。  
 (4)grep magic /usr/src　　#显示/usr/src目录下的文件(不含子目录)包含magic的行  
 (5)grep -r magic /usr/src　　#显示/usr/src目录下的文件(包含子目录)包含magic  
 (6)grep -w pattern files ：只匹配整个单词，而不是字符串的一部分(如匹配’magic’，而不是’magical’)，  
-(7)grep '[a-z]\\{5\\}' aa  //显示所有包含每个字符串至少有5个连续小写字符的字符串的行。  
-(8)grep 'w\\(es\\)t.\\*\\1' aa  //如果west被匹配，则es就被存储到内存中，并标记为1，然后搜索任意个字符(.\\*)，这些字符后面紧跟着另外一个es(\\1)，找到就显示该行。如果用egrep或grep -E，就不用"\\"号进行转义，直接写成'w(es)t.\\*\\1'就可以了。  
+(7) `grep '[a-z]\\{5\\}' aa`，显示所有包含每个字符串至少有5个连续小写字符的字符串的行。  
+(8) `grep 'w\\(es\\)t.\\*\\1' aa`，如果west被匹配，则es就被存储到内存中，并标记为1，然后搜索任意个字符(.\\*)，这些字符后面紧跟着另外一个es(\\1)，找到就显示该行。如果用egrep或grep -E，就不用"\\"号进行转义，直接写成'w(es)t.\\*\\1'就可以了。  
 http://bbs.chinaunix.net/thread-1687220-1-1.html  ，http://blog.csdn.net/hudashi/article/details/7066214  
 
 
@@ -890,13 +894,13 @@ grep '2024-03-15 1[0-2]' app.log \
 #### type
 type,查找指定命令的类型  
 $ type -a cd  
-cd is a shell builtin  // cd是shell的自带命令(build-in)  
+`cd is a shell builtin`，cd是shell的自带命令(build-in)  
 
 $ type -a ls  
-ls is aliased to `ls --color=auto'  // ls是一个外部命令，并显示该命令的路径  
+``ls is aliased to `ls --color=auto'``，ls是一个外部命令，并显示该命令的路径  
 ls is /bin/ls  
 
-$ type -p ls //加上-p参数后，就相当于which命令。  
+`type -p ls`，加上-p参数后，就相当于which命令。  
 type命令其实不能算查找命令，它是用来区分某个命令到底是由shell自带的，还是由shell外部的独立二进制文件提供的。如果一个命令是外部命令，那么使用-p参数，会显示该命令的路径，相当于which命令。  
 type命令用来显示指定命令的类型。一个命令的类型可以是如下之一，  
 •alias 别名  
@@ -974,24 +978,24 @@ Linux下文件切割、合并 的 三种方法：
 Linux下文件的切割与合并(split+cat)  
 当前目录下有sp4.exe文件容量129M ，我用64M的U盘把spe.exe考到另一台机器上。这个U盘一次装不下129M ，只能将文件分割成多个小的部分，多次拷贝。  
 **文件切割：**  
-\# split -b 60m sp4.exe partial  //文件切割,分配每个切割大小为60MByte。  
+`#split -b 60m sp4.exe partial`，文件切割,分配每个切割大小为60MByte。  
 用-b或-C指定分块大小。-b,--bytes=SIZE,SIZE值为每一输出档案的大小，单位为byte。-C,--line-bytes=SIZE。  
 SIZE可加入单位: b 代表 512，k 代表 1K，m 代表1Meg。  
-\# ls //按partialaa、partialab、partialac的格式生成如下文件,生成的文件自动添加了后缀aa/ab/ac  
+`#ls`，按partialaa、partialab、partialac的格式生成如下文件,生成的文件自动添加了后缀aa/ab/ac  
 -rw-r--r--    1 root     root     62914560  5月 18 00:40 partialaa   
 -rw-r--r--    1 root     root     62914560  5月 18 00:41 partialab   
--rw-r--r--    1 root     root      8576176  5月 18 00:41 partialac   //partialaa/partialab为60mbyte，剩下的给partialac。  
+`-rw-r--r--    1 root     root      8576176  5月 18 00:41 partialac`，partialaa/partialab为60mbyte，剩下的给partialac。  
 **拷贝到另一台机器上，将多个部分合并：**  
-\# cat partialaa partialab partialac > sp4.exe 或 cat partiala* > sp4.exe  //文件合并。用jion也可以合并。  
+`#cat partialaa partialab partialac > sp4.exe 或 cat partiala* > sp4.exe`，文件合并。用jion也可以合并。  
 附注：  
-#split -b 60m sp4.exe       //如果不指定输出名字，那么输出文件名将会是xaa,xab,…的形式。  
-#split -b 60m sp4.exe split//指定输出文件名为split，那么输出文件将会是splitaa,splitab…,  
+`#split -b 60m sp4.exe`，如果不指定输出名字，那么输出文件名将会是xaa,xab,…的形式。  
+`#split -b 60m sp4.exe split`，指定输出文件名为split，那么输出文件将会是splitaa,splitab…,  
 
 文件1.Android开发.zip,大小为3.9G，下面对它进行切割、合并操作。  
 $ ls -l 1.Android开发.zip  
 -rwx------+ 1 Administrators None 4196507906 Oct 13 22:41 1.Android开发.zip  
 **切割：**  
-$ split -b 2048m 1.Android_origin.zip partial //按2048M=2G大小切割。  
+`split -b 2048m 1.Android_origin.zip partial`，按2048M=2G大小切割。  
 $ ls -l partiala\*  
 -rw-r--r--+ 1 lenovo None 2147483648 Oct 14 00:13 partialaa  
 -rw-r--r--+ 1 lenovo None 2049024258 Oct 14 00:14 partialab  
@@ -1031,8 +1035,8 @@ Units are K,M,G,T,P,E,Z,Y (powers of 1024) or KB,MB,... (powers of 1000).
 Linux文件切割、合并(dd+cat)  
 将一个140kbyte的文件originFile分割成两部分，一部分为part1，大小为60kbyte，剩下的分给另一部分part2。  
 **文件切割**  
-\# dd if=originFile bs=1024 count=60 skip=0    of=part1  //count*bs=60*1024byte=60kbyte  
-\# dd if=originFile bs=1024 count=80 skip=60  of=part2  //skip=60,忽略file1已经切割的大小  
+`#dd if=originFile bs=1024 count=60 skip=0    of=part1`，count*bs=60*1024byte=60kbyte  
+`#dd if=originFile bs=1024 count=80 skip=60  of=part2`，skip=60,忽略file1已经切割的大小  
 第一部分，count\*bs=60\*1024byte=60kbyte,  
 第二部分，skip=60\*1024byte=60kbyte=第一部分的大小,剩下140kbyte-60kbyte=80kbyte=80\*1024byte。  
 **文件合并**  
