@@ -318,8 +318,8 @@ locate命令比find快得多，原因在于它不搜索具体目录，而是搜�
 
 ##### find例子
 `find -name connection.c`  
-`find -name .git -prune -o -name recent -prune -o -name .cache -prune -o -name '*.tmp' -prune -o -type f -exec ls -l {} +`  
-`find -name .git -prune -o -name recent -prune -o -name .cache -prune -o -name '*.tmp' -prune -o -type f -print0 | xargs -0 ls -l`  
+`find -name .git -prune -o -name recent -prune -o -name recent_common -prune -o -name .cache -prune -o -name '*.tmp' -prune -o -type f -exec ls -l {} +`  
+`find -name .git -prune -o -name recent -prune -o -name recent_common -prune -o -name .cache -prune -o -name '*.tmp' -prune -o -type f -print0 | xargs -0 ls -l`  
 
 
 ##### find基础
