@@ -232,6 +232,18 @@ git switch - //切换到上一个分支
 
 
 ### worktree  
+git worktree add \<path\>  
+git worktree add \<path\> [branch]  
+git worktree add \<path\> [commit]  
+git worktree add [-b new-branch] \<path\> [branch]  
+git worktree add [-b new-branch] \<path\> [commit]  
+
+git worktree add ../test  
+git worktree add ../test master  
+git worktree add ../test SHA  
+git worktree add -b newbranch ../test master  
+git worktree add -b newbranch ../test SHA  
+
 git worktree list  
 git worktree add ../project-dev dev  
 git worktree remove ../project-dev  
@@ -240,8 +252,6 @@ git worktree repair ../project
 git worktree lock ../project  
 git worktree lock \--reason "comments" ../project  
 git worktree unlock ../project  
-git worktree add \<path\> \<branch\>  
-git worktree add -b \<new-branch\> \<path\> \<commit>  
 
 
 
