@@ -43,6 +43,8 @@ Script done, file is mylog.txt
 `sed -E 's/\x1B\[[0-9;]*[a-zA-Z]//g; s/\x1B[][()#%][0-9;]*[a-zA-Z]?//g; s/\x1B[PX^_]//g' mylog.txt > clean.txt`  
 
 
+# 经验/技巧
+`D:\software\cygwin64\bin\fatty.exe cmd.exe`  
 
 
 

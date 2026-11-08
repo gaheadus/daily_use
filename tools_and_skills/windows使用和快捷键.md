@@ -332,3 +332,9 @@ o启用命令：netsh interface set interface "以太网" enable
 o禁用命令：netsh interface set interface "Wi-Fi" disable  
 o启用命令：netsh interface set interface "Wi-Fi" enable  
 
+##### 查看WiFi信道
+一、使用命令提示符查看当前连接网络的信道
+读取无线网卡当前接口状态，可快速获取已连接网络的工作信道与信号强度等关键参数。
+netsh wlan show interfaces
+二、使用命令提示符扫描全部周边 WiFi 网络信道
+netsh wlan show networks mode=bssid
