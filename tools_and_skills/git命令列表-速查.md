@@ -275,6 +275,46 @@ git remote show \<name\>
 git remote prune \<name\>  
 git remote update  
 
+### pull/push/fetch总结
+| 命令 | 说明 |
+| --- | --- |
+| git pull | 拉取当前分支的上游分支，并自动合并 |
+| git pull origin main | 从 origin 的 main 分支拉取并合并到当前分支 |
+| git pull --rebase | 使用 rebase 代替 merge，保持提交历史更整洁 |
+| git pull --ff-only | 仅允许快进合并，否则拒绝合并 |
+| git pull origin dev:dev | 拉取 origin 的 dev 分支并合并到本地 dev 分支 |
+
+- --rebase：用 rebase 代替 merge，避免产生多余的 merge commit。
+- --ff-only：只允许快进合并，如果有冲突则中止操作。
+- --no-commit：拉取后不自动提交，方便检查合并结果。
+- --verbose / -v：显示详细输出。
+
+| 命令 | 说明 |
+| --- | --- |
+| git push | 推送当前分支到已设置的上游分支 |
+| git push origin main | 推送本地 main 到 origin/main |
+| git push -u origin feature | 推送并设置上游跟踪分支，之后可直接 git push |
+| git push origin local:remote | 把本地分支推送到不同名的远程分支 |
+| git push --tags | 推送所有本地标签 |
+| git push origin :old-branch | 删除远程分支 |
+| git push --force | 强制推送，可能覆盖远程历史，慎用 |
+| git push --force-with-lease | 更安全的强制推送，远程有他人新提交时会拒绝 |
+| git push --dry-run | 预览推送结果，不实际执行 |
+| git push --all | 推送所有本地分支 |
+
+pull/push可以省略destination，或者source、destination两个都省略，省略时destination分支与source分支同名。push省略source表示删除远程分支。  
+
+| 命令 | 说明 |
+| --- | --- |
+| git fetch | 从默认远程仓库获取更新 |
+| git fetch origin | 从 origin 获取所有分支更新 |
+| git fetch origin main | 只获取 origin 的 main 分支更新 |
+| git fetch --all | 获取所有远程仓库的更新 |
+| git fetch --tags | 同时获取所有标签 |
+| git fetch --prune | 删除远程已不存在的分支对应的本地跟踪引用 |
+| git fetch --dry-run | 预览会获取哪些更新，但不实际下载 |
+| git fetch origin feature:feature | 把远程 feature 分支更新到本地 feature 分支 |    
+
 
 ### push  
 git push                       //默认推送当前分支  
@@ -299,6 +339,14 @@ git pull \--rebase origin main
 git pull \--ff-only  
 git pull \--no-ff  
 git pull -v  
+
+##### 临时性从另外一个git目录拉取代码
+从远程ssh服务器的某个git目录拉取代码：  
+`git pull ssh://user@ubuntu_server_ip:/path/to/repo/.git main`  
+或者从本地另外一个git目录拉取代码：  
+`git pull /path/to/repo/.git main`  
+注意：路径必须写 .git 目录（非 bare 仓库的 git 数据目录）。  
+
 
 
 ### fetch  

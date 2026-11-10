@@ -308,6 +308,13 @@ https://www.cnblogs.com/biglucky/p/5076885.html
 \$ git remote set-url --push [name] [newUrl] //修改远程仓库  
 \$ git branch --set-upstream [branch] [remote-branch] //建立追踪关系，在现有分支与指定的远程分支之间  
 
+##### 临时性从另外一个git目录拉取代码
+从远程ssh服务器的某个git目录拉取代码：  
+`git pull ssh://user@ubuntu_server_ip:/path/to/repo/.git main`  
+或者从本地另外一个git目录拉取代码：  
+`git pull /path/to/repo/.git main`  
+注意：路径必须写 .git 目录（非 bare 仓库的 git 数据目录）。  
+
 
 ### 九、撤销  
 \$ git reset --hard HEAD //撤销工作目录中所有未提交文件的修改内容  
