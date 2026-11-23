@@ -387,6 +387,33 @@ git cherry-pick \--continue
 git cherry-pick -n 5d3a1b2 // \--no-commit  
 git cherry-pick -x 5d3a1b2 //记录来源  
 
+##### 如何在不切换分支的情况下cherry-pick？
+当前在brancha分支上，提交了commit1，如何在不切换分支的情况下，将提交commit1提交cherry-pick到另外一个分支branchb？  
+**标准 Cherry-pick 流程（常规做法）**  
+如果你不介意手动切换，标准的 cherry-pick 流程如下：  
+1.查找提交哈希：在 brancha 上找到 commit1 的哈希值（假设为 abc1234）。  
+`git log --oneline`  
+2.切换并摘取：  
+`git checkout branchb`  
+`git cherry-pick abc1234`  
+3.处理冲突（如有）：如果发生冲突，Git 会暂停。手动解决冲突文件后，执行 git add .，然后运行 git cherry-pick --continue。如果想放弃，执行 git cherry-pick --abort。  
+
+**方法：使用 Git Worktree（高级且推荐）**  
+当前正在 brancha 上开发，工作区很乱，完全不想打断当前状态，可以使用 Git 原生的多工作树功能。它能在不切换当前分支的情况下，把 branchb 挂载到另一个目录进行操作。  
+1. 将 branchb 检出到一个临时目录（例如 /tmp/branchb_work）  
+`git worktree add /tmp/branchb_work branchb`  
+2. 进入该目录，此时相当于在独立环境中操作 branchb  
+`cd /tmp/branchb_work`  
+3. 执行 cherry-pick  
+git cherry-pick <commit1的哈希值>  
+4. 操作完成后，返回原目录并清理临时工作树  
+`cd -`  
+`git worktree remove /tmp/branchb_work`  
+•优势：你的主工作区（brancha）完全不受任何影响，IDE 或终端状态也不会被打断。
+分析：利用worktree能让工作目录同时在两个分支上的特点，其实是两个不同工作目录各自在自己的一个分支上，同一个工作目录仍然只能同时在一个分支上，宏观上看就是工作目录同时在两个不同分支上。
+
+
+
 
 # 6. 撤销与重置 (Reset, Revert, Clean, Stash)  
 ### reset  

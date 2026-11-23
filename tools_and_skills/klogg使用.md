@@ -1,9 +1,25 @@
 # 用法
-
+### 1、基础
 •组合搜索：例如，查找包含 "ERROR" 但不包含 "Timeout" 的日志，搜索：("ERROR") and not ("Timeout")。
 支持括号分组：("error" or "warning") and ("server1") 、 ( ("error") or ("warning") ) and ("server1")
 •多条件匹配：查找数据库连接错误或认证失败的日志：("database.*error") or ("authentication.*failed")
 
+
+### 2、正则表达式
+① .*
+Entering (Open|Close)Connection|Created a .* connection
+.* will match any sequence of characters on a single line, but klogg will only display lines with a space and the word connection somewhere after Created a
+
+②单词边界使用\b：\bpwd\b
+
+③特殊字符{}[]
+"EventMaxTime":\[\{"time":\d+,"value":"\d+"\}\]
+"EventMaxTime":\[\{"time":\d+,"value":"\d+"}]
+搜索如下字符串：
+"EventMaxTime":[{"time":1795153561950,"value":"30"}]
+
+
+### 3、混合表达式
 混合表达式，使用and/or/not/&/\|逻辑运算符，将![klogg_regular_expression.png](../Resources/klogg_regular_expression.png)选上，Enable regular expression logical combining，并且被搜索的字符串必须加上双引号和小括号，例如：("_pmu_print_active_modules") AND ("PMU Status")。
 ![klogg_regular_expression2.png](../Resources/klogg_regular_expression2.png)
 例如：("_pmu_print_active_modules") AND NOT ("PMU Status")
@@ -16,7 +32,7 @@
 
 Following logic operations are supported:
 
-| 快捷键（Windows/Linux） | 说明                                                                                            |
+| 操作符                   | 说明                                                                                            |
 | ----------------------- | ----------------------------------------------------------------------------------------------- |
 | Operator                | Actions                                                                                         |
 | and                     | Logical AND, True only if x and y both match input line. (eg: "x" and "y")                      |
@@ -24,6 +40,12 @@ Following logic operations are supported:
 | &                       | Similar to AND but with left to right expression short circuiting optimization                  |
 | \|                      | Similar to OR but with left to right expression short circuiting optimization                   |
 | not                     | Logical NOT, Negate the logical sense of the input. Input must be enclosed in () (eg: not("x")) |
+
+
+
+
+<br>
+
 
 
 # 总结
@@ -41,6 +63,8 @@ Following logic operations are supported:
 --结论：如果小括号后面有and/or/&/|，那么小括号里面的and/or/&/\|能正常匹配。
     如果小括号后面没有and/or/&/\|，那么小括号里面只能用&/\|。
 推荐：**小括号与后面其他被搜索字符之间使用逻辑运算符连接起来**，这样，不管小括号里面使用and/or还是&\|都可以正常工作。--回到了前面的结论：**逻辑运算符的前面的字符、后面的字符都加上双引号和小括号**。
+
+
 
 
 # 快捷键
@@ -128,6 +152,9 @@ klogg的快捷键设计参考了Vim，支持键盘高效操作。
 | -l,--log             | save the log to a file                                                    |
 | -f,--follow          | follow initial opened files                                               |
 | -d,--debug           | output more debug (include multiple times for more verbosity e.g. -dddd)  |
+
+
+
 
 
 # klogg详解
